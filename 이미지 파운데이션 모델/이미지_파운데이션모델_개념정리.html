@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>딥러닝 및 이미지 파운데이션 모델 — 개념정리</title>
+<style>
+:root{
+  --navy:#12294d;
+  --navy-light:#1b3a6b;
+  --blue:#2563eb;
+  --indigo:#4f46e5;
+  --purple:#7c3aed;
+  --teal:#0d9488;
+  --orange:#ea580c;
+  --pink:#db2777;
+  --green:#16a34a;
+  --amber:#b45309;
+  --red:#dc2626;
+  --slate:#475569;
+  --bg:#f4f6fb;
+  --card:#ffffff;
+  --ink:#1e2530;
+  --sub:#5b6472;
+  --line:#e4e8f0;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.6;
+}
+a{color:inherit;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 55%,#284a82 100%);
+  color:#fff;
+  padding:52px 24px 40px;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:"";
+  position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,0.10),transparent 70%);
+}
+.hero-inner{max-width:1100px;margin:0 auto;position:relative;}
+.hero-eyebrow{
+  display:inline-block;
+  font-size:12.5px; letter-spacing:.08em; font-weight:700;
+  background:rgba(255,255,255,0.14);
+  padding:5px 12px; border-radius:999px;
+  margin-bottom:14px;
+}
+.hero h1{font-size:30px; margin:0 0 8px; font-weight:800; letter-spacing:-0.5px;}
+.hero .sub{font-size:15.5px; color:#c9d6ee; margin:0 0 20px;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:13px;}
+.hero-meta span{
+  background:rgba(255,255,255,0.10);
+  border:1px solid rgba(255,255,255,0.18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:12.5px; color:#b9c6de;
+  background:rgba(0,0,0,0.18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid #f5b942;
+}
+
+/* ===== TOC ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:rgba(255,255,255,0.96);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 2px 10px rgba(20,30,60,0.05);
+}
+.toc{
+  max-width:1100px; margin:0 auto;
+  display:flex; gap:6px; flex-wrap:wrap;
+  padding:10px 20px;
+}
+.toc a{
+  font-size:12.3px; font-weight:700;
+  padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate);
+  background:#eef1f7;
+  white-space:nowrap;
+  transition:.15s;
+}
+.toc a:hover{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1100px; margin:0 auto; padding:34px 20px 80px;}
+.section{margin-bottom:52px; scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px;
+  margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px;
+  background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:16px; flex-shrink:0;
+}
+.section-head h2{margin:0; font-size:21px; font-weight:800; color:var(--navy);}
+.section-head .desc{font-size:12.5px; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px;
+  padding:16px 18px; border:1px solid var(--line);
+  border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px rgba(20,30,60,0.04);
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:15px; font-weight:800; color:var(--navy);}
+.card h3 .tag{
+  display:inline-block; font-size:10.5px; font-weight:700;
+  background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px;
+  vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:13.4px; color:#333;}
+.card ul{margin:6px 0 0; padding-left:18px;}
+.card li{font-size:13.3px; margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:11px; color:#9aa3b2; margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:#0f1c33; color:#dbe6ff;
+  font-family:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  font-size:12.6px; padding:12px 14px; border-radius:8px;
+  overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .cm{color:#7d93c2;}
+.formula .kw{color:#8fd3ff;}
+.formula .num{color:#ffb454;}
+
+.note{
+  background:#fff8ea; border:1px solid #f3dca6;
+  border-left:4px solid #e0a419;
+  border-radius:8px; padding:10px 14px; font-size:12.6px; color:#6b4d0f;
+  margin:14px 0;
+}
+.note.gap{
+  background:#f2f4f8; border-color:#d7dce6; border-left-color:#8b93a3; color:#4b5364;
+}
+.note b{color:inherit;}
+
+.compare{width:100%; border-collapse:collapse; font-size:12.6px; margin:8px 0;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left;}
+.compare th{background:#f1f4fa; color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy); white-space:nowrap;}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{
+  font-size:11.3px; font-weight:700; padding:4px 10px; border-radius:999px;
+  background:#eef1f7; color:var(--slate); border:1px solid var(--line);
+}
+
+.subhead{
+  font-size:13px; font-weight:800; color:var(--accent,var(--blue));
+  margin:14px 0 4px; text-transform:none;
+}
+
+.summary-box{
+  background:linear-gradient(135deg,#eef4ff,#f7f2ff);
+  border:1px solid #dbe3fb; border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:14.5px; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:13.3px; margin-bottom:8px;}
+
+footer{
+  text-align:center; padding:30px 20px 50px; color:#98a0ae; font-size:12px;
+}
+
+#top-btn{
+  position:fixed; right:22px; bottom:22px;
+  width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:18px; font-weight:700;
+  box-shadow:0 4px 14px rgba(20,30,60,0.3);
+  z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:23px;}
+  .section-head h2{font-size:18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY · 딥러닝 이론</span>
+    <h1>딥러닝 및 이미지 파운데이션 모델</h1>
+    <p class="sub">"이미지 파운데이션 모델" — CLIP·VLM·생성모델·Fine-tuning·AGI까지 4차시 강의 개념정리</p>
+    <div class="hero-meta">
+      <span>👤 KAIST 오태현 교수</span>
+      <span>📑 전체 242p 중 220p 확보</span>
+      <span>🗂️ 1~4차시 통합본</span>
+    </div>
+    <div class="hero-note">
+      ⚠️ 영상 프레임 추출본이라 재생 속도상 일부 페이지가 비어있었으나, <b>p58(SDS loss), p180~189(프롬프트 튜닝·Adapter·개인화모델 DreamBooth·Knowledge Distillation), p218(Visual Programming 영상기반추론)</b>은 원본 슬라이드 캡처를 받아 보강했습니다.
+      남은 미확보 23페이지: p8,18,28,38,48,78,80-89,94,98,112,118,138,169,178.
+    </div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#s0">🏁 개요</a>
+    <a href="#s1">1. 파운데이션 모델</a>
+    <a href="#s2">2. CLIP</a>
+    <a href="#s3">3. SigLIP&정합응용</a>
+    <a href="#s4">4. VLM</a>
+    <a href="#s5">5. Small VLM</a>
+    <a href="#s6">6. 세그멘테이션</a>
+    <a href="#s7">7. 이미지 생성모델</a>
+    <a href="#s8">8. 3D·비디오 생성</a>
+    <a href="#s9">9. Fine-tuning</a>
+    <a href="#s10">10. PEFT</a>
+    <a href="#s11">11. 합성데이터</a>
+    <a href="#s12">12. AGI·Agent</a>
+    <a href="#s13">13. 실습</a>
+    <a href="#s14">✅ 총정리</a>
+  </nav>
+</div>
+
+<main>
+
+<!-- ===================== 0. 개요 ===================== -->
+<section class="section" id="s0" style="--accent:var(--navy)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>강의 개요</h2><p class="desc">목차 4개 차시 구성</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>CONTENTS</h3>
+      <ul>
+        <li><b>1차시</b> — AI 파운데이션 모델 개념 및 대표 모델 (CLIP)</li>
+        <li><b>2차시</b> — Vision-Language Model (VLM) · Small VLM과 파운데이션 모델들 소개</li>
+        <li><b>3차시</b> — 파운데이션 모델 + Fine-tuning · 개인화</li>
+        <li><b>4차시</b> — 합성 데이터 활용 사례 · AGI를 향해서 · 실습</li>
+      </ul>
+      <p class="src">학습목표: ① 파운데이션 모델 개념·특징 설명 ② Pre-training/Fine-tuning/Zero·Few-shot 구분 ③ 기존 머신러닝과의 차이 이해 ④ CLIP의 개념과 역량 이해</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 1. 파운데이션 모델 ===================== -->
+<section class="section" id="s1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>AI 파운데이션 모델(Foundation Model)이란?</h2><p class="desc">1-1</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3>AI 모델이란</h3>
+      <ul>
+        <li>가장 단순한 관점: <b>함수 또는 프로그램</b></li>
+        <li>입출력을 연결하는 함수 / 데이터로부터 그 형태가 결정되는 함수</li>
+        <li><b>학습 때 보지 못했던 데이터</b>에 대해서도 작동이 요구되는 함수</li>
+        <li>예: 뉴럴넷 (입력 → 뉴럴넷 → 출력)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>이상적인 AI 모델 vs 현실</h3>
+      <ul>
+        <li><b>이상적</b>: 세상 모든 데이터와 설명을 다 기억 → 검색엔진의 Nearest Neighbor Search와 유사한 발상</li>
+        <li>그러나 데이터 확보·저장·탐색 비용이 크고 비현실적</li>
+        <li><b>현실적</b>: 데이터를 패턴화하여 <b>압축(Representation Learning)</b> → 비슷함/다름을 파악하고 새 데이터에 일반화</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3>파운데이션 모델 정의</h3>
+      <p><b>대규모 데이터로 사전학습(Pre-training)</b>한 후, 다양한 문제·작업에 범용적으로 빠르게 적용(Adaptation)할 수 있는 기반 AI 모델. 2021년 스탠포드 대학 중심 AI연구소 보고서(Bommasani et al.)에서 새로운 범주로 처음 구분.</p>
+      <div class="subhead">기존 vs 파운데이션 모델 패러다임</div>
+      <table class="compare">
+        <tr><th>기존 딥러닝 개발</th><th>파운데이션 모델</th></tr>
+        <tr><td>아기처럼 언어·시각·청각 등 기본부터 각각 배워나감</td><td>거대 모델(커진 뇌) + 대규모 데이터 학습(많은 지식·경험) → 새로운 일도 처음부터 금방 배우고 잘함</td></tr>
+      </table>
+      <div class="subhead">개발 프로세스</div>
+      <p style="font-size:13px;font-weight:700;color:var(--navy)">Data Creation → Data Curation → Training → Adaptation → Deployment</p>
+    </div>
+    <div class="card full">
+      <h3>파운데이션 모델의 3대 특징</h3>
+      <ul>
+        <li><b>① 대규모 사전학습</b> — 트랜스포머 + 대규모 데이터 학습. 태스크와 무관한 비슷한 패턴들을 활용(주로 비지도학습으로 훈련된 모델도 많이 등장) → 쉬운 데이터 수집 + 대규모 + 사전학습</li>
+        <li><b>② 적응성</b> — 높은 미세조정 성능(높은 태스크 적용성능). 하나의 믿을 수 있는 모델 → 다양한 목적에 적용. 활용 기법: 프롬프트(엔지니어링/튜닝), 전이학습, 적응(Adaptation)학습, 파인튜닝</li>
+        <li><b>③ 범용성</b> — 다양한 작업, 한정되지 않은 출력 지원. 예) 기존: 룰렛/구조상 20여개 물체 구분으로 한정 / 파운데이션 모델: 만 개 이상 카테고리 판별 및 대상에 대한 인식 안됨도 상대 가능</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3>적응(Adaptation) 활용 방법</h3>
+      <table class="compare">
+        <tr><th>방법</th><th>내용</th></tr>
+        <tr><td class="k">Zero-shot</td><td>직접 분포 확장 학습 없이 바로 적용 — 모델 자체가 가진 배경지식 활용</td></tr>
+        <tr><td class="k">Few-shot</td><td>예제 몇 개만 보여주면 비슷하게 적용</td></tr>
+        <tr><td class="k">Fine-tuning</td><td>처음부터 배우지 않고 조금만 추가 튜닝 — 모델 가중치 자체가 변경됨</td></tr>
+      </table>
+      <p style="margin-top:8px">과거엔 매번 태스크별로 새로 학습했지만, 이제는 잘 학습된 모델을 얼마나 잘 "활용"하느냐가 더 중요해짐. 단, 파운데이션 모델 하나 확보에는 대규모 리소스(데이터·계산·전력)가 필요해 일부 기관만 가능.</p>
+    </div>
+  </div>
+
+  <div class="note" style="margin-top:16px">
+    <b>AGI를 향해서 (섹션 도입 배경)</b> — Human's Intelligence(cognition) = perception ∪ higher cognitive processes.
+    2022년 11월 이전에는 분야별 지능의 부분적 능력만 개별 모델링되었으나, ChatGPT 등장(2022.11) 이후 대규모 언어모델(LLM)이 높은 사고·추론 성능을 보이기 시작(다양한 인지능력 벤치마크에서 인간 수준 근접). 그러나 <b>사고·언어 능력만으로는 현실 세계를 이해하기 충분하지 않음</b> → 시각(Perception) 능력이 필요 → Vision-Language Model 등장 배경.
+  </div>
+</section>
+
+<!-- ===================== 2. CLIP ===================== -->
+<section class="section" id="s2" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>CLIP (Contrastive Language-Image Pre-training, 2021, OpenAI)</h2><p class="desc">1-2 ~ 1-4</p></div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card full">
+      <h3>시각언어모델 예시로 본 배경</h3>
+      <p><b>GPT-4(2023)</b>: 텍스트뿐 아니라 이미지·문서·음성 등 멀티모달 데이터를 처리하는 모델. GPT-4V로 이미지 이상탐지, <b>Sketch-to-web</b>(손그림 → 실제 동작하는 HTML/CSS 웹페이지 생성) 등 응용. <b>Claude Computer Use</b>: 텍스트 지시만으로 컴퓨터 화면을 스스로 조작하는 agentic 서비스(고화질 인터페이스 상호작용엔 이미지 캡처 방식 선호 = 시각 이해가 필요한 이유).</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">1-1</span>CLIP 핵심 아이디어</h3>
+      <p><b>대조 학습(Contrastive Pre-training)</b> 기반 언어-이미지 사전학습. 인터넷에서 수집한 <b>4억 개의 이미지-텍스트 쌍</b>으로 학습하여 지도학습(supervised learning)을 자연어 기반 시각 개념 학습으로 대체.</p>
+      <ul>
+        <li>수집: alt-text HTML 태그, 이미지 캡션, 제목 등을 기준으로 인터넷에서 이미지-텍스트 쌍 수집</li>
+        <li>정제: 중복 이미지, 해상도 낮은 이미지, 짧은 텍스트 등 필터링</li>
+        <li>텍스트 인코더: <b>Transformer</b> 기반 / 이미지 인코더: <b>ViT-B (또는 ResNet50)</b></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">1-2</span>텍스트 인코더</h3>
+      <ul>
+        <li>Transformer 기반 (Encoder+Decoder 구조 중 CLIP은 필요 부분만 사용)</li>
+        <li>토큰 단위 입력, Attention으로 토큰 간 관계 파악</li>
+        <li>L 길이의 입력 토큰은 D차원 특징벡터(임베딩) 배열 (L × D)로 입력</li>
+        <li>자연어: <b>Sub-word 단위 임베딩</b> — vocabulary size 50,257 / small 768·medium 1024·large 1280·xtra large 1600 임베딩 사이즈</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-3</span>이미지 인코더 (ViT)</h3>
+      <ul>
+        <li>이미지를 작은 패치(16×16×3)로 나눔 → 각 패치를 1D로 Flatten</li>
+        <li><b>Learnable Position Embedding</b>으로 패치별 위치정보 부여, 학습 과정에서 함께 학습됨</li>
+        <li>Transformer Encoder로 패치 처리 → <b>MLP Head</b>로 분류 작업 수행 (CLIP은 이 Head를 CLIP 학습법으로 대체)</li>
+        <li>텍스트 인코더(자연어 입력): Sub-word 임베딩 / 이미지 인코더(이미지 입력): 패치 단위 임베딩 — ViT는 비전 분야에 트랜스포머를 최소 수정으로 적용한 모델</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-4</span>학습 — 대조 학습(Contrastive Learning)</h3>
+      <p>학습 기준: 목표 이미지(앵커)를 대응하는 텍스트(양성)와 가깝게, 일치하지 않는 여러 텍스트(음성)와는 멀게 → <b>의미에 따른 거리 감각을 학습</b>하도록 유도 (예: 강아지 이미지 앵커 ↔ "강아지" 텍스트는 가깝게, "코끼리·자전거·컴퓨터"는 멀게)</p>
+      <div class="subhead">Softmax with Temperature</div>
+      <p>로짓(logits)을 확률(probabilities)로 변환. Temperature T로 분포의 뾰족함을 조절 — T=1.00은 완만, T=7.00처럼 크면 더 뾰족한 분포.</p>
+    </div>
+
+    <div class="card full">
+      <h3>대조 학습 손실함수 (수식)</h3>
+      <p style="font-size:12.8px">s<sub>ij</sub> = i번째 이미지와 j번째 텍스트 임베딩 간의 코사인 유사도</p>
+      <div class="formula">
+L_CLIP = <span class="kw">-1/N</span> · Σᵢ log( e^(s_ii/τ) / Σⱼ e^(s_ij/τ) )   <span class="cm">// Image → Text Loss</span>
+       + <span class="kw">-1/N</span> · Σⱼ log( e^(s_ij/τ) / Σᵢ e^(s_ij/τ) )   <span class="cm">// Text → Image Loss</span>
+      </div>
+      <div class="subhead">Numpy-like pseudocode</div>
+      <div class="formula">
+<span class="cm"># 각 모달리티에서 특징 추출</span>
+I_f = image_encoder(I)   <span class="cm"># [n, d_i]</span>
+T_f = text_encoder(T)    <span class="cm"># [n, d_t]</span>
+
+<span class="cm"># 공동 멀티모달 임베딩 + L2 정규화</span>
+I_e = l2_normalize(np.dot(I_f, W_i), axis=1)
+T_e = l2_normalize(np.dot(T_f, W_t), axis=1)
+
+<span class="cm"># 스케일링된 pairwise 코사인 유사도</span>
+logits = np.dot(I_e, T_e.T) * np.exp(t)
+
+<span class="cm"># 대칭 손실함수</span>
+labels = np.arange(n)
+loss_i = cross_entropy_loss(logits, labels, axis=0)
+loss_t = cross_entropy_loss(logits, labels, axis=1)
+loss   = (loss_i + loss_t) / 2
+      </div>
+    </div>
+
+    <div class="card full">
+      <h3>CLIP 간단 응용 — 제로샷 이미지 인식</h3>
+      <ul>
+        <li>텍스트로 원하는 물체 카테고리 리스트 준비</li>
+        <li>텍스트 기반 카테고리 리스트를 텍스트 임베딩으로 변환하여 Vector DB 준비</li>
+        <li>쿼리 이미지와 비교해서 가장 높은 점수의 카테고리 반환</li>
+      </ul>
+      <p><b>특징</b>: 대규모 데이터로 사전학습된 범용 모델 / 하나의 모델로 다양한 태스크에 빠르게 적용 / 확장성·범용성 높은 성능 / 이미지-텍스트 쌍 데이터를 활용한 이미지-언어 연결</p>
+      <p class="src">출처: Radford et al., "Learning transferable visual models from natural language supervision", ICML 2021</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 3. SigLIP & 정합응용 ===================== -->
+<section class="section" id="s3" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>SigLIP & CLIP 심화 응용 — 멀티모달 정합</h2><p class="desc">SigLIP(2023) / 멀티모달 Alignment</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>SigLIP (2023)</h3>
+      <p><b>배경 — CLIP Softmax 대조학습의 한계</b>: 이미 충분히 거리가 먼 음성(negative) 데이터 쌍에 대해서도 계속 거리를 벌리려 학습이 진행되어 비효율적.</p>
+      <p><b>해법</b>: 일치하지 않는 음성 데이터에 <b>제한된 영향만 받도록</b> 손실함수를 <b>Sigmoid 기반</b>으로 디자인 고침 (SigCLIP과 달리).</p>
+      <div class="formula">
+L_SigLIP = <span class="kw">-1/N²</span> · Σᵢ Σⱼ log( 1 / (1 + e^(-z_ij·(t·x_i·y_j + b))) )
+
+Label z = { -1 : 음성 페어(다른 의미)  →  가까워지면 좋음X
+            +1 : 양성 페어(같은 의미)  →  가까워지면 좋음  }
+
+Sigmoid 함수: φ(s) = 1 / (1 + e^(-s))
+      </div>
+      <p><b>Sigmoid 함수의 역할</b>: 어느 정도 값이 커지면(멀어지면) 이후엔 그래디언트가 자연히 줄어들어 더 신경쓰지 않아도 됨.</p>
+      <p><b>성능</b>: CLIP 대비 SigLIP이 압도적 성능, 특히 <b>학습 데이터에 노이즈가 많아질수록</b> 격차가 더 벌어짐. 최근 SigLIP2까지 공개되어 최신 VLM에 널리 활용 중.</p>
+      <p class="src">출처: Zhai et al., "Sigmoid Loss for Language Image Pre-training", ICCV 2023</p>
+    </div>
+
+    <div class="card full">
+      <h3>멀티모달 정합(Multi-modal Alignment)</h3>
+      <p>정의: <b>둘 이상의 모달리티</b>(예: 이미지-텍스트) 간 <b>공통된 임베딩 벡터 공간</b>을 구성하는 것 → 모달리티 간 유사도(연관성) 비교 가능</p>
+      <p><b>ImageBIND (Meta)</b> — "One Embedding Space To Bind Them All": 이미지·비디오·텍스트·오디오·뎁스·열화상·IMU까지 여러 모달리티 공간을 공유하도록 학습. 응용: Cross-Modal Retrieval, Embedding-Space Arithmetic, Audio-to-Image Generation 등.</p>
+      <div class="subhead">정합 활용 2가지 디자인</div>
+      <table class="compare">
+        <tr><th>변환 (Translating)</th><th>정렬 (Matching)</th></tr>
+        <tr><td>모달리티 A → 모달리티 B로 직접 변환</td><td>두 모달리티를 정렬된 피처 공간(aligned feature space)에 매핑해 비교</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>멀티모달 정합 손실 함수 (Multi-modal Alignment Loss)</h3>
+      <p>서로 다른 모달리티(예: 이미지-텍스트) 사이에 <b>정렬된 정도를 측정</b>하는 손실함수. 대표적인 텍스트-이미지 손실함수로 <b>CLIP loss</b>와 <b>Score Distillation Sampling(SDS) loss</b> 두 가지가 있음.</p>
+      <table class="compare">
+        <tr><th></th><th>CLIP loss [Radford, 2021]</th><th>SDS loss [Poole, 2023]</th></tr>
+        <tr><td class="k">활용 모델</td><td>사전학습된 <b>CLIP</b> 활용</td><td>사전학습된 <b>text-to-image diffusion model</b>(예: Imagen) 활용</td></tr>
+        <tr><td class="k">방식</td><td>텍스트 임베딩(T₁~T_N)과 이미지 임베딩(I₁~I_N)의 코사인 유사도 행렬을 직접 비교</td><td>노이즈 z_t ~ U(0,1)를 diffusion U-Net으로 예측(x̂_φ(z_t│y;t))하며, 예측이 목표 텍스트 프롬프트(예: "a DSLR photo of a peacock on a surfboard")에 가까워지도록 그래디언트 전달</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>정합(Matching)을 통한 크로스모달 변환 — CLIP loss 활용</h3>
+      <p>단일 데이터에 대해서만 학습 = <b>최적화(Optimization)</b>이지 모델 자체의 재학습은 아님. Text encoder와 Image encoder는 <b>고정(freeze)</b>한 채, <b>backpropagation</b>으로 유사도가 최대화되도록 대상(파라미터화된 이미지 등)만 업데이트.</p>
+      <ul>
+        <li>이미지 캡셔닝(Image-to-text) / 텍스트 입력을 통한 이미지 스타일 변환</li>
+        <li>Text-to-Image, Text-to-motion, Text-to-3D 생성</li>
+        <li>텍스트 입력을 통한 이미지·비디오 검색 (지난 4년간 약 4만 번 이상 인용된 핵심 개념)</li>
+      </ul>
+      <div class="subhead">대표 응용 사례</div>
+      <table class="compare">
+        <tr><th>모델</th><th>입력 → 출력</th></tr>
+        <tr><td class="k">ZeroCLIP</td><td>이미지 → 캡션 (제한된 OCR·구체 텍스트 생성 능력)</td></tr>
+        <tr><td class="k">StyleCLIP</td><td>텍스트 명령 + 원본 이미지 → 편집된 이미지 (예: "Mohawk hairstyle", "Without makeup", "Cute cat")</td></tr>
+        <tr><td class="k">CLIP-Actor</td><td>텍스트 설명 → 3D 애니메이팅 아바타</td></tr>
+      </table>
+      <p class="src">출처: Radford et al., ICML 2021 · Poole et al., "DreamFusion: Text-to-3D using 2D Diffusion", ICLR 2023</p>
+    </div>
+
+    <div class="card full">
+      <h3>CLIP/SigLIP 계열 VLM 리스트</h3>
+      <table class="compare">
+        <tr><th>기반</th><th>모델</th><th>구성</th></tr>
+        <tr><td rowspan="5" class="k">CLIP 기반</td><td>BLIP-2</td><td>CLIP + OPT/FlanT5 결합</td></tr>
+        <tr><td>InstructBLIP</td><td>BLIP-2의 instruction tuning 버전</td></tr>
+        <tr><td>LLaVA</td><td>CLIP + Vicuna</td></tr>
+        <tr><td>MiniGPT-4</td><td>CLIP + Vicuna 기반</td></tr>
+        <tr><td>mPLUG-Owl</td><td>CLIP 기반 Alibaba의 VLM</td></tr>
+        <tr><td rowspan="2" class="k">SigLIP 기반</td><td>PaLI-X</td><td>SigLIP + PaLM 결합</td></tr>
+        <tr><td>SmolVLM</td><td>SigLIP 기반 경량 VLM</td></tr>
+      </table>
+      <p style="margin-top:8px">최근에는 CLIP·SigLIP의 성공적인 레시피를 기반으로 특화 Vision Encoder 모델들이 개발되는 추세.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 4. VLM ===================== -->
+<section class="section" id="s4" style="--accent:#9333ea">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>Vision-Language Model (VLM)</h2><p class="desc">LLaVA · Qwen-VL · 도메인 특화 VLM</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>LLaVA (Large Language and Vision Assistant, 2023)</h3>
+      <p>Vision과 Language 모델을 결합한 VLM으로 텍스트-이미지를 동시에 이해. 특징: 이미지 인식+텍스트 생성 결합, 이미지-명령(instruction)-답변 데이터셋으로 <b>Instruction Tuning</b> 학습, 이미지 기반 질답·설명·시각적 대화에 응용.</p>
+      <p style="font-size:12.5px;color:var(--sub)">구조: Vision Encoder(Z_v) → Projection W → H_v(이미지 특징) + H_q(언어 지시 X_q) → Language Model(f_φ) → Language Response(X_a)</p>
+      <div class="subhead">2단계 학습</div>
+      <table class="compare">
+        <tr><th>Step</th><th>목표</th><th>효율화 포인트</th></tr>
+        <tr><td class="k">Step1<br>사전학습</td><td>이미지 특징을 선형 레이어(Projection layer)로 텍스트와 공통 표현으로 정렬</td><td>전체 모델을 재훈련하지 않고 <b>작은 Projection layer만 학습</b> → 자원·시간 절약</td></tr>
+        <tr><td class="k">Step2<br>파인튜닝</td><td>특정 작업에 맞춰 [선형 레이어] + [언어모델 등] 필요한 부분만 미세조정</td><td>FP16 등 정밀도 최적화 + 저비용 학습기법으로 적은 메모리·사용량으로 학습</td></tr>
+      </table>
+      <p>학습 데이터: GPT를 이용해 캡션·물체좌표(bounding box) 라벨로부터 상세 설명(detailed description)·복잡한 추론(complex reasoning) 등 <b>visual instruction data</b>를 자동 생성.</p>
+    </div>
+
+    <div class="card full">
+      <h3>Qwen-VL / Qwen2-VL (Alibaba)</h3>
+      <p>상용 VLM에 맞서는 오픈소스 VLM. 대형 언어모델(LLM)에 시각처리 능력을 부여해 이미지와 텍스트를 동시에 이해. 여러 이미지 입력, 번역, 텍스트 읽기, 위치찾기(물체탐지), 인식·이해 능력 보유.</p>
+      <div class="subhead">3단계 학습 파이프라인</div>
+      <table class="compare">
+        <tr><th>Stage 1: Pretraining</th><th>Stage 2: Multi-task Pretraining</th><th>Stage 3: Supervised Finetuning</th></tr>
+        <tr><td>QwenLM 고정 + Low-Resolution / Image-Text Pairs</td><td>High-Resolution / Multi-task & Interleaved VL Data</td><td>Chat Interleaved VL Data</td></tr>
+      </table>
+      <div class="subhead">Qwen2-VL 확장 기능</div>
+      <ul>
+        <li>다국어 텍스트 및 이미지 내 텍스트 이해 지원 / 임의의 이미지 해상도 처리 가능</li>
+        <li>Agent 응용 지원, Code/Math 추론, Video 분석, Live chat 기능 강화</li>
+      </ul>
+      <div class="subhead">M-RoPE (Multimodal Rotary Position Embedding)</div>
+      <p>1D 텍스트, 2D 시각, 3D 비디오 위치 정보를 함께 부여할 수 있는 위치 임베딩 확장.</p>
+      <div class="formula">
+기존 PE: Positioned Token = Token + PE  <span class="cm">(처음 한번만 더함)</span>
+기존 RoPE: Query q_i, Key k_j 에 대해
+   q'_i = R(i)q_i ,  k'_j = R(j)k_j
+   ⇒  q'_i · k'_j = q_i^T R(j-i) k_j   <span class="cm">(상대적 위치차이만 반영)</span>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h3>도메인 특화 파운데이션 모델</h3>
+      <table class="compare">
+        <tr><th>도메인</th><th>모델</th><th>내용</th></tr>
+        <tr><td class="k">의료</td><td>MedCLIP (2022)</td><td>의료 텍스트-이미지 임베딩을 정합시킨 의료용 CLIP 모델. 텍스트 입력으로 이미지 상 질병을 판단하거나 특정 종류 의료 이미지 검색 등에 활용</td></tr>
+        <tr><td class="k">의료</td><td>LLaVA-Med (2023)</td><td>LLaVA를 의료 데이터에 파인튜닝. 의료 이미지 포함 지시문 데이터로 이미지 기반 챗봇 대화 가능 (예: X-ray 판독 관련 질의응답)</td></tr>
+        <tr><td class="k">제조업</td><td>AnomalyGPT</td><td>이상 탐지(anomaly detection)를 위한 모델. 질의응답을 주고받으며 이상 여부 판단. VLM을 제조업 데이터에 파인튜닝</td></tr>
+        <tr><td class="k">3D</td><td>3D-LLM</td><td>3차원 표현(point-cloud)과 자연어 관계를 학습. 3차원 질문-답변 생성, 공간 네비게이션, 로봇팔 동작 생성에 응용</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 5. Small VLM ===================== -->
+<section class="section" id="s5" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>Small VLM (sVLM) & 한국어 sVLM</h2><p class="desc">온디바이스 경량 비전언어모델</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>등장 배경</h3>
+      <p>VLM은 유용하지만 서버 비용이 비쌈 → 개인 PC·스마트폰에서 실행되는 경량 모델 필요. <b>sLLM</b>(경량 대규모 언어모델)에서 이루어진 경량화 시도들이 VLM에도 이어짐: <b>sLLM(규모 언어모델 경량화) → sVLM</b>(멀티모달 데이터를 처리하기 위한 효율적인 소형 VLM 개발)</p>
+    </div>
+    <div class="card">
+      <h3>SmolVLM (Hugging Face)</h3>
+      <p>구조: Vision Encoder(<b>SigLIP</b>) → Modality Projection + Pooling → LLM (Llama 3.1 8B → <b>SmolLM2 1.7B</b>로 경량화)</p>
+      <p>동일 이미지+텍스트, batch=1 기준 추론 GPU 메모리 사용량이 PaliGemma·InternVL2·Qwen2-VL 대비 <b>가장 낮음</b>.</p>
+    </div>
+    <div class="card">
+      <h3>Moondream 0.5B</h3>
+      <ul>
+        <li>온디바이스 <b>실시간 실행</b>을 염두에 두고 개발</li>
+        <li>2억 개 파라미터 — 8비트 양자화 시 다운로드 479MB, 4비트 양자화 시 375MB(메모리 816MB까지 감소)</li>
+        <li>양자화: 파라미터 정밀도(비트수)를 낮춰 크기·메모리를 줄이는 기법 — 사용 편의·속도↑, 정확도·품질 소폭↓ 가능</li>
+      </ul>
+      <div class="formula">pip install moondream==0.5.0
+model = md.vl(model="path/to/moondream-0_5b-int4.mf")
+image = Image.open("photo.jpg")
+encoded = model.encode_image(image)
+caption = model.caption(encoded)["caption"]
+answer  = model.query(encoded, "What's in this image?")["answer"]</div>
+    </div>
+    <div class="card">
+      <h3>Gemini Nano</h3>
+      <ul>
+        <li>온디바이스용 경량 Gemini. <b>18억(Nano-1) / 32.5억(Nano-2)</b> 두 변형</li>
+        <li>2024년 픽셀9 시리즈 탑재 — 녹음 앱에서 실시간 이미지·오디오 인식·요약</li>
+      </ul>
+      <p><b>갤럭시 온디바이스 AI</b>: NPU로 이미지/언어/오디오/영상 작업을 기기 내부에서 직접 생성 — 텍스트 기반 이미지 생성, 인페인팅/아웃페인팅, 자연어 기반 사진촬영(어조 변환·문법 교정)</p>
+    </div>
+    <div class="card">
+      <h3>기타 최신 sVLM</h3>
+      <ul>
+        <li><b>Qwen 2.5-VL 3B</b> — 다양한 크기 이미지·장시간 영상 처리, 표/악보/화폐 등 다양한 형식 및 JSON 처리</li>
+        <li><b>Phi-3.5 vision instruct 4.2B</b> — OCR·차트 분석·비디오 요약 등 특화 경량 멀티모달</li>
+        <li><b>DeepSeek-VL2 1B</b> — 중국 스타트업, 저비용 오픈소스 LLM·VLM</li>
+        <li><b>Gemma 3 1B</b> — Google, 1B~27B 다양한 크기 오픈소스 멀티모달</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3>한국어 sVLM & 토큰화 복잡성</h3>
+      <p><b>토크나이저의 언어 편중 이슈</b>: 주로 빈도가 높은 표현 중심 설계 → 비효율적으로 긴 토큰 시퀀스 생성. 형태소가 복잡한 언어(핀란드어·독일어 등)는 서브워드 단위로 쪼개져 토큰 수가 늘어나는 문제.</p>
+      <p style="font-size:12.6px">예) 한국어 "이번방학 때 뭐해?"(13자) → Base 토크나이저 <b>19토큰</b> vs 형태소기반 확장 vocab <b>8토큰</b></p>
+      <table class="compare">
+        <tr><th>모델</th><th>개발사</th><th>특징</th></tr>
+        <tr><td class="k">HyperCLOVAX-SEED-Vision-Instruct-3B</td><td>NAVER</td><td>한국어 특화 멀티모달 — 텍스트+이미지 동시 이해·생성</td></tr>
+        <tr><td class="k">Kanana-1.5-v-3b-instruct</td><td>Kakao</td><td>한국어 특화 멀티모달</td></tr>
+      </table>
+    </div>
+    <div class="card full">
+      <h3>실습 — LMDeploy & VLM 성능 트릭 SoM</h3>
+      <p><b>LMDeploy</b>: LLM 압축·배포·서빙 지원 오픈소스 툴킷. 효율적 추론(연속 배치, 병렬화, CUDA 커널로 최대 1.8배↑), 효과적 양자화(4비트 등, 최대 2.4배 빠른 추론), 분산 서빙, 대화형 추론, 높은 호환성.</p>
+      <div class="formula">from lmdeploy import pipeline
+from lmdeploy.vl import load_image
+pipe = pipeline('OpenGVLab/InternVL2-8B')
+image = load_image('https://.../tiger.jpeg')
+response = pipe((f'describe this image', image))</div>
+      <p><b>Set of Mark (SoM)</b>: 세그멘테이션을 위해 SEEM·Semantic-SAM·SAM·MaskDINO 등 서로 다른 모델을 결합. 이미지에 <b>번호 마킹</b>을 추가해 VLM이 물체를 구체적 번호로 지칭하도록 유도 → 훨씬 정확한 grounding(예: "오른쪽 노트북의 왼쪽엔 뭐가 있어?" 질문 시 번호로 정확히 응답)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 6. 세그멘테이션 ===================== -->
+<section class="section" id="s6" style="--accent:#c026d3">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>이미지·비디오 내 물체 탐지 & 세그멘테이션</h2><p class="desc">SAM · Grounding DINO · SAMURAI</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Segment Anything (SAM 2023 / SAM2 2024, Meta)</h3>
+      <p>컴퓨터비전에서도 방대한 데이터로 Foundation Model을 만들 수 있음을 보여준 모델. 클릭·박스·부분 세그먼트·텍스트 등 다양한 입력을 받아 원하는 영역 마스크를 추출하는 고성능 분할 모델.</p>
+      <p style="font-size:12.5px;color:var(--sub)">약 1,100만 개 이미지(약 10억 개 마스크)로 학습. SAM2는 비디오·이미지로 확장.</p>
+    </div>
+    <div class="card">
+      <h3>Grounding DINO (2023, IDEA Research)</h3>
+      <p>텍스트 입력을 통해 이미지 내 물체를 탐지하는 모델. 방대한 데이터 기반으로 다양한 종류 물체에 대해 높은 <b>일반화(generalization)</b> 성능 — 객체탐지 분야 Foundation 모델의 가능성을 보여줌.</p>
+    </div>
+    <div class="card">
+      <h3>Grounded SAM (2024)</h3>
+      <p>Grounding DINO + SAM 결합 — 텍스트로부터 객체 탐지뿐 아니라 <b>분할까지 동시에 수행</b>. Grounding DINO가 추출한 박스를 SAM의 입력으로 활용해 개별 물체를 분할.</p>
+    </div>
+    <div class="card">
+      <h3>SAMURAI (2024, Univ. Washington)</h3>
+      <p>비주얼 물체 트래킹 State-of-the-art, SAM2 기반 응용모델. 비디오 편집, 물체 지우기·합성, 이상행동 감지, CCTV 자동분석, 스포츠 중계 등에 활용 가능.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 7. 이미지 생성모델 ===================== -->
+<section class="section" id="s7" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">7</div>
+    <div><h2>이미지 생성 파운데이션 모델</h2><p class="desc">Diffusion · LDM · Midjourney/FLUX · 파인튜닝 응용</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>생성 모델링의 목표</h3>
+      <p><b>모르는 것</b>: 실제 데이터 분포 p<sub>data</sub>(x)의 형태 (신만 알고 있음) &nbsp;|&nbsp; <b>아는 것</b>: 실제 데이터셋 {x}</p>
+      <p>생성모델 학습 = 주어진 {x}로부터 유사모델 p<sub>model</sub>(x)를 학습 → 목표: <b>p<sub>data</sub>(x) ≈ p<sub>model</sub>(x)</b>로 근사</p>
+      <p style="font-size:12.6px;color:var(--sub)">설계도가 정교할수록 실제 데이터 분포에 가까워짐(생성 품질↑) → 핵심 질문: p<sub>model</sub>(x)의 모델 구조는? 학습 방법은?</p>
+      <div class="subhead">생성 모델의 응용</div>
+      <ul>
+        <li>실제 데이터와 유사한 이미지 생성 / 학습데이터 생성·데이터 증강(augmentation)</li>
+        <li>이미지 화질 개선 / 이미지 편집·스타일 변경</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Diffusion Model</h3>
+      <p>대표적 영상 생성 모델. <b>점진적으로 노이즈를 제거</b>하며 이미지를 구체화하는 생성 방식.</p>
+      <ul>
+        <li><b>Forward</b>: 가우시안 노이즈(정규분포)를 점점 더해가는 과정</li>
+        <li><b>Backward</b>: 노이즈를 제거해가는 과정 — 노이즈를 <b>예측</b>하는 문제를 반복 학습</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Latent Diffusion Model (LDM)</h3>
+      <p>Stable Diffusion(2022)에서 소개. 고차원 픽셀 대신 <b>저차원 latent 임베딩(압축된 특징)</b>으로 변환한 후 diffusion 연산 수행 → 연산 효율 + 생성 품질 동시 향상.</p>
+      <p style="font-size:12.6px"><b>구조</b>: 1단계 <b>Text Representation Generation</b>(텍스트 임베딩) → 2단계 <b>Image Representation Refiner</b>(이미지를 점차 개선해 고품질 이미지 생성)</p>
+    </div>
+
+    <div class="card full">
+      <h3>Closed vs Open Source 이미지 생성 모델</h3>
+      <table class="compare">
+        <tr><th>모델</th><th>구분</th><th>내용</th></tr>
+        <tr><td class="k">Midjourney v7</td><td>Closed</td><td>2025.4 알파 공개. 세부 묘사·프롬프트 해석 정확도·손과 신체 표현 일관성 우수. 긴 프롬프트 이해, 세밀한 스타일(색상·음영) 조정, 텍스트 포함 이미지 생성</td></tr>
+        <tr><td class="k">FLUX.1 (Black Forest Labs)</td><td>Open Source</td><td>2024.8 공개. 120억(12B) 파라미터 Rectified Flow Transformer. 프롬프트 준수·스타일 다양성·복잡한 장면 생성에 강점. 선명한 글자/숫자 표현 가능.<br>변형: <b>Pro</b>(최고성능,API유료) / <b>Dev</b>(오픈가중치,비상업) / <b>Schnell</b>(경량고속,상업용허용)</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>이미지 생성모델 응용 — 파인튜닝으로 용도 변경</h3>
+      <table class="compare">
+        <tr><th>모델</th><th>내용</th></tr>
+        <tr><td class="k">ControlNet (2023)</td><td>컨트롤 조건(Edge, Depth map, Canny edge, Human pose 등)을 기반으로 원하는 이미지를 생성. 커뮤니티 중심으로 매우 활발히 응용</td></tr>
+        <tr><td class="k">Zero123XL (콜롬비아대, 2023)</td><td>2D 이미지 입력 → 특정 카메라 뷰에서 본 모습을 생성(2D→3D). 3D모델링, VR/AR 콘텐츠 생성에 응용</td></tr>
+        <tr><td class="k">Marigold (2024)</td><td>정교한 3D Depth map 추정 — 단안 깊이 추정(monocular depth estimation)을 위해 이미지 생성 Diffusion 모델을 합성데이터로 파인튜닝</td></tr>
+        <tr><td class="k">JointDiT (Microsoft·POSTECH, 2025.5)</td><td>이미지 & 3D 깊이 맵 동시 생성. 입력 이미지의 3D 추정, 3D 기반 이미지 생성 등 다양한 기능. 물리적으로 더 그럴듯한 장면 생성</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 8. 3D/비디오 생성 ===================== -->
+<section class="section" id="s8" style="--accent:var(--pink)">
+  <div class="section-head">
+    <div class="section-num">8</div>
+    <div><h2>3D · 비디오 · 오디오 파운데이션 모델</h2><p class="desc">Depth Anything · Sora · Veo3 · Audio-Vision LM</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3>Depth Anything v2 (HKU·TikTok, 2024)</h3>
+      <p>SAM 이후 연구된 vision foundation 모델 중 깊이맵(depth map) 예측 모델. 약 1.5억 개 데이터로 학습 + 약 6,200만 개 라벨링 안 된 데이터를 추가 활용해 성능 극대화. 응용: 자율주행·로봇비전·3D복원.</p>
+    </div>
+    <div class="card">
+      <h3>Sapiens (Meta, 2024)</h3>
+      <p>인간 인식을 위해 3000만 개 이미지로 학습된 파운데이션 모델. 중심 태스크: 2D Pose Estimation, Body-part Segmentation, Depth Estimation, Surface Normal Prediction.</p>
+    </div>
+    <div class="card full">
+      <h3>Closed 비디오 생성 모델 — Sora & Veo3</h3>
+      <p><b>Sora (OpenAI)</b>: 2024.12 ChatGPT Pro($200/월) 플랜 공개, sora.com 제공. 텍스트→비디오 + 이미지/동영상→비디오 확장 지원. 최대 1080p, 20초(Pro 구독시). ChatGPT 통합 대화형 편집·피드백 반복 개선.</p>
+      <p style="font-size:12.6px;color:var(--sub)">물리적 이해를 반영하는 <b>월드 모델</b>: 현실 세계의 규칙(물리 환경)을 이해·시뮬레이션해 일어날 일을 예측/계획 → Embodied AI 핵심 컴포넌트로 주목 (예: DreamZero의 World Action Model, WAM)</p>
+      <p><b>Veo3 (Google Gemini)</b>: 자연스럽게 싱크된 소리까지 함께 생성.</p>
+      <p><b>응용사례</b>: AI로 만든 광고/영화(Coca-Cola), HeyGen's Avatar IV(텍스트 스크립트+목소리 샘플+사진 1장 → 스피킹 비디오, NotebookLM으로 podcast 스크립트/음성 생성 → Avatar IV로 영상화)</p>
+    </div>
+    <div class="card">
+      <h3>Dynamic 3D 파운데이션 모델</h3>
+      <ul>
+        <li><b>MegaSaM</b>(Google DeepMind, 2024.12) — 단안 카메라 동영상에서 정확한 카메라 포즈·깊이 추정</li>
+        <li><b>CUT3R</b>(UC Berkeley·Google DeepMind, 2025.1) — 가상 시점의 미관측 영역 추론, 비디오 스트리밍·순서없는 사진모음 등 다양한 길이 처리</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Audio-Vision Language Models</h3>
+      <p>대규모 언어모델에 영상·소리 입력을 확장해 멀티모달 언어모델로 발전 중.</p>
+      <ul>
+        <li><b>OneLLM</b>(2024) — ImageBind 기반 비디오 입력</li>
+        <li><b>VideoLLaMA2</b>(2024) — 프레임 단위 비디오 입력</li>
+        <li><b>NExT-GPT</b>(2023) — Any-to-Any Multimodal LLM (Text/Image/Audio/Video 통합 입출력)</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3>유용한 파운데이션 모델들 정리 (참고 레퍼런스)</h3>
+      <div class="pillrow">
+        <span class="pill">Image: DINOv3</span>
+        <span class="pill">Image&Text: CLIP, BLIP, Grounded-GLIPv2</span>
+        <span class="pill">Language-to-policy: RT1, RT2</span>
+        <span class="pill">Speech: wav2vec, Whisper</span>
+        <span class="pill">Audio&Text: CLAP</span>
+        <span class="pill">Multi-modal embedding: ImageBind, Mega-Transformer</span>
+        <span class="pill">Multi-modal LLM: InternVL, Qwen3-VL</span>
+        <span class="pill">Object 3D: Zero123XL</span>
+        <span class="pill">Text&satellite: RemoteCLIP</span>
+      </div>
+      <p style="margin-top:10px;font-size:12.3px;color:var(--sub)">최신 프론티어 모델들은 계속 갱신되므로 본인만의 리스트를 만들어 놓는 것이 경쟁력이 될 수 있음.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 9. Fine-tuning ===================== -->
+<section class="section" id="s9" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">9</div>
+    <div><h2>파운데이션 모델 + Fine-tuning</h2><p class="desc">Gradient Descent · Learning Rate</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>Fine-tuning이 필요한 이유</h3>
+      <p>파운데이션 모델은 방대한 데이터로 학습된 초대형 딥러닝 모델로 다양한 문제에 범용적으로 빠르게 적용 가능하지만, <b>최근 정보나 특정 작업·도메인에는 최적화되어 있지 않아</b> 즉시 활용이 어려운 경우가 반드시 있음.</p>
+      <p><b>Fine-tuning</b>: 추가 학습을 통해 이미 학습된 모델을 조금만 튜닝하는 것. 적은 데이터로 학습 가능 / 학습 리소스·시간 절약 / 특정 작업에 대한 우수한 성능.</p>
+      <p style="font-size:13px;font-weight:700;color:var(--navy)">Pretraining(대규모 데이터) → Fine-tuning(소규모 데이터): Base Model → Fine-tuned Model</p>
+      <p style="font-size:12.6px;color:var(--sub)">프롬프팅(Fine-tuning의 넓은 범주로도 볼 수 있음): 프롬프트에 넣는 예제보다 훨씬 많은 예제로 학습 가능, 프롬프트 길이 감소로 토큰 절약, 응답 latency 단축.</p>
+    </div>
+
+    <div class="card">
+      <h3>Gradient Descent (GD)</h3>
+      <p>손실함수(Loss)의 미분을 통해 구한 <b>기울기(gradient)</b>로 파라미터를 반영 비율(learning rate)만큼 업데이트하는 최적화 방법.</p>
+    </div>
+
+    <div class="card full">
+      <h3>하이퍼파라미터 — Learning Rate</h3>
+      <p>손실함수 값을 미세하게 조정하기 어려우므로 뉴럴넷 모델에 <b>작은 비율</b>로 반영. Learning rate = 반영할 비율. 적절한 값은 모델·데이터마다 달라 실험으로 구함 (예: 0.005(5e-3), 0.0003(3e-4)).</p>
+      <table class="compare">
+        <tr><th>상황</th><th>결과</th></tr>
+        <tr><td class="k">너무 낮은 LR<br>(예: 1e-8)</td><td>local minimum에 빠져 global minimum 도달 가능성이 낮아짐</td></tr>
+        <tr><td class="k">너무 높은 LR</td><td>마구 점프하다 global minimum으로 딱 맞춰가기 어려움</td></tr>
+      </table>
+      <p style="font-size:12.6px;color:var(--sub)">미세조정(Fine-tuning)에서는 이미 좋은 시작점(사전학습된 가중치)에서 출발하므로 <b>작은 learning rate부터 보수적으로</b> 시작해야 함.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 10. PEFT ===================== -->
+<section class="section" id="s10" style="--accent:#059669">
+  <div class="section-head">
+    <div class="section-num">10</div>
+    <div><h2>Parameter-Efficient Fine-Tuning (PEFT)</h2><p class="desc">전체 파라미터 재학습의 대안</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>배경 — AI 모델 크기의 폭발적 증가</h3>
+      <p style="font-size:12.6px">AlexNet 60M(2012) → VGG-19 144M(2014) → AmoebaNet-A 469M(2018) → ResNeXt-101 829M(2018) → BiT-M 928M(2019) → ViT-G/14 1,843M(2021) → ViT-MoE-15E <b>14,700M</b>(2021)</p>
+      <p>하드웨어 발전·대규모 데이터 축적·모델 발전으로 파라미터 수가 기하급수적으로 증가 → 전체 파라미터를 재학습하는 <b>Full fine-tuning은 비용이 매우 높아짐</b> → PEFT(일부 파라미터만 효율적으로 조정) 필요성 대두.</p>
+    </div>
+    <div class="card full">
+      <h3>프롬프트 디자인 (Prompt Design)</h3>
+      <p>언어모델에서 주로 활용. 모델이 원하는 레벨의 결과를 출력하도록 <b>입력 텍스트를 변형</b>하는 방법.</p>
+      <table class="compare">
+        <tr><th>장점</th><th>단점</th></tr>
+        <tr><td>추가 학습 없이 사전학습된 모델의 예측 성능을 끌어올릴 수 있음</td><td>프롬프트를 사람이 직접 설계해야 하는 부담, 성능 향상이 제한적</td></tr>
+      </table>
+      <p style="font-size:12.6px;margin-top:6px">예시(Text-to-Image): "강아지 사진 그려줘"(단순 프롬프트, 부족한 결과) → "<b>캐논 EOS1D로 찍은듯한</b> 강아지 사진을 생성해줘"(구체화된 프롬프트, 더 좋은 결과)</p>
+    </div>
+    <div class="card full">
+      <h3>프롬프트 튜닝 (Prompt Tuning, 2021)</h3>
+      <p>학습 가능한 프롬프트로서 <b>가상 토큰(virtual token)</b>을 입력에 추가하는 기법. 역전파를 통해 <b>오직 가상 토큰에 대한 임베딩만 학습</b>하고 나머지 모델(파운데이션 모델 본체)은 고정(freeze).</p>
+      <div class="subhead">장점</div>
+      <ul>
+        <li>사람의 디자인 없이 스스로 프롬프트를 학습할 수 있음</li>
+        <li>사전학습된 모델을 고정할 수 있음 (지식 손실 X — 일반 파인튜닝은 지식 손실 발생 가능)</li>
+        <li>적은 비용으로 새로운 데이터셋의 모델을 학습할 수 있음</li>
+        <li>단, 학습된 프롬프트 자체는 해석 불가(그저 숫자 벡터 나열일 뿐)</li>
+      </ul>
+      <div class="subhead">3가지 튜닝 방식 비교</div>
+      <table class="compare">
+        <tr><th></th><th>모델 튜닝(미세조정)</th><th>프롬프트 튜닝</th><th>프롬프트 디자인</th></tr>
+        <tr><td class="k">파운데이션 모델</td><td>🔥 추가 학습(가중치 변경)</td><td>❄️ 고정</td><td>❄️ 고정</td></tr>
+        <tr><td class="k">입력</td><td>입력 텍스트</td><td><b>학습 가능한 프롬프트</b> + 입력 텍스트</td><td>입력 텍스트(사람이 직접 설계)</td></tr>
+        <tr><td class="k">성향</td><td colspan="2" style="text-align:center">← 높은 성능</td><td style="text-align:center">높은 효율 →</td></tr>
+      </table>
+      <p class="src">출처: Lester et al., "The Power of Scale for Parameter-Efficient Prompt Tuning", EMNLP 2021</p>
+    </div>
+
+    <div class="card full">
+      <h3>Adapter 모듈 추가 학습</h3>
+      <p>학습 가능한 작은 모듈(<b>Adapter</b>)을 레이어마다 삽입하여 <b>일부 파라미터만 학습</b>하는 기법. 기존 모델 블럭(Layer 1~4)은 그대로 두고, 각 레이어 사이에 학습가능한 파라미터(Adapter)를 추가로 삽입 — 전체 재학습보다 훨씬 적은 파라미터만 업데이트.</p>
+    </div>
+
+    <div class="card full">
+      <h3>1-5. 개인화 모델 예시 — DreamBooth</h3>
+      <p><b>프롬프트 튜닝 응용 사례</b>. 영상 생성 모델을 개인화하는 방법으로, 학습 가능한 토큰(<b>Unique identifier</b>, 예: "[V]")과 모델을 함께 Fine-tuning.</p>
+      <table class="compare">
+        <tr><th>단계</th><th>내용</th></tr>
+        <tr><td class="k">Fine-Tuning</td><td>입력: 소수(약 3~5장)의 피사체 이미지 + class name(예: "dog") → DreamBooth 학습 → 출력: Unique identifier "[V]" + Personalized Text-to-Image 모델</td></tr>
+        <tr><td class="k">Inference</td><td>"A [V] dog in the beach", "A [V] dog walking on a colorful carpet"처럼 프롬프트에 [V]를 넣으면, 학습된 피사체가 새로운 배경·자세로 재현됨</td></tr>
+      </table>
+      <div class="subhead">응용 결과 예시</div>
+      <ul>
+        <li><b>Input images</b>(같은 개 사진 여러 장) → 화가 스타일 재현: Van Gogh, Michelangelo, Rembrandt, Vermeer, Renoir, da Vinci 화풍으로 그려진 동일 피사체</li>
+        <li><b>Color modification</b>: "A [color] [V] car" → 같은 차를 purple / red / yellow / blue / pink로 색상만 변경</li>
+        <li><b>Hybrids</b>: "A cross of a [V] dog and a [target species]" → 같은 개의 정체성을 유지한 채 Bear / Panda / Koala / Lion / Hippo와 합성한 하이브리드 생성</li>
+      </ul>
+      <p class="src">출처: Ruiz et al., "DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation", CVPR 2023</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 11. 합성데이터 ===================== -->
+<section class="section" id="s11" style="--accent:var(--amber)">
+  <div class="section-head">
+    <div class="section-num">11</div>
+    <div><h2>합성 데이터(Synthetic Data) 활용법</h2><p class="desc">데이터 효율화를 위한 합성 데이터 사용 — Knowledge Distillation · InstructPix2Pix · 활용 시 유의사항</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">2-1</span>합성데이터 활용법 1 — Knowledge Distillation (Teacher-Student 학습)</h3>
+      <p>사전학습된 고성능 모델의 지식을 작은 모델에 압축해서 빠르고 효율적으로 만들 수 없을까? 지금까지 배운 미세조정과 같은 전이학습(Transfer Learning)은 <b>사전학습된 모델과 새로 학습할 모델(타겟 모델)의 구조가 동일한 경우</b>를 가정하고 있었음 — Knowledge Distillation은 이 가정을 깨는 방법.</p>
+      <p><b>지식증류(Knowledge Distillation)</b>: 높은 성능의 무거운 모델(<b>선생님, Teacher</b>)을 모방하도록 가벼운 모델(<b>학생, Student</b>)을 학습하는 방법. 또는, 크기가 작은 모델(Student)만으로 충분히 학습하기 어려운 데이터 특징을 학습하기 위해, 비교적 무겁고 성능 높은 모델(Teacher)의 도움을 받는 기법으로도 볼 수 있음.</p>
+      <ul>
+        <li>선생님 모델이 예측한 <b>soft-label</b> 값과 학생 모델의 예측 값이 가까워지도록 학습 유도</li>
+        <li>Soft-label: [0, 1] 사이의 모델 예측을 가짜 라벨(정답)로 사용</li>
+      </ul>
+      <div class="formula">Teacher Model(Pre-trained) ──┐
+                              ├─ Predictions ──(Distillation Loss)──┐
+Student Model(to be trained)─┘                                     │
+        ↑                                                          │
+   Training Data ──────────────────────────────────────────────────┘
+        └─ Ground Truth ── Student Model Predictions와도 비교
+
+목표 데이터(소규모) → [Teacher: 사전학습된 고성능 모델] ──지식(Knowledge)──▶ [Student: 타겟 모델] ── 높은 성능↑
+       사전학습된 모델 출력(가짜 정답) ⟷ Distillation Loss ⟷ 타겟 모델 출력</div>
+      <p class="src">출처: Knowledge Distillation 개념도 재구성 (Teacher-Student 학습)</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">2-2</span>InstructPix2Pix (2023) — 명령 기반 이미지 편집</h3>
+      <p>파운데이션 모델들을 <b>툴</b>로 활용하는 방법. 명령(instruction)에 따라 이미지 편집을 수행하는 모델.</p>
+      <table class="compare">
+        <tr><th>기존 방식</th><th>본 방법</th></tr>
+        <tr><td>입력 이미지와 출력 이미지에 대한 상세 설명 필요 (입력-정답 쌍 필요)</td><td>입/출력 이미지 상세 설명 없이 <b>명령만으로</b> 편집 수행</td></tr>
+      </table>
+      <div class="subhead">합성데이터 생성 파이프라인 (3단계)</div>
+      <ol style="font-size:13.3px;padding-left:20px;margin:6px 0">
+        <li>사람이 작성한 소규모 데이터셋(~700 edits)으로 <b>Fine-tuning된 GPT-3</b>가 지시사항+이미지 설명(caption) 쌍을 <b>450,000개</b> 생성</li>
+        <li>생성된 텍스트 데이터셋을 기반으로 <b>Stable Diffusion + Prompt2Prompt</b>로 (편집 전/후) 이미지 쌍 생성</li>
+        <li>이 이미지 쌍으로 최종 <b>InstructPix2Pix</b> 모델을 학습(fine-tuning) → 추론 시 사람이 작성한 지시사항만으로 실제 이미지를 편집</li>
+      </ol>
+      <p style="font-size:12.6px;color:var(--sub)">결과 예시: "Swap sunflowers with roses", "Add fireworks to the sky", "Replace the fruits with cake", "What would it look like if it were snowing?", "Turn it into a still from a western", "Make his jacket out of leather" 등 텍스트 명령만으로 자연스러운 이미지 편집.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">2-3</span>합성데이터 활용법 3 — 정의와 필요성</h3>
+      <p>실제 데이터를 모방하거나 새로 생성한 인공 데이터(예: 가상의 이미지·텍스트·소리를 알고리즘으로 생성). 실제 데이터를 수집·사용하기 어려운 경우 대체 가능 — <b>데이터 부족 문제를 해결</b>하고 모델 성능을 개선하는 데 사용.</p>
+      <p>특히 <b>데이터 취득이 어려운 문제</b>에서 더 유용: 촬영하기 어려운 움직임·환경을 시뮬레이션해 다양성 높은 데이터 생성 가능. 예) <b>모션 증폭(Motion Magnification)</b> — 심박수 변화, 건물의 미세 진동 등을 합성데이터로 학습.</p>
+    </div>
+    <div class="card full">
+      <h3>합성데이터 활용 시 유의사항</h3>
+      <table class="compare">
+        <tr><th>문제</th><th>내용</th><th>개선방안</th></tr>
+        <tr><td class="k">라벨 품질 불일치<br>(Label Inconsistency)</td><td>합성 데이터를 만들 때 사용하는 VLM/LLM 라벨러가 항상 일관된 기준으로 라벨을 생성하지는 않음. 같은 객체도 프롬프트 방식·모델버전·컨텍스트에 따라 표현이 다를 수 있음<br><span style="color:var(--sub)">예) "기타(guitar)" → "electric guitar" / "guitar player" / "acoustic instrument"</span></td><td>라벨 정규화, 클래스 사전, 교차모델 검증, 휴먼 검수</td></tr>
+        <tr><td class="k">할루시네이션<br>(Hallucination)</td><td>생성 모델이 실제 존재하지 않는 객체·특징·관계를 마음대로 만들어내는 현상. 실제 세계와 다른 패턴을 학습해 오류·편향 강화<br><span style="color:var(--sub)">예) 손가락 6개 이미지, 물리적으로 불가능한 그림자 지속 생성</span></td><td>정교한 프롬프트, 후처리 Refiner, 사실성 검증 모델, 실데이터 혼합</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 12. AGI/Agent ===================== -->
+<section class="section" id="s12" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">12</div>
+    <div><h2>AGI를 향해서 — 언어모델의 확장</h2><p class="desc">RAG · 툴 증강 언어모델 · Visual Programming · Agent</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>인지(Cognition) 확장 관점</h3>
+      <p>Human's Intelligence(cognition) = <b>perception ∪ higher cognitive processes</b></p>
+      <p style="font-size:13px;font-weight:700">World → Perception(<span style="color:var(--red)">Multi-modal interface</span>) → Cognition(<span style="color:var(--red)">LLM</span>) → Interpretation(<span style="color:var(--red)">imagination!</span>)</p>
+      <p style="font-size:12.6px;color:var(--sub)">Sora와 같은 비디오 생성 모델은 물리 현상을 이해·시뮬레이션하는 <b>월드 모델</b>로서의 잠재성 보유 → Embodied AI 핵심 컴포넌트로 주목 (예: DreamZero의 World Action Model)</p>
+    </div>
+
+    <div class="card">
+      <h3>언어모델 + 검색증강생성 (RAG)</h3>
+      <p>LLM + Retrieval Augmented Generation:</p>
+      <ul>
+        <li><b>유연성</b> — 추가학습 없이 최신 정보 제공</li>
+        <li><b>개인화</b> — 검색+언어모델 조합으로 맞춤 답변</li>
+        <li><b>정확성</b> — Verification을 통한 환각(Hallucination) 감소</li>
+      </ul>
+      <p style="font-size:12.3px;color:var(--sub)">흐름: Question → Retrieval Query → 검색 Tools → Retrieved Result → Full Prompt → LLM → Answer</p>
+    </div>
+
+    <div class="card">
+      <h3>툴 증강 언어모델 (Tool-augmented LLM / Agent)</h3>
+      <p>LLM이 스스로 도구(API, 계산기, 검색엔진 등)를 언제·어떻게 쓸지 학습. <b>프롬프트 → 행동 → 응답</b>의 반복적 상호작용 구조(Agent 방식).</p>
+      <p style="font-size:12.3px;color:var(--sub)">응용 예: RPA/Office Agent, Computer Use, MCP 등</p>
+    </div>
+
+    <div class="card full">
+      <h3>Visual Programming (2023)</h3>
+      <p>GPT-3(<b>VISPROG</b>)를 Program Generator로 활용, 자연어 지시(Natural Language Instruction)를 in-context instruction-program 쌍으로 <b>고차원 프로그램(코드)</b> 생성 → Program Interpreter가 이미지 등 입력에 실제 실행(Python + Module library) → 결과(Prediction / Visual Rationale) 산출.</p>
+      <div class="subhead">정의된 툴(Python APIs)</div>
+      <table class="compare">
+        <tr><th>범주</th><th>기능</th><th>백엔드</th></tr>
+        <tr><td class="k">Image Understanding</td><td>Loc, FaceDet, Seg, Select, Classify, VQA</td><td>OWL-ViT, DSFD, MaskFormer, CLIP-ViT, ViLT</td></tr>
+        <tr><td class="k">Image Manipulation</td><td>Replace, ColorPop, BgBlur, Crop, CropLeft/Right/Above/Below</td><td>Stable Diffusion, PIL 연산</td></tr>
+        <tr><td class="k">Knowledge Retrieval</td><td>List, Arithmetic&Logical, Eval, Count, Result</td><td>GPT-3, eval(), len(), dict()</td></tr>
+      </table>
+      <p style="font-size:12.6px;margin-top:6px"><b>응용 예</b> — Compositional VQA: "사진에 넥타이와 안경이 둘 다 있어?" → Loc/Count/Eval을 조합한 프로그램으로 단계적 추론. Natural Language Image Editing: "사막을 초록 잔디로 바꿔줘" → Seg+Select+Replace 조합 실행.</p>
+      <div class="subhead">응용 사례 — 영상 기반 추론 (Natural Language Visual Reasoning)</div>
+      <p style="font-size:12.6px">두 장(LEFT/RIGHT)의 카누 사진을 놓고 "The left and right image contains a total of six people and two boats."라는 진술을 검증하는 예시. VQA 툴로 각 이미지의 사람 수·보트 수를 각각 질의한 뒤(ANSWER0~3), Eval로 합산 조건을 논리 평가(ANSWER4)해 <b>참/거짓(Prediction: False)</b>을 판정 — 여러 이미지에 걸친 정량적 진술도 툴 조합만으로 단계적으로 검증 가능함을 보여줌.</p>
+      <div class="formula">Statement: The left and right image contains a total of six people and two boats.
+Program:
+ANSWER0=Vqa(image=LEFT,  question='How many people are in the image?')
+ANSWER1=Vqa(image=RIGHT, question='How many people are in the image?')
+ANSWER2=Vqa(image=LEFT,  question='How many boats are in the image?')
+ANSWER3=Vqa(image=RIGHT, question='How many boats are in the image?')
+ANSWER4=Eval('{ANSWER0} + {ANSWER1} == 6 and {ANSWER2} + {ANSWER3} == 2')
+RESULT=ANSWER4  <span class="cm">// Prediction: False</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Claude Computer Use</h3>
+      <p>텍스트 기반으로 컴퓨터를 사람처럼 사용할 수 있는 서비스. 컴퓨터가 수행할 지시사항을 텍스트로 입력하면 자동으로 명령 수행. 각 명령어를 실행하는 <b>agentic tool</b>로 구성.</p>
+    </div>
+    <div class="card">
+      <h3>CaP-Agent0 (2026)</h3>
+      <p>로봇 매니퓰레이션용 코딩 에이전트. VLA, WAM 등 Robot Foundation Model 구조 기반. Parallel Query → Candidate Solutions(Ensemble Agent) → Python Sandbox(Env Feedback + Visual Diffencing Model) → Runtime Outputs 구조.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 13. 실습 ===================== -->
+<section class="section" id="s13" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">13</div>
+    <div><h2>실습 — 배포/서빙</h2><p class="desc">HuggingFace · 모바일 서빙 · Gradio</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>Hugging Face</h3>
+      <p>AI 관련 오픈소스 모델과 데이터셋을 공유하는 플랫폼. 사전학습 모델 가중치 제공, 모델 학습을 위한 다양한 데이터셋 제공. 응용분야: NLP, 컴퓨터비전(CV), 음성인식(Speech) 등.</p>
+      <p><b>Hugging Face Inference API</b>: 별도 서버 구축 없이 REST API만으로 모델을 바로 사용 가능. 연구·테스트 목적으로 Request 수 제한 있음(무료/유료 버전).</p>
+      <div class="formula">from huggingface_hub import InferenceClient
+client = InferenceClient(provider="hf-inference", api_key="hf_...")
+messages = [{"role": "user", "content": "What is the capital of France?"}]
+completion = client.chat.completions.create(
+    model="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+    messages=messages, max_tokens=500)
+print(completion.choices[0].message)</div>
+    </div>
+    <div class="card">
+      <h3>모바일 모델 서빙</h3>
+      <p><b>MediaPipe</b>, <b>MLC LLM</b>을 통해 스마트폰에서 sLLM 모델 손쉽게 실행. 개인정보 보안 문제 완화 + 인터넷 연결이 끊긴 상태에서도 사용 가능한 장점.</p>
+      <p style="font-size:12.6px;color:var(--sub)">예: 안드로이드 MLCChat 앱으로 Qwen2-1.5B, Llama3.1-8B, Phi3-mini 등 다운로드 실행 / Gemma1은 MediaPipe로, Gemma2는 MLC LLM으로 실행</p>
+    </div>
+    <div class="card">
+      <h3>Gradio</h3>
+      <p>머신러닝 모델을 웹 인터페이스로 쉽게 배포하도록 도와주는 오픈소스 라이브러리. 코딩 지식이 없어도 몇 줄의 코드로 모델과 상호작용하는 환경 제공. HuggingFace와 통합되어 Gradio 데모를 쉽게 생성·배포 가능. 다양한 입력(이미지/텍스트/오디오 등)·출력 지원.</p>
+      <div class="formula">import gradio as gr
+interface = gr.Interface(
+    fn=predict_image,
+    inputs=gr.Image(shape=(28, 28), image_mode='L', invert_colors=True),
+    outputs="label", live=True)
+interface.launch()</div>
+    </div>
+    <div class="card full">
+      <h3>실습 마무리 — 이미지 생성 및 평가와 모델 학습</h3>
+      <ul>
+        <li>생성형 파운데이션 모델을 활용해 이미지 생성 가능 (Stable Diffusion 기반 Text-to-Image)</li>
+        <li>멀티모달 모델을 이용해 이미지를 평가할 수 있음 — <b>CLIP</b>을 활용해 이미지 생성 입력 텍스트와 결과물 내용을 자동 비교</li>
+        <li>합성 데이터를 활용하여 전이 학습(Transfer Learning) 수행 가능</li>
+      </ul>
+      <div class="subhead">전이 학습 (Transfer Learning)</div>
+      <table class="compare">
+        <tr><th>정의</th><td colspan="1">사전학습된 모델을 기반으로 새로운 데이터·과제에 맞게 재학습하는 방법</td></tr>
+        <tr><th>특징</th><td>적은 데이터로도 학습 가능 / 학습 시간·비용 절감 / 기존 모델의 일반화 능력 활용</td></tr>
+        <tr><th>대표 기법</th><td><b>Linear Probing</b>(출력층만 학습) / <b>Fine-tuning</b>(일부 또는 전체 가중치 재학습)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 14. 총정리 ===================== -->
+<section class="section" id="s14">
+  <div class="section-head" style="border-color:var(--navy)">
+    <div class="section-num" style="background:var(--navy)">✓</div>
+    <div><h2>차시별 강의 정리 (원본 슬라이드 기준 총정리)</h2><p class="desc">각 차시 마지막 "강의 정리" 슬라이드 취합</p></div>
+  </div>
+  <div class="summary-box">
+    <h4>🔹 1차시 — AI 파운데이션 모델 & CLIP</h4>
+    <ul>
+      <li>CLIP의 학습 디자인 한계를 간파한 <b>SigLIP</b></li>
+      <li>VLM = Vision-Language Encoder(예: CLIP/SigLIP) + Language Model</li>
+      <li>기존 언어모델은 텍스트만, CV모델은 이미지만 처리 → 이를 융합하면 수많은 문제를 하나의 모델로 해결 가능: 이미지 인식, 탐지, 캡션, Visual QA, 추론, 글자인식(OCR), 번역 등</li>
+      <li>도메인 특화 VLM 사례들 (의료 · 제조업 · 3D)</li>
+    </ul>
+  </div>
+  <div class="summary-box" style="margin-top:14px">
+    <h4>🔹 2차시 — Small VLM & 다양한 파운데이션 모델</h4>
+    <ul>
+      <li>모바일 환경에서도 실행 가능한 sVLM들, 한국어 sVLM</li>
+      <li>다양한 이미지·영상 파운데이션 모델들:
+        <ul style="margin-top:4px">
+          <li><b>Segment Anything</b> — 범용 객체 분할</li>
+          <li><b>Grounding SAM</b> — 텍스트와 연결된 객체 탐지·분할</li>
+          <li><b>Stable Diffusion, FLUX</b> — 텍스트 기반 이미지 생성</li>
+          <li><b>Depth Anything, Sapiens</b> — 2D 이미지에서 3D 변환</li>
+          <li><b>Wan2.2</b> — X-to-Video 생성 모델</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div class="summary-box" style="margin-top:14px">
+    <h4>🔹 3·4차시 — Fine-tuning & 합성데이터 & 실습</h4>
+    <ul>
+      <li>파인튜닝은 모델을 특정 도메인·사용자에 맞게 효율적으로 적용할 수 있는 매우 실용적 기술</li>
+      <li>합성데이터 활용법은 학습·평가 데이터 취득이 어려울 때 매우 실용적인 방법론 — 생각보다 간단한 데이터가 활용성이 좋을 수 있음</li>
+      <li>이미지 파운데이션 모델의 개발 동향: 이미지+언어모델의 성공 사례 ⇒ 멀티모달 언어모델로 확장</li>
+      <li>실습: HuggingFace는 다양한 모델이 공유되어 활용 가능한 플랫폼, Gradio로 모델을 손쉽게 서빙할 수 있음</li>
+    </ul>
+  </div>
+</section>
+
+</main>
+
+<a href="#s0" id="top-btn">↑</a>
+
+<footer>
+  딥러닝 및 이미지 파운데이션 모델 — 강의 슬라이드(전체 242p) 프레임 추출 · OCR · 재구성 기반 개념정리 · 결측 구간(35p)은 별도 표시
+</footer>
+
+</body>
+</html>
