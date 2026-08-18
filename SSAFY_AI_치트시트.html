@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAFY AI 이론 치트시트 — 전범위 총정리</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+:root{
+  --bg:#f5f6f9; --panel:#ffffff; --border:#e3e6ec; --text:#1b1f27; --sub:#69707d;
+  --accent:#3554d1; --accent-soft:#eaefff; --good:#0e8f5f; --good-bg:#e7f8f0;
+  --bad:#c0293f; --bad-bg:#fdeced; --warn:#b6720c; --warn-bg:#fdf1de; --hard:#7b3fd1; --hard-bg:#f1e9fc;
+  --radius:12px; --shadow:0 1px 2px rgba(20,20,30,.04),0 6px 20px rgba(20,20,30,.05);
+  --mono: 'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Malgun Gothic','Pretendard',sans-serif;background:var(--bg);color:var(--text);line-height:1.55;}
+.topbar{position:sticky;top:0;z-index:50;background:var(--panel);border-bottom:1px solid var(--border);padding:14px 22px;display:flex;align-items:center;justify-content:space-between;}
+.topbar .brand{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px;}
+.topbar .brand .dot{width:9px;height:9px;border-radius:50%;background:linear-gradient(135deg,#3554d1,#7aa2ff);}
+.topbar .meta{font-size:12px;color:var(--sub);}
+.layout{display:flex;max-width:1240px;margin:0 auto;align-items:flex-start;gap:24px;padding:20px;}
+.toc{width:230px;flex-shrink:0;position:sticky;top:64px;max-height:calc(100vh - 84px);overflow-y:auto;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;font-size:13px;}
+.toc h3{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--sub);margin:12px 0 6px;}
+.toc h3:first-child{margin-top:0;}
+.toc a{display:block;padding:5px 8px;border-radius:8px;color:var(--text);text-decoration:none;margin-bottom:1px;}
+.toc a:hover{background:var(--accent-soft);color:var(--accent);}
+main{flex:1;min-width:0;}
+.hero{background:linear-gradient(135deg,#3554d1,#5b7fff);color:#fff;border-radius:var(--radius);padding:26px 28px;margin-bottom:22px;}
+.hero h1{margin:0 0 6px;font-size:24px;}
+.hero p{margin:0;opacity:.92;font-size:14px;}
+.hero .tags{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.hero .tags span{background:rgba(255,255,255,.18);padding:4px 10px;border-radius:20px;font-size:11.5px;}
+section.chapter{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 26px;margin-bottom:18px;box-shadow:var(--shadow);scroll-margin-top:70px;}
+section.chapter > h2{font-size:19px;margin:0 0 4px;display:flex;align-items:center;gap:8px;}
+section.chapter > h2 .num{background:var(--accent);color:#fff;border-radius:8px;width:26px;height:26px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+section.chapter > .desc{color:var(--sub);font-size:13px;margin:0 0 16px;}
+h3.sub{font-size:15.5px;margin:22px 0 8px;padding-top:14px;border-top:1px dashed var(--border);color:#222;}
+h3.sub:first-of-type{border-top:none;padding-top:0;margin-top:14px;}
+h4.subsub{font-size:14px;margin:14px 0 6px;color:#333;}
+p{margin:6px 0;font-size:13.6px;}
+.card{background:#fafbfd;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin:10px 0;font-size:13.4px;}
+.formula{background:#f8f9fc;border-left:3px solid var(--accent);padding:10px 14px;margin:10px 0;border-radius:0 8px 8px 0;overflow-x:auto;font-size:14px;}
+.point{border-radius:10px;padding:10px 14px;margin:10px 0;font-size:13.4px;border:1px solid;}
+.point.exam{background:var(--bad-bg);border-color:#f3c3cb;}
+.point.exam::before{content:"★ 시험 단골  ";font-weight:800;color:var(--bad);}
+.point.hard{background:var(--hard-bg);border-color:#dcc7f6;}
+.point.hard::before{content:"HARD  ";font-weight:800;color:var(--hard);}
+.point.warn{background:var(--warn-bg);border-color:#f1dba7;}
+.point.warn::before{content:"⚠ 주의  ";font-weight:800;color:var(--warn);}
+.point.tip{background:var(--accent-soft);border-color:#c9d6fb;}
+.point.tip::before{content:"💡 정리  ";font-weight:800;color:var(--accent);}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;}
+th,td{border:1px solid var(--border);padding:6px 9px;text-align:left;vertical-align:top;}
+th{background:#eef1f7;font-weight:700;}
+tr:nth-child(even) td{background:#fafbfd;}
+code{font-family:var(--mono);background:#eef0f5;padding:1px 5px;border-radius:5px;font-size:12.3px;}
+pre{background:#1c2030;color:#e6e8f0;padding:12px 14px;border-radius:10px;overflow-x:auto;font-size:12.3px;line-height:1.5;margin:10px 0;}
+pre code{background:none;color:inherit;padding:0;}
+ul,ol{margin:6px 0;padding-left:22px;font-size:13.4px;}
+li{margin:3px 0;}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;margin-right:5px;}
+.badge.good{background:var(--good-bg);color:var(--good);}
+.badge.bad{background:var(--bad-bg);color:var(--bad);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:800px){.grid2,.grid3{grid-template-columns:1fr;}.toc{display:none;}}
+.qa{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:8px 0;font-size:13.2px;}
+.qa .q{font-weight:700;}
+.qa .a{color:var(--good);font-weight:700;margin-top:4px;}
+details{background:#fafbfd;border:1px solid var(--border);border-radius:10px;padding:8px 14px;margin:8px 0;}
+summary{cursor:pointer;font-weight:700;font-size:13.4px;}
+.footer{text-align:center;color:var(--sub);font-size:12px;padding:26px 0 50px;}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:4px 10px;font-size:13.2px;margin:8px 0;}
+.kv b{color:#333;}
+.checklist label{display:flex;align-items:flex-start;gap:8px;font-size:13.2px;margin:4px 0;}
+.checklist input{margin-top:3px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span class="dot"></span> SSAFY AI 이론 치트시트</div>
+  <div class="meta">선형회귀·신경망 · EDA/모델학습 · CNN · RNN/어텐션/ViT · NLP · LLM · 이미지 파운데이션 모델</div>
+</div>
+
+<div class="layout">
+<nav class="toc">
+  <h3>목차</h3>
+  <a href="#ch1">1. 선형·로지스틱 회귀</a>
+  <a href="#ch2">2. 신경망 & 학습(SGD/역전파)</a>
+  <a href="#ch3">3. EDA & 모델학습 파이프라인</a>
+  <a href="#ch4">4. CNN 완전정리</a>
+  <a href="#ch5">5. RNN·LSTM·어텐션·ViT</a>
+  <a href="#ch6">6. 학습 전략(초기화/정규화 등)</a>
+  <a href="#ch7">7. NLP 전체 흐름</a>
+  <a href="#ch8">8. Transformer 상세</a>
+  <a href="#ch9">9. 사전학습 LM (BERT/T5/GPT)</a>
+  <a href="#ch10">10. 거대 언어 모델(LLM)</a>
+  <a href="#ch11">11. 이미지 파운데이션 모델</a>
+  <a href="#ch12">12. 공식 모음 & 헷갈리는 포인트</a>
+  <a href="#ch13">13. 자가 체크리스트</a>
+</nav>
+
+<main>
+
+<div class="hero">
+  <h1>SSAFY AI 이론 시험 치트시트</h1>
+  <p>제공된 모든 개념정리·모의고사·실습 자료를 근거로 생략 없이 재구성했습니다. 굵게 표시된 <b>★ 시험 단골</b> / <b>HARD</b> / <b>⚠ 주의</b> 박스를 우선 확인하세요.</p>
+  <div class="tags">
+    <span>선형/로지스틱 회귀</span><span>신경망·역전파</span><span>EDA·sklearn</span><span>CNN(AlexNet~MobileNet)</span>
+    <span>RNN·LSTM·Attention·ViT</span><span>학습전략</span><span>NLP(Word2Vec~Transformer)</span><span>LLM</span><span>이미지 파운데이션 모델</span>
+  </div>
+</div>
+
+<section class="chapter" id="ch1">
+<h2><span class="num">1</span> 선형회귀 · 로지스틱회귀</h2>
+<p class="desc">1차시 · 지도학습의 기초. 회귀와 분류의 출발점.</p>
+
+<h3 class="sub">1-1. 단순선형회귀</h3>
+<p><b>정의</b>: 입력과 출력의 관계를 <b>직선 형태로 근사</b>하여 예측하는 통계적 방법. 지도학습의 가장 기초적 접근.</p>
+<div class="formula">$$Y=\beta_0+\beta_1X+\varepsilon$$</div>
+<div class="kv">
+<b>$\beta_0$</b><span>절편 ($X=0$일 때 $Y$)</span>
+<b>$\beta_1$</b><span>기울기 ($X$가 1 증가할 때 $Y$의 평균 증가량)</span>
+<b>$\varepsilon$</b><span>관측 오차(=모델이 설명 못하는 부분, <u>잔차와는 다른 개념</u>)</span>
+</div>
+
+<h4 class="subsub">최소제곱법 (Least Squares)</h4>
+<p>실제값-예측값 차이(잔차)를 제곱해 합한 값 <b>RSS(잔차제곱합)</b>을 최소화 → closed-form 해 존재.</p>
+<div class="formula">
+$$e_i=y_i-\hat y_i,\qquad \mathrm{RSS}=\sum_{i=1}^n e_i^2=\sum_{i=1}^n(y_i-\hat\beta_0-\hat\beta_1x_i)^2$$
+$$\hat\beta_1=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sum(x_i-\bar x)^2}\qquad \hat\beta_0=\bar y-\hat\beta_1\bar x$$
+</div>
+<div class="point exam">잔차 $e_i=y_i-\hat y_i$ (실제값 − 예측값), RSS = 잔차 제곱의 합. $R^2 = 1-\mathrm{RSS/TSS}$이며 TSS는 "평균만으로 예측했을 때"의 오차. $R^2$가 1에 가까울수록 설명력이 좋다.</div>
+
+<h3 class="sub">1-2. 다중선형회귀</h3>
+<div class="formula">$$Y=\beta_0+\beta_1X_1+\cdots+\beta_pX_p+\varepsilon$$</div>
+<p>여러 독립변수를 동시에 고려. 해석: 다른 변수를 고정한 채 $X_j$가 1 증가하면 $Y$가 평균적으로 $\beta_j$만큼 변화.</p>
+<div class="formula">
+행렬 표현: $\mathbf y=\mathbf X\boldsymbol\beta+\boldsymbol\epsilon$<br>
+$$\text{정규방정식(closed-form 해)}\quad \hat{\boldsymbol\beta}=(\mathbf X^\top\mathbf X)^{-1}\mathbf X^\top\mathbf y$$
+</div>
+<div class="point hard">RSS를 $\hat\beta$로 미분해 0으로 놓으면 $-2X^\top y+2X^\top X\hat\beta=0$ → 위 정규방정식이 유도됨.</div>
+
+<h4 class="subsub">회귀 주의사항</h4>
+<ul>
+<li><b>다중공선성(multicollinearity)</b>: 독립변수들이 서로 강하게 상관 → 계수 추정이 불안정해지고 해석에 혼동 발생.</li>
+<li><b>상관 ≠ 인과</b>: "아이스크림 소비량 ↑ ↔ 상어에 물리는 사건 ↑" (숨은 변수 = 기온). 관찰 데이터의 상관관계로 인과관계를 주장하면 안 됨.</li>
+<li><b>훈련 성능만으로 평가 시</b> → 테스트 성능을 <b>과소평가</b>(=일반화 성능을 과대평가)하는 문제. 검증/교차검증 필요.</li>
+</ul>
+
+<h3 class="sub">1-3. 로지스틱 회귀 (분류)</h3>
+<p><b>분류(Classification)</b>: 정해진 범주 중 하나로 지정. 순서 없는 범주형 변수를 다룸.</p>
+<div class="point exam">분류 문제에 선형회귀를 그대로 쓰면? → 예측값이 0~1 범위를 벗어날 수 있어(확률로 부적절) 사용 불가.</div>
+<p><b>시그모이드 함수</b>로 0~1 확률 범위 보장:</p>
+<div class="formula">
+$$y=\frac{1}{1+e^{-z}}\ \ (0\le y\le1)\qquad p(X;\boldsymbol\beta)=\frac{1}{1+e^{-(\beta_0+\beta_1x)}}$$
+</div>
+
+<h4 class="subsub">오즈(Odds) · 로짓(logit)</h4>
+<div class="formula">
+$$\text{odds}=\frac{p(y=1|x)}{1-p(y=1|x)}\qquad \mathrm{logit}(p)=\log(\text{odds})=\beta_0+\beta_1x$$
+</div>
+<div class="point tip">로지스틱 모형 = 선형 모형 + 시그모이드. <b>로짓 변환을 하면 다시 선형 모형</b>이 된다. 이 대응관계는 시험에 자주 나옴.</div>
+
+<h4 class="subsub">MLE (최대우도추정)</h4>
+<p>확률 함수의 적합도는 <b>우도(Likelihood)</b>로 평가 (선형회귀의 MSE에 대응). log는 단조증가함수라 <b>log-likelihood를 최대화해도 같은 $\hat\beta$</b>를 얻는다(계산 편의를 위해 로그 취함, 곱셈→덧셈).</p>
+<div class="formula">
+$$\log\mathcal L(\boldsymbol\beta)=\sum_i\big[y_i\log p(x_i;\beta)+(1-y_i)\log(1-p(x_i;\beta))\big]$$
+</div>
+<div class="point warn">balance 계수가 양수 → balance가 증가할수록 연체의 <b>로짓(log-odds)이 증가</b>. 확률 자체는 선형이 아니다(입력을 2배 늘려도 확률은 97배 뛸 수 있음 예시).</div>
+
+<h3 class="sub">확인문제로 보는 포인트</h3>
+<div class="qa"><div class="q">Q. 잔차(residual) $e_i$의 정의?</div><div class="a">A. $e_i=y_i-\hat y_i$ (실제값−예측값)</div></div>
+<div class="qa"><div class="q">Q. 다중선형회귀 정규방정식(closed-form)?</div><div class="a">A. $\hat\beta=(X^\top X)^{-1}X^\top y$</div></div>
+<div class="qa"><div class="q">Q. 로지스틱 회귀 모수 추정에 쓰이는 방법?</div><div class="a">A. 최대우도추정(MLE)</div></div>
+</section>
+
+<section class="chapter" id="ch2">
+<h2><span class="num">2</span> 신경망 모델 & 신경망 적합(학습)</h2>
+<p class="desc">3~4차시 · Shallow/Deep 네트워크 구조, 손실함수, 경사하강법, 역전파.</p>
+
+<h3 class="sub">2-1. Shallow 네트워크</h3>
+<p>입력층 - 은닉층 1개 - 출력층으로 구성. 단순 선형모델 대비 <b>비선형 패턴 학습 가능</b>.</p>
+<div class="formula">
+$$y=\phi_0+\phi_1\mathrm a[\theta_{10}+\theta_{11}x]+\phi_2\mathrm a[\theta_{20}+\theta_{21}x]+\phi_3\mathrm a[\theta_{30}+\theta_{31}x]$$
+$$h_d=\mathrm a[\theta_{d0}+\theta_{d1}x]\qquad \mathrm{ReLU}[z]=\max(0,z)$$
+</div>
+<div class="point exam"><b>보편적 근사 정리(Universal Approximation Theorem)</b>: Hidden unit을 충분히 많이 가지면, 얕은(Shallow) 신경망도 임의의 연속함수를 임의의 정밀도로 근사할 수 있다.</div>
+
+<h3 class="sub">2-2. Deep 네트워크 — "접기(folding)"</h3>
+<p>여러 네트워크를 합성(x→y→y')하면 훨씬 많은 조각별 선형 구역을 만든다. <b>층을 쌓는 것 = 공간을 접는 것.</b> 같은 파라미터 수로 Deep이 Shallow보다 훨씬 많은 선형 구역을 표현(예: 파라미터 20개 Deep → 16구역, 19개 Shallow → 7구역).</p>
+<div class="formula">
+일반 $K$층: $$\mathbf y=\boldsymbol\beta_K+\boldsymbol\Omega_K\,\mathrm a[\boldsymbol\beta_{K-1}+\boldsymbol\Omega_{K-1}\mathrm a[\cdots \mathrm a[\boldsymbol\beta_0+\boldsymbol\Omega_0\mathbf x]\cdots]]$$
+</div>
+<div class="point exam">가중치 행렬 $\boldsymbol\Omega_k$의 크기 규칙 = <b>(다음 층 노드 수) × (현재 층 노드 수)</b>. 시험에 "행렬 크기 규칙" 문제로 자주 나옴.</div>
+
+<h3 class="sub">2-3. 손실함수 & 학습</h3>
+<div class="formula">
+$$L[\boldsymbol\phi]=\sum_{i=1}^I(\mathrm f[x_i,\boldsymbol\phi]-y_i)^2 \qquad \hat{\boldsymbol\phi}=\underset{\boldsymbol\phi}{\operatorname{argmin}}\,L[\boldsymbol\phi]$$
+</div>
+<p>손실함수 = 모델이 얼마나 잘못 예측하는지 측정. 값이 작을수록 좋다. 학습 = 손실함수를 최소화하는 파라미터를 찾는 과정.</p>
+
+<h3 class="sub">2-4. 경사하강법 (Gradient Descent)</h3>
+<div class="formula">$$\boldsymbol\phi\leftarrow\boldsymbol\phi-\alpha\frac{\partial L}{\partial\boldsymbol\phi}\qquad(\alpha=\text{학습률})$$</div>
+<p>기울기(=손실이 가장 빠르게 <b>증가</b>하는 방향)의 <b>반대</b> 방향으로 이동.</p>
+<table>
+<tr><th></th><th>Convex</th><th>Non-convex</th></tr>
+<tr><td>모양</td><td>U자, 아래로 볼록</td><td>봉우리·골짜기·안장점(saddle) 혼재</td></tr>
+<tr><td>최적화</td><td>전역 최소값 유일 → 쉬움</td><td>지역 최소값 여러 개 → 시작점에 따라 결과 달라짐</td></tr>
+</table>
+
+<h4 class="subsub">확률적 경사하강법 (SGD)</h4>
+<div class="formula">$$\phi_{t+1}\leftarrow\phi_t-\alpha\sum_{i\in\mathcal B_t}\frac{\partial \ell_i[\phi_t]}{\partial\phi}$$</div>
+<ul>
+<li>전체 데이터 대신 <b>무작위 미니배치</b> 사용 → 스텝당 계산량↓</li>
+<li>노이즈가 있지만 평균적으로 올바른 방향 → <b>local minima/saddle point 탈출</b>에 유리</li>
+<li>GD처럼 매끈하지 않고 지그재그(진동)하며 수렴</li>
+</ul>
+<div class="point exam">SGD의 장점 이유는 "계산량 감소"뿐 아니라 <b>노이즈로 인한 지역 최소점 탈출 용이</b>도 함께 기억할 것.</div>
+
+<h3 class="sub">2-5. 역전파 (Backpropagation)</h3>
+<p>출력 오차를 기준으로 그래프를 거꾸로 따라가며 <b>연쇄법칙(chain rule)</b>으로 각 노드(파라미터)의 미분값을 계산.</p>
+<div class="formula">
+$$\frac{\partial\ell_i}{\partial\boldsymbol\Omega_k}=\frac{\partial\ell_i}{\partial\mathbf f_k}\mathbf h_k^\top\qquad \frac{\partial\ell_i}{\partial\boldsymbol\beta_k}=\frac{\partial\ell_i}{\partial\mathbf f_k}
+$$
+</div>
+<p>순서: ① 순전파(forward)로 각 층 값 계산 → ② 역전파(backward)로 출력 손실에 대한 각 층 미분 계산 → ③ 파라미터에 대한 미분 계산.</p>
+
+<h3 class="sub">한 장 요약</h3>
+<div class="card">
+선형회귀(직선, RSS 최소화, closed-form) → 다중선형회귀(초평면, 다중공선성 주의) → 로지스틱회귀(시그모이드로 확률, MLE로 추정) → Shallow 신경망(ReLU 조각별 선형, 보편적 근사) → Deep 신경망(접기, 같은 파라미터로 표현력↑) → 학습(손실 최소화 = argmin L, 경사하강 = 반대방향 이동, SGD = 미니배치, 역전파 = 연쇄법칙으로 뒤에서부터 미분).
+</div>
+</section>
+
+<section class="chapter" id="ch3">
+<h2><span class="num">3</span> EDA & 모델학습 파이프라인</h2>
+<p class="desc">머신러닝 기초 개념부터 sklearn 파이프라인 전체 흐름까지.</p>
+
+<h3 class="sub">3-1. 기초 개념</h3>
+<div class="kv">
+<b>AI ⊃ ML ⊃ DL</b><span>AI(지능적 행동, 가장 넓음) ⊃ ML(데이터로 패턴 학습) ⊃ DL(신경망 활용 ML)</span>
+</div>
+<table>
+<tr><th></th><th>지도학습</th><th>비지도학습</th></tr>
+<tr><td>데이터</td><td>레이블 있음</td><td>레이블 없음</td></tr>
+<tr><td>목표</td><td>$X\to Y$ 예측</td><td>그룹화/차원축소</td></tr>
+<tr><td>기법</td><td>분류, 회귀</td><td>군집화, PCA/t-SNE</td></tr>
+</table>
+<table>
+<tr><th></th><th>과소적합(Underfitting)</th><th>과대적합(Overfitting)</th></tr>
+<tr><td>훈련 오차</td><td>높음</td><td>낮음</td></tr>
+<tr><td>테스트 오차</td><td>높음</td><td>높음</td></tr>
+<tr><td>해결</td><td>모델 복잡도↑, 특성 추가</td><td>정규화, 데이터 증강, Early stopping</td></tr>
+</table>
+<div class="point exam">Degradation problem(ResNet)과 구분: 훈련 오차까지 나쁘면 과적합이 아니라 <b>최적화 실패</b>.</div>
+<p><b>Train/Valid/Test</b>: Train(패턴 학습, 60~80%) / Valid(하이퍼파라미터 조정·과적합 모니터링) / Test(최종 평가, 학습에 전혀 미사용). 간단한 실습은 교차검증으로 Valid 대체 가능.</p>
+
+<h3 class="sub">3-2. EDA</h3>
+<p>확인 항목: 데이터 구조, 기초 통계량, 결측치, 이상치, 분포, 상관관계.</p>
+<div class="formula">$$\text{Pearson } r=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sqrt{\sum(x_i-\bar x)^2}\sqrt{\sum(y_i-\bar y)^2}}\ \in[-1,1]$$</div>
+<div class="point warn">Pearson $r$은 <b>선형</b> 관계만 측정. $y=x^2$처럼 뚜렷한 비선형 관계에서도 $r\approx0$일 수 있음. 상관관계 ≠ 인과관계(아이스크림-익사 사고 예시, 숨은변수=기온).</div>
+<pre><code>corr = df.corr(numeric_only=True)
+sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", mask=np.triu(np.ones_like(corr)))
+sns.histplot(data=df, x='col', hue="target", kde=True)
+sns.scatterplot(data=df, x='a', y='b', hue='target')
+sns.pairplot(data=df[top_features], hue='target', corner=True)</code></pre>
+
+<h3 class="sub">3-3. 결측치 · 이상치</h3>
+<div class="kv">
+<b>결측치 처리</b><span>삭제 / 평균·중앙값·최빈값 대체 / 시계열은 전후값 대체 / ML 예측 대체</span>
+</div>
+<div class="point warn">분포가 치우쳐(skewed)있을 때 <b>평균 대체는 분포를 왜곡</b>시킴 → 중앙값 고려.</div>
+<div class="formula">$$\mathrm{IQR}=Q_3-Q_1\qquad \text{정상범위}=[Q_1-1.5\,\mathrm{IQR},\ Q_3+1.5\,\mathrm{IQR}]$$</div>
+<p>IQR 방법은 평균·표준편차 기반보다 <b>극단값에 덜 민감</b>하고 정규분포가 아니어도 사용 가능. 이상치는 <b>무조건 삭제 금지</b> — 왜 생겼는지 먼저 확인(측정오류 vs 의미있는 값).</p>
+
+<h3 class="sub">3-4. 전처리</h3>
+<pre><code>X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y)</code></pre>
+<div class="kv">
+<b>test_size</b><span>테스트 비율</span>
+<b>random_state</b><span>시드 고정(재현성)</span>
+<b>stratify=y</b><span>클래스 비율을 train/test에 동일 유지(쏠림 방지)</span>
+<b>shuffle</b><span>기본 True, 시계열은 False(시간순 분할)</span>
+</div>
+<div class="formula">$$z=\frac{x-\mu}{\sigma}\quad(\mu,\sigma\text{는 train에서만 계산})$$</div>
+<p>표준화가 중요한 경우: 로지스틱회귀(최적화 기반), L1/L2 규제(계수 크기에 직접 작용), 거리기반 기법(KNN/KMeans/PCA).</p>
+<div class="point exam"><b>데이터 누수(Data Leakage)</b> 방지 원칙: ① train/test 먼저 분할 → ② train으로만 통계량 계산(fit) → ③ 동일 통계량을 test에 적용(transform만). <code>scaler.fit_transform(X_test)</code>는 대표적 오류.</div>
+<pre><code>scaler = StandardScaler().fit(X_train)          # fit은 train만
+X_train_s, X_test_s = scaler.transform(X_train), scaler.transform(X_test)</code></pre>
+
+<h3 class="sub">3-5. 모델 학습 & 평가</h3>
+<table>
+<tr><th>역할</th><th>클래스</th><th>메서드</th></tr>
+<tr><td>전처리(Transformer)</td><td>StandardScaler, SimpleImputer, PCA</td><td>fit / transform / fit_transform</td></tr>
+<tr><td>예측(Estimator)</td><td>LogisticRegression, LinearRegression</td><td>fit / predict / predict_proba</td></tr>
+<tr><td>군집(Clusterer)</td><td>KMeans</td><td>fit / predict / fit_predict</td></tr>
+</table>
+
+<h4 class="subsub">분류 평가지표</h4>
+<table>
+<tr><th></th><th>예측 0</th><th>예측 1</th></tr>
+<tr><td>실제 0</td><td>TN</td><td>FP (과검출)</td></tr>
+<tr><td>실제 1</td><td>FN (미검출)</td><td>TP</td></tr>
+</table>
+<div class="formula">
+$$\text{Accuracy}=\frac{TP+TN}{TP+TN+FP+FN}\qquad\text{Precision}=\frac{TP}{TP+FP}\qquad\text{Recall}=\frac{TP}{TP+FN}$$
+$$F_1=2\cdot\frac{P\cdot R}{P+R}$$
+</div>
+<p><b>Precision</b>=1이라 예측한 것 중 진짜 1 비율(과검출 FP에 민감) / <b>Recall</b>=진짜 1 중 찾아낸 비율(미검출 FN에 민감) / <b>F1</b>=조화평균, 클래스 불균형에서 accuracy보다 신뢰.</p>
+<div class="point exam">불균형 데이터에서 accuracy만 보면 소수 클래스를 다 틀려도 높게 나올 수 있음 → F1/ROC-AUC 병행 필요.</div>
+
+<h4 class="subsub">ROC-AUC</h4>
+<p>$\text{TPR}=\text{Recall}$, $\text{FPR}=FP/(FP+TN)$의 곡선. AUC: 0.5=무작위, 1.0=완벽. <b>임계값을 정하지 않고</b> 모델의 순위 매기기 능력을 평가.</p>
+
+<h4 class="subsub">회귀 평가지표</h4>
+<div class="formula">
+$$\text{RMSE}=\sqrt{\tfrac1n\sum(y_i-\hat y_i)^2}\qquad \text{MAE}=\tfrac1n\sum|y_i-\hat y_i|\qquad R^2=1-\frac{\sum(y_i-\hat y_i)^2}{\sum(y_i-\bar y)^2}$$
+</div>
+<p>RMSE: 큰 오차(이상치)에 민감 / MAE: 이상치에 덜 민감 / $R^2$: 설명력, 평균 예측보다 나쁘면 음수도 가능(무단위).</p>
+
+<h4 class="subsub">교차검증</h4>
+<pre><code>cross_val_score(clf, X_train_norm, y_train, cv=5, scoring='f1')</code></pre>
+<p>여러 폴드로 나눠 순환 학습·평가 → 분할 편차를 줄이고 일반화 성능을 안정적으로 추정.</p>
+
+<h3 class="sub">3-6. 비지도학습 — PCA & KMeans</h3>
+<p><b>PCA</b>: 분산이 가장 큰 방향(PC1) → 그와 직교하며 분산이 큰 방향(PC2). <code>explained_variance_ratio_</code>로 설명 분산 비율 확인. 거리기반이므로 <b>표준화 후 적용</b>이 일반적.</p>
+<p><b>KMeans</b>: ① 중심 초기화 → ② 각 점을 가장 가까운 중심에 배정 → ③ 클러스터 평균으로 중심 이동 → 반복. 군집 라벨(0,1,2…)은 <b>실제 클래스 번호와 대응하지 않음</b> — 분리 방향이 같으면 잘 잡은 것.</p>
+
+<h3 class="sub">sklearn 자주 하는 실수</h3>
+<table>
+<tr><th>실수</th><th>문제</th></tr>
+<tr><td>scaler.fit_transform(X_test)</td><td>test 통계로 재fit → 누수. transform만 써야 함</td></tr>
+<tr><td>전체 데이터로 스케일링 후 분할</td><td>test 정보가 train에 샘. 분할 먼저!</td></tr>
+<tr><td>불균형 데이터에서 accuracy만 확인</td><td>다수클래스만 찍어도 높음 → F1/ROC-AUC 병행</td></tr>
+<tr><td>stratify 미사용</td><td>클래스가 한쪽에 쏠릴 수 있음</td></tr>
+<tr><td>random_state 미지정</td><td>실행마다 결과 달라져 재현 불가</td></tr>
+<tr><td>ConvergenceWarning 무시</td><td>표준화 확인 → max_iter↑ → solver 변경</td></tr>
+</table>
+</section>
+
+<section class="chapter" id="ch4">
+<h2><span class="num">4</span> CNN 완전정리</h2>
+<p class="desc">FCN의 한계 → 합성곱 기초 → AlexNet → VGGNet → ResNet → MobileNet.</p>
+
+<h3 class="sub">4-1. FCN vs CNN</h3>
+<div class="point warn">FCN(이미지를 1차원으로 Flatten)의 3가지 문제: ① <b>파라미터 폭발</b>(224×224 이미지 첫층만 150만개↑) ② <b>공간 구조 파괴</b>(이웃 픽셀 관계 소실) ③ <b>위치 의존</b>(객체 위치 바뀌면 다른 입력으로 인식)</div>
+<p><b>합성곱(Convolution)</b>: 입력을 3차원 구조 그대로 유지하며 필터와 내적 반복 → 특징맵(feature map) 생성. 필터 깊이는 항상 <b>입력 채널 수와 동일</b>. 같은 필터를 전체 이미지에 재사용 = <b>파라미터 공유(weight sharing)</b>.</p>
+
+<h3 class="sub">4-2. 핵심 공식 (★ 반드시 암기)</h3>
+<table>
+<tr><th>항목</th><th>공식</th></tr>
+<tr><td>출력 해상도</td><td>$W'=\dfrac{W-K+2P}{S}+1$</td></tr>
+<tr><td>출력 채널 수</td><td>= 필터(커널) 개수 $C_{out}$</td></tr>
+<tr><td>파라미터 수</td><td>$C_{out}\times C_{in}\times K^2 + C_{out}$(바이어스)</td></tr>
+<tr><td>메모리(활성)</td><td>$C_{out}\times H'\times W'\times4$Byte</td></tr>
+<tr><td>FLOPs</td><td>$(H'\times W')\times(C_{in}\times K^2\times C_{out})$</td></tr>
+<tr><td>same 패딩</td><td>$P=(K-1)/2$ (홀수 커널)</td></tr>
+</table>
+<div class="point exam">예) AlexNet Conv1: 입력 227, K=11, S=4, P=0 → $W'=\frac{227-11}{4}+1=55$. 파라미터 $96\times3\times11^2+96=34{,}944$.</div>
+<p><b>세 그래프가 말하는 것</b>: 메모리는 <b>초기(고해상도) 레이어</b>에 집중, 파라미터는 <b>FC 레이어</b>에 집중, FLOPs는 <b>합성곱</b>에서 주로 발생.</p>
+
+<h3 class="sub">4-3. 비선형 & 수용영역 & 다운샘플링</h3>
+<div class="point exam">Conv만 계속 쌓고 ReLU 없으면 $W_{all}=W_3W_2W_1$로 뭉개져 <b>결국 하나의 선형 변환</b>과 같아짐 → 표현력이 늘지 않음. 반드시 Conv→ReLU 쌍으로 쌓아야 깊이가 의미를 가짐.</p>
+<p><b>수용영역(Receptive Field)</b> = 출력 한 칸이 원본 입력에서 참조하는 영역(네트워크의 시야). 층이 깊을수록 넓어짐.</p>
+<div class="formula">$$j_k=j_{k-1}\cdot S_k,\qquad R_k=R_{k-1}+(K_k-1)j_{k-1}\quad(R_0=1,j_0=1)$$
+3×3 stride1을 $n$번 쌓으면 $R=2n+1$</div>
+<table>
+<tr><th>방법</th><th>학습 파라미터</th><th>정보 손실</th><th>비고</th></tr>
+<tr><td>Max/Avg Pooling</td><td>없음</td><td>상대적으로 큼</td><td>단순·빠름, 위치 강건성</td></tr>
+<tr><td>Strided Conv</td><td>있음(커널 학습)</td><td>적음</td><td>풀링+합성곱을 한 레이어로</td></tr>
+</table>
+<p><b>맥스풀링</b>: 영역 내 최댓값 선택, <b>학습 파라미터 없음</b>. 해상도↓ → 연산량↓, 위치변화 강건성↑.</p>
+
+<h3 class="sub">4-4. CNN 모델 변천사 (2012~2017)</h3>
+<table>
+<tr><th>연도</th><th>모델</th><th>Top-5 Err</th><th>깊이</th><th>핵심</th></tr>
+<tr><td>2012</td><td>AlexNet</td><td>16.4%</td><td>8</td><td>딥러닝의 시작, GPU, ReLU</td></tr>
+<tr><td>2014</td><td>VGG</td><td>7.3%</td><td>19</td><td>3×3만 깊게 반복</td></tr>
+<tr><td>2014</td><td>GoogLeNet</td><td>6.7%</td><td>22</td><td>Inception, 1×1 축소, GAP</td></tr>
+<tr><td>2015</td><td>ResNet</td><td>3.6%</td><td>152</td><td>잔차 연결 — 사람(5.1%) 능가</td></tr>
+<tr><td>2017</td><td>SENet</td><td>2.3%</td><td>152</td><td>채널 어텐션</td></tr>
+</table>
+<div class="point tip">Top-5 Error = 1 − Accuracy. 상위 5개 예측 안에 정답이 없는 비율(1000클래스라 Top-1보다 관대).</div>
+
+<h4 class="subsub">AlexNet (2012)</h4>
+<p>5개 Conv + 3개 FC = 8계층. 입력 227×227×3 → 227→55→27→13→6→9216→4096→4096→1000(Softmax). Overlapping Pooling(3×3, stride2) 사용.</p>
+
+<h4 class="subsub">VGGNet (2014) — 디자인 룰 3줄</h4>
+<ol><li>3×3 합성곱 / 스트라이드1 / 패딩1 반복</li><li>맥스풀링(2×2)으로 크기 축소</li><li>풀링 후 채널 크기 2배</li></ol>
+<div class="point exam">3×3 두 개 vs 5×5 하나: 수용영역 동일하지만 파라미터 $18C^2$ vs $25C^2$(28% 절감), ReLU는 2번(표현력↑). VGG는 AlexNet보다 메모리·파라미터·연산량 모두 크지만 <b>Top-5 에러는 더 낮음</b>(성능은 더 좋음).</div>
+
+<h4 class="subsub">ResNet (2015)</h4>
+<div class="point exam"><b>Degradation Problem</b>: 층을 깊게(56층)했더니 <u>훈련 오차까지</u> 20층보다 나빠지는 현상 → 과적합이 아니라 <b>최적화 실패</b>.</div>
+<div class="formula">$$\text{Output}=F(x)+x\qquad \frac{\partial y}{\partial x}=\frac{\partial F(x)}{\partial x}+1$$</div>
+<p>학습이 안 되면 $F(x)\approx0$ → 출력=입력(최소 성능 보장). "+1"이 곱셈 사슬 중에도 보존되어 152층 학습 가능.</p>
+<p><b>보틀넥 구조</b>: 1×1(채널 축소, 4C→C) → 3×3(C→C) → 1×1(채널 복원, C→4C). FLOPs $17HWC^2$ (일반 잔차블록 $18HWC^2$보다 적음). <b>전역평균풀링(GAP)</b>이 FC 대체 → 파라미터 대폭 감소(ResNet-50이 VGG-16보다 깊은데 파라미터는 1/5).</p>
+
+<h4 class="subsub">MobileNet — 경량화</h4>
+<p>공간(H×W)과 채널(C)을 <b>분리 처리</b>: 깊이별 합성곱(Depthwise, 채널별 독립 3×3) + 화소별 합성곱(Pointwise, 1×1로 채널 조합).</p>
+<div class="formula">$$\text{절감 비율}=\frac{9C^2HW}{9CHW+C^2HW}=\frac{9C}{9+C}\xrightarrow[C\to\infty]{}9\ (=K^2)$$</div>
+
+<h3 class="sub">4-5. 4개 모델 종합 비교</h3>
+<table>
+<tr><th>모델</th><th>Top-5 Err</th><th>깊이</th><th>Params</th><th>GFLOPs</th><th>핵심 아이디어</th></tr>
+<tr><td>AlexNet</td><td>16.4</td><td>8</td><td>61M</td><td>0.7</td><td>ReLU+GPU+대용량데이터</td></tr>
+<tr><td>VGG-16</td><td>7.3</td><td>16~19</td><td>138M</td><td>13.6</td><td>3×3 반복, 설계 규칙</td></tr>
+<tr><td>ResNet-50</td><td>7.13</td><td>50</td><td>25M</td><td>3.8</td><td>잔차연결+보틀넥+GAP</td></tr>
+<tr><td>MobileNet</td><td>—</td><td>28</td><td>4.2M</td><td>0.57</td><td>깊이별+화소별 분리(9배 절감)</td></tr>
+</table>
+<div class="point tip">발전 3방향: <b>깊이</b>(8→19→152층, 잔차연결이 최적화 문제를 풂) / <b>단위연산</b>(큰필터→작은필터반복→1×1채널조절→공간채널분리) / <b>효율</b>(FC제거·보틀넥·그룹합성곱). "같은 시야를 더 싸게"가 목표.</div>
+
+<h3 class="sub">용어 대조표</h3>
+<table>
+<tr><td>특징맵/활성화맵</td><td>합성곱 결과 2차원 격자, 필터 1개당 1장</td></tr>
+<tr><td>Overlapping Pooling</td><td>커널>스트라이드라 영역이 겹치는 풀링(AlexNet)</td></tr>
+<tr><td>그룹 합성곱</td><td>채널을 그룹으로 나눠 따로 합성곱, groups=C면 깊이별</td></tr>
+<tr><td>Stem</td><td>모델 초입 해상도를 빠르게 줄이는 구간(ResNet: ¼로)</td></tr>
+</table>
+</section>
+
+<section class="chapter" id="ch5">
+<h2><span class="num">5</span> RNN · LSTM · 어텐션 · ViT</h2>
+<p class="desc">CNN의 한계(순서 무시, 장거리 의존성) → RNN → LSTM → Attention → ViT.</p>
+
+<div class="point exam">CNN의 두 가지 한계: ① <b>순서 무시</b>(텍스트·음성처럼 순서가 의미를 바꾸는 데이터 반영 못함) ② <b>긴 거리 의존성 부족</b>(수용영역을 깊이 쌓아야 겨우 반영).</div>
+
+<h3 class="sub">5-1. RNN</h3>
+<div class="formula">$$h_t=f_W(h_{t-1},x_t)\qquad h_t=\tanh(W_{hh}h_{t-1}+W_{xh}x_t)\qquad y_t=W_{hy}h_t$$</div>
+<p>모든 시점에서 <b>동일한 가중치 $W$ 재사용</b>(파라미터 효율 + <b>가변 길이 입력 처리</b>가 진짜 이유).</p>
+<table>
+<tr><th>구조</th><th>예시</th></tr>
+<tr><td>One-to-One</td><td>이미지 분류</td></tr>
+<tr><td>One-to-Many</td><td>이미지 캡셔닝</td></tr>
+<tr><td>Many-to-One</td><td>감정 분류</td></tr>
+<tr><td>Many-to-Many</td><td>기계번역</td></tr>
+</table>
+<div class="point warn"><b>기울기 소실/폭발</b>: 역전파 시 같은 가중치 $W$가 시퀀스 길이만큼 반복 곱해짐. $|W|$ 특이값 &lt;1 → 소실, &gt;1 → 폭발. <b>Clipping은 폭발만 완화</b>하는 임시방편이며 소실 문제는 해결 못함 → LSTM 필요.</div>
+
+<h3 class="sub">5-2. LSTM (1997)</h3>
+<p>셀 상태(Cell State, $c_t$)=장기정보 / 은닉 상태(Hidden State, $h_t$)=단기정보.</p>
+<div class="formula">
+$$f_t=\sigma(W_f[h_{t-1},x_t]+b_f)\quad\text{(forget)}\qquad i_t=\sigma(W_i[h_{t-1},x_t]+b_i)\quad\text{(input)}$$
+$$c_t=f_t\odot c_{t-1}+i_t\odot\tilde c_t\qquad h_t=o_t\odot\tanh(c_t)$$
+</div>
+<table>
+<tr><th>게이트</th><th>역할</th></tr>
+<tr><td>입력 게이트(i)</td><td>새 정보를 얼마나 저장할지</td></tr>
+<tr><td>망각 게이트(f)</td><td>과거 정보를 얼마나 버릴지</td></tr>
+<tr><td>출력 게이트(o)</td><td>셀 상태를 얼마나 은닉상태로 낼지</td></tr>
+</table>
+<div class="point exam">$c_t=f\odot c_{t-1}+i\odot g$의 <b>덧셈 경로</b>가 기울기를 장기 보존하는 핵심(곱셈만 있으면 소실).</div>
+
+<h3 class="sub">5-3. 어텐션 메커니즘</h3>
+<div class="formula">
+$$q=xW_q,\ k=xW_k,\ v=xW_v\qquad a_{ij}=\mathrm{softmax}(q_i\cdot k_j/\sqrt D)\qquad y_j=\sum_i a_{ij}v_i$$
+$$\mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V$$
+</div>
+<p><b>교차 어텐션(Cross-Attention)</b>: 이종 데이터 간(예: 이미지-텍스트) Q/K/V를 각각 다른 소스에서 정의.</p>
+
+<h3 class="sub">5-4. Vision Transformer (ViT)</h3>
+<p>이미지를 패치로 분할 → 위치 인코딩 추가 → 토큰 시퀀스로 변환 → (정규화 → 다중헤드어텐션 → 정규화 → MLP)를 12개 이상 반복.</p>
+<div class="point exam">CNN은 수용영역을 넓혀가며 전역을 이해 / ViT는 어텐션 한 번으로 전역 맥락 이해(수용영역 확장 불필요).</div>
+<table>
+<tr><th></th><th>강점</th><th>약점</th></tr>
+<tr><td>CNN</td><td>지역적 특성</td><td>장거리 맥락 어려움, 순서 반영 불가</td></tr>
+<tr><td>RNN</td><td>순서 반영</td><td>장거리 맥락 학습 어려움(기울기 소실/폭발)</td></tr>
+<tr><td>LSTM</td><td>순서+장거리 맥락</td><td>정보 희석 문제</td></tr>
+<tr><td>Attention</td><td>장거리 맥락 탁월</td><td>순서 정보 없음→위치인코딩 필요</td></tr>
+</table>
+<div class="point warn">ViT는 CNN 같은 <b>귀납적 편향(inductive bias)이 없어</b> 정규화·데이터 증강이 매우 중요. 데이터가 적으면 CNN보다 성능이 떨어질 수 있음(항상 CNN보다 좋은 것 아님).</div>
+<p>트렌드: Swin Transformer(윈도우 단위 어텐션), DINOv2(자기지도 백본), ViT-22B, EVA-CLIP, InternImage-H.</p>
+</section>
+
+<section class="chapter" id="ch6">
+<h2><span class="num">6</span> 이미지 모델 학습 전략</h2>
+<p class="desc">활성화 함수 · 초기화 · 정규화/드롭아웃 · 학습률 스케줄 · 하이퍼파라미터 선택.</p>
+
+<h3 class="sub">6-1. 활성화 함수</h3>
+<table>
+<tr><th>함수</th><th>수식</th><th>문제점</th></tr>
+<tr><td>Sigmoid</td><td>$1/(1+e^{-x})$</td><td>포화 시 역전파 신호 소실, 계산비용 큼</td></tr>
+<tr><td>Tanh</td><td>[-1,1]</td><td>0중심이라 Sigmoid보다 낫지만 양끝 포화</td></tr>
+<tr><td>ReLU</td><td>$\max(0,x)$</td><td>Dead ReLU(음수 입력에서 뉴런이 죽음)</td></tr>
+<tr><td>Leaky ReLU</td><td>$\max(0.01x,x)$</td><td>0.01 값이 임의적, 항상 우세하진 않음</td></tr>
+<tr><td>ELU</td><td>$x>0$이면 $x$, 아니면 $\alpha(e^x-1)$</td><td>지수연산으로 계산 복잡</td></tr>
+</table>
+<div class="point tip">결론: "일단 ReLU부터 시도!" 필요시 Leaky ReLU/ELU로 개선.</div>
+
+<h3 class="sub">6-2. 가중치 초기화</h3>
+<table>
+<tr><th>방법</th><th>공식/설명</th></tr>
+<tr><td>0 초기화</td><td>모든 뉴런 출력·기울기 동일 → <b>학습 불가</b></td></tr>
+<tr><td>랜덤 초기화</td><td>0.01×Gaussian, 얕은 모델에서만 동작</td></tr>
+<tr><td>Xavier</td><td>$\text{std}=1/\sqrt{D_{in}}$</td></tr>
+<tr><td>He</td><td>$\text{std}=\sqrt{2/D_{in}}$ (ReLU용, 분산 2배)</td></tr>
+</table>
+<div class="point exam">ResNet은 ReLU 구조라 <b>He 초기화</b> 사용. He는 ReLU가 입력 절반(음수)을 0으로 만드는 것을 감안해 Xavier의 <b>2배</b> 분산.</div>
+
+<h3 class="sub">6-3. 정규화 & 드롭아웃</h3>
+<div class="formula">$$R(W)=\sum\beta W^2+|W|\quad\text{(Elastic Net; }\beta\text{큼→L2, 작음→L1)}$$</div>
+<p><b>Inverted Dropout</b>: 학습 시 살아남은 뉴런 출력을 $1/(1-p)$배 스케일링 → 테스트 시 추가 연산 없이 그대로 사용.</p>
+
+<h3 class="sub">6-4. 학습률 스케줄링</h3>
+<table>
+<tr><th>방식</th><th>수식</th><th>특징</th></tr>
+<tr><td>코사인 감소</td><td>$n_t=n_0\cdot\frac12(1+\cos\frac{\pi t}T)$</td><td>부드럽게 감소, 가장 널리 쓰임</td></tr>
+<tr><td>역제곱 꼴</td><td>$\eta_t=\eta_0/\sqrt t$</td><td>처음 크게, 대규모 학습엔 부적합</td></tr>
+<tr><td>일정값 유지</td><td>$\eta_t=\eta_0$</td><td>데이터 많고 과적합 위험 없을 때</td></tr>
+</table>
+
+<h3 class="sub">6-5. 하이퍼파라미터 선택 실전 팁</h3>
+<ul>
+<li>작은 샘플로 <b>일부러 과적합</b>시켜 학습률·초기화 문제 진단(손실이 폭발하면 학습률↓ 또는 초기화 변경)</li>
+<li>후보 조합은 <b>1~5 epoch만 짧게</b> 훈련해 검증 성능으로 비교(전부 끝까지 훈련하면 자원 낭비)</li>
+<li>초반 손실 유지=초기값 문제 / 학습률 줄인 후 진행 안 됨=너무 일찍 줄임 / train-val 격차 크면 과적합</li>
+</ul>
+
+<h3 class="sub">전 차시 복습 연결 지도</h3>
+<table>
+<tr><th>이번 개념</th><th>이전 차시 연결</th></tr>
+<tr><td>RNN 필요성</td><td>CNN의 Receptive Field 한계</td></tr>
+<tr><td>LSTM 게이트(σ)</td><td>로지스틱회귀의 시그모이드(확률적 게이트)</td></tr>
+<tr><td>어텐션 softmax</td><td>다중클래스 확률분포(Softmax)</td></tr>
+<tr><td>데이터 정규화</td><td>EDA의 StandardScaler</td></tr>
+<tr><td>가중치 감소(L1/L2)</td><td>회귀의 다중공선성/규제</td></tr>
+</table>
+</section>
+
+<section class="chapter" id="ch7">
+<h2><span class="num">7</span> 자연어처리 (1) — 임베딩부터 Seq2Seq까지</h2>
+<p class="desc">원-핫 → 워드 임베딩 → RNN/LSTM → 언어모델(N-gram) → Seq2Seq → Attention.</p>
+
+<h3 class="sub">7-1. 원-핫 인코딩 vs 워드 임베딩</h3>
+<div class="point warn">원-핫 벡터는 서로 다른 단어끼리 항상 <b>직교(내적=0)</b> → 유사도 측정 불가. 차원의 저주(희소·고차원) + 의미 정보 부족.</div>
+<p><b>워드 임베딩</b>: 단어를 <b>밀집(dense)·연속·분산 벡터</b>로 표현, 의미적으로 가까운 단어가 공간상 가깝게 위치. Distributional hypothesis: "You shall know a word by the company it keeps."</p>
+
+<h4 class="subsub">Word2Vec (Google, 2013)</h4>
+<table>
+<tr><th></th><th>예측 방향</th><th>장점</th><th>한계</th></tr>
+<tr><td>Skip-gram</td><td>중심 단어 → 주변 단어들</td><td>적은 데이터에도 동작, 희귀 단어에 강함</td><td>학습 느림</td></tr>
+<tr><td>CBOW</td><td>주변 단어들 → 중심 단어</td><td>학습 빠름, 빈출 단어에 강함</td><td>희귀 단어에 약함</td></tr>
+</table>
+<div class="point tip">같은 문장에서 CBOW는 학습 예시 1개, Skip-gram은 여러 개(윈도우만큼) 생성 — 이게 속도 vs 희귀단어 트레이드오프의 원인.</div>
+
+<h3 class="sub">7-2. 순차적 데이터 & RNN</h3>
+<p>순차 데이터 3특징: <b>순서 중요</b> / <b>장기 의존성</b> / <b>가변 길이</b>. MLP/CNN(고정 길이 입력)으로는 처리 부적합 → RNN 필요.</p>
+
+<h3 class="sub">7-3. 언어모델 & N-gram</h3>
+<div class="formula">$$p(w_1,\dots,w_N)=p(w_1)p(w_2|w_1)\cdots p(w_N|w_1,\dots,w_{N-1})$$</div>
+<p>4-gram 예: $P(w\mid\text{students opened their})=\dfrac{count(\text{students opened their }w)}{count(\text{students opened their})}$</p>
+<div class="point exam">$n$을 키우면 정교해지지만 <b>본 적 없는 조합이 급증(희소성 문제)</b> → 저장공간도 지수적 증가. 이 한계가 신경망 언어모델의 등장 배경.</div>
+<p><b>SMT(통계적 기계번역)</b>: $\operatorname{argmax}_y P(x|y)P(y)$ = 번역모델×언어모델(베이즈 규칙). 구조 복잡·수작업多 → NMT로 대체.</p>
+
+<h3 class="sub">7-4. Seq2Seq</h3>
+<p>2014년 NMT 등장. 두 개의 RNN(Encoder-Decoder): Encoder는 입력을 고정차원 벡터로 요약, Decoder는 그 벡터로부터 출력 시퀀스 생성. <b>입력·출력 길이가 달라도</b> 처리 가능.</p>
+<div class="point warn"><b>Teacher Forcing</b>: 학습 시 디코더 입력에 모델 예측 대신 <b>정답 토큰</b>을 강제로 넣음(안정적·빠른 학습). 단, 추론 시엔 자기 예측을 입력으로 쓰므로 학습-추론 불일치(<b>exposure bias</b>) 발생 가능.</div>
+<table>
+<tr><th>방법</th><th>특징</th></tr>
+<tr><td>Greedy Decoding</td><td>매 단계 최고확률 선택, 되돌리기 불가</td></tr>
+<tr><td>Beam Search</td><td>k개 후보 유지, 누적 로그확률로 최종 선택, 계산비용↑</td></tr>
+</table>
+
+<h3 class="sub">7-5. Attention (Seq2Seq)</h3>
+<div class="point exam"><b>Bottleneck Problem</b>: 인코더 마지막 hidden state 하나에 문장 전체 의미를 압축 → 정보 손실. Attention이 이를 해결: 디코더가 매 스텝 <b>인코더 전체 hidden state 중 필요한 부분에 직접 접근</b>.</div>
+<div class="formula">$$a_t=\sum_i\alpha_i^t h_i$$</div>
+<p>효과: ① NMT 성능향상 ② Bottleneck 해결 ③ 기울기소실 완화(먼 단어도 직접 연결) ④ 해석가능성(정렬/alignment).</p>
+<p>Score 계산: Dot product $h^Ts$ / Multiplicative $h^TWs$ / Additive $v^T\tanh(W_hh+W_ss)$.</p>
+</section>
+
+<section class="chapter" id="ch8">
+<h2><span class="num">8</span> 자연어처리 (2) — Transformer 상세</h2>
+<p class="desc">RNN이 필요할까? → Self-Attention → Multi-Head → Transformer 전체 구조.</p>
+
+<h3 class="sub">8-1. RNN의 두 한계 & Self-Attention</h3>
+<table>
+<tr><th>RNN 한계</th><th>내용</th></tr>
+<tr><td>장기 의존성</td><td>먼 단어 쌍 상호작용에 $O(\text{seq len})$ 단계 필요</td></tr>
+<tr><td>병렬화 불가</td><td>순차 연산이라 GPU 활용 어려움</td></tr>
+</table>
+<div class="point exam">Self-Attention 장점: 최대 상호작용 거리 <b>$O(1)$</b> (모든 단어가 직접 상호작용). 단, 연산량/메모리는 <b>$O(n^2)$</b>(모든 쌍 계산) — RNN의 $O(n)$과 다른 축. 병렬 처리는 가능하지만 문장이 길면 메모리 한계.</div>
+
+<h4 class="subsub">Query, Key, Value</h4>
+<div class="formula">
+$$q_i=Qx_i,\ k_i=Kx_i,\ v_i=Vx_i$$
+$$e_{ij}=q_i^Tk_j\qquad \alpha_{ij}=\mathrm{softmax}_j(e_{ij})\qquad o_i=\sum_j\alpha_{ij}v_j$$
+</div>
+<table>
+<tr><th></th><th>Seq2Seq Attention</th><th>Self-Attention</th></tr>
+<tr><td>대상</td><td>입력문장 단어 ↔ 출력문장 단어</td><td>같은 문장 내부 단어끼리</td></tr>
+</table>
+
+<h3 class="sub">8-2. Self-Attention의 3가지 한계 & 해결책</h3>
+<table>
+<tr><th>한계</th><th>내용</th><th>해결책</th></tr>
+<tr><td>순서 정보 부재</td><td>유사도만 계산, 순서 모름</td><td>Positional Encoding</td></tr>
+<tr><td>비선형성 부족</td><td>가중평균=선형 결합일 뿐</td><td>Feed-Forward Network</td></tr>
+<tr><td>미래 참조 문제</td><td>생성 시 미래 단어까지 봄</td><td>Masked Self-Attention</td></tr>
+</table>
+<p><b>Positional Encoding</b>: Sinusoidal(사인/코사인 합성) 또는 Learned(학습 파라미터). 단어 임베딩에 <b>더해서(+)</b> 사용(concat 아님, residual connection 덕분에 깊은 층까지 정보 보존).</p>
+<p><b>Masked Self-Attention</b>: 미래 단어 점수를 $-\infty$로 설정 → softmax 후 가중치 0.</p>
+
+<h3 class="sub">8-3. Transformer 구조 (Vaswani et al., 2017)</h3>
+<div class="point exam"><b>Multi-Head Attention</b>: 단일 head는 한 관점만 파악 → 여러 head로 문법적 관계/시제/명사 등 다양한 관점 동시 파악. 단, head 수 늘리면 <b>head당 차원($d/h$)이 줄어드는 트레이드오프</b> 존재 — 무한정 늘린다고 좋아지지 않음(중복 헤드 발생).</div>
+<div class="formula">
+$$\text{Scaled Dot Product: } \mathrm{softmax}\!\left(\frac{XQK^TX^T}{\sqrt{d/h}}\right)XV$$
+</div>
+<p>스케일링 이유: Q·K 차원 커지면 내적값도 커져 softmax가 지나치게 뾰족해짐(gradient vanishing 위험) → $\sqrt{d_k}$로 나눠 분포를 완만하게.</p>
+<p><b>Residual Connection</b>: $X^{(i)}=X^{(i-1)}+\text{Layer}(X^{(i-1)})$, 깊은 층 학습 안정화. <b>Layer Normalization</b>: 층별 값 정규화.</p>
+<table>
+<tr><th>블록</th><th>구성</th><th>특징</th></tr>
+<tr><td>Encoder</td><td>Self-Attention(마스킹 없음) → Add&Norm → FFN → Add&Norm</td><td>양방향 문맥</td></tr>
+<tr><td>Decoder</td><td>Masked Self-Attention → Cross-Attention → FFN (각각 Add&Norm)</td><td>단방향 문맥(언어모델처럼)</td></tr>
+</table>
+<p><b>Cross-Attention</b>: Query는 <b>디코더</b>, Key·Value는 <b>인코더</b>에서.</p>
+<div class="point tip">Transformer의 결과: NMT 최고성능 + 가장 효율적 학습(같은/더 나은 BLEU를 훨씬 적은 FLOPs로 달성) → 병렬처리 능력 덕분에 대규모 사전학습의 표준 아키텍처로 자리잡음.</div>
+</section>
+
+<section class="chapter" id="ch9">
+<h2><span class="num">9</span> 사전학습 기반 언어 모델</h2>
+<p class="desc">Encoder(BERT) · Encoder-Decoder(T5) · Decoder(GPT) · In-Context Learning.</p>
+
+<div class="point tip"><b>사전학습(Pretraining)</b>: 대규모 데이터로 일반적 표현을 학습하는 과정 = <b>자기지도학습(self-supervised)</b>. "다음 단어 예측"은 정답이 있지만(형식상 지도학습과 동일) 그 정답을 <b>사람 개입 없이 데이터에서 공짜로</b> 만들 수 있어 비지도로 분류.</div>
+<p>워드 임베딩은 임베딩층만 사전학습(그 위는 무작위 초기화) vs 언어모델은 <b>모델 전체를 함께 사전학습</b>.</p>
+
+<h3 class="sub">9-1. Encoder — BERT (2018)</h3>
+<p><b>Masked Language Model(MLM)</b>: 입력 토큰의 <b>15%</b> 무작위 선택 → 그중 <b>[MASK] 80% / 랜덤토큰 10% / 그대로 10%</b>(단, 셋 다 예측 대상).</p>
+<div class="point exam">80/10/10 규칙의 이유: 100% [MASK]로만 하면 실제 사용(파인튜닝)때 [MASK]가 없어 문제(pretrain-finetune discrepancy). 10% 랜덤/10% 그대로 두어 모델이 <b>항상 문맥을 반영</b>하게 만듦.</div>
+<p><b>NSP(Next Sentence Prediction)</b>: 두 번째 문장이 첫 문장의 실제 다음 문장인지 예측. 입력 = Token+Segment+Position Embeddings.</p>
+<p>[CLS]→NSP/분류용, 나머지 토큰→MLM/토큰레벨용. BERT의 한계: <b>생성 태스크에 부적합</b>(양방향이라 autoregressive 생성이 자연스럽지 않음).</p>
+
+<h3 class="sub">9-2. Encoder-Decoder — T5 (2019)</h3>
+<p>모든 태스크를 <b>Text-to-Text</b>로 통일. 학습 방법 = <b>Span Corruption</b>: 연속된 토큰(span)을 무작위 제거 → placeholder(⟨X⟩,⟨Y⟩) 치환 → 디코더가 원래 span 복원.</p>
+<div class="point tip">BERT는 단어 하나씩 마스킹 vs T5는 <b>연속 구간(span)</b>을 통째로 제거 → 더 긴 문맥·구 단위 의미 필요, 출력 길이도 <b>가변적</b>(언제 멈출지도 학습) = 생성 능력.</div>
+<p>결과: Encoder-decoder + Denoising(Span Corruption) 조합이 Language model 구조보다 일관되게 우수.</p>
+
+<h3 class="sub">9-3. Decoder — GPT</h3>
+<p><b>GPT-1</b>: Decoder 12개 블록, Autoregressive LM(다음 단어 예측)으로 사전학습. 분류 태스크는 [START]/[DELIM]/[EXTRACT] 특수토큰으로 입력을 한 줄로 이어붙여 처리.</p>
+<div class="point warn">같은 시기 BERT(82.1)가 GPT-1(75.1)보다 GLUE 점수 높았음에도 <b>오늘날 큰 모델은 대부분 Decoder-only</b>인 이유: 모든 태스크를 "다음 단어 예측" 하나의 형식으로 표현 가능 + 사전학습=사용 방식 동일(파인튜닝 불필요) + In-Context Learning 창발.</div>
+
+<h3 class="sub">9-4. In-Context Learning (GPT-3, 2020)</h3>
+<p>175B로 파라미터를 키우자 <b>파인튜닝 없이 프롬프트의 예시만으로</b> 새 태스크 수행 가능해짐(가중치 갱신 없음).</p>
+<table>
+<tr><th>방식</th><th>구성</th></tr>
+<tr><td>Zero-shot</td><td>태스크 설명만</td></tr>
+<tr><td>One-shot</td><td>설명+예시 1개</td></tr>
+<tr><td>Few-shot</td><td>설명+예시 여러 개</td></tr>
+</table>
+<p>모델이 클수록(175B) 효과 뚜렷, 작은 모델(1.3B)은 거의 발현 안 됨 → 창발성의 예.</p>
+
+<h4 class="subsub">Chain-of-Thought (CoT)</h4>
+<p>예시에 <b>추론 과정</b>도 포함 → 정확도 대폭 상승. <b>모델이 클수록</b> CoT 효과가 커짐(PaLM 540B: standard 18% → CoT 57%).</p>
+<div class="point exam"><b>Zero-shot CoT</b>: "Let's think step by step." 한 문장 추가만으로 예시 없이도 추론 성능 향상(MultiArith 17.7%→78.7%). 이 능력도 모델 크기 임계점을 넘어야 나타남.</div>
+</section>
+
+<section class="chapter" id="ch10">
+<h2><span class="num">10</span> 거대 언어 모델(LLM)</h2>
+<p class="desc">파운데이션 모델 정의 → 학습(정렬) → 추론(디코딩/프롬프트) → 평가와 응용/한계.</p>
+
+<h3 class="sub">10-1. 파운데이션 모델 3요소</h3>
+<div class="kv">
+<b>빅데이터</b><span>2025년 기준 약 175ZB 추정, 학습 데이터 커질수록 성능↑</span>
+<b>자가학습</b><span>다음 토큰 예측(사람 라벨링 불필요, 자동 분할)</span>
+<b>트랜스포머</b><span>어텐션 기반, Decoder-only 구조가 LLM 표준</span>
+</div>
+
+<h3 class="sub">10-2. 규모의 법칙 & 창발성</h3>
+<div class="point exam">
+<b>규모의 법칙(Scaling Law)</b>: 데이터·모델·연산량↑ → 손실이 <b>멱법칙(연속적·예측가능)</b>으로 감소.<br>
+<b>창발성(Emergent Property)</b>: 특정 규모를 넘으면 <b>불연속적·예측불가능</b>하게 갑자기 나타나는 능력(In-context Learning, 추론 능력 등). 둘을 혼동하지 말 것 — "손실은 부드럽게, 능력은 계단식으로".
+</div>
+<p><b>LLM 정의</b>: (1) 큰 모델(>7B) + (2) 많은 데이터(>1T 토큰)로 창발성이 나타난 언어모델. Perplexity(PPL) = 문장 확률의 기하평균 역수, 낮을수록 자연스러움.</p>
+<div class="formula">$$\text{PPL}=\sqrt[N]{\frac{1}{\prod_i P(w_i|w_{<i})}}=\exp\{-\tfrac1t\sum\log p_\theta(x_i|x_{<i})\}$$</div>
+
+<h3 class="sub">10-3. 정렬(Alignment) 학습</h3>
+<p>사전학습만으로는 지시 미이행·유해 응답 문제 → <b>지시 학습</b>(어떤 응답이 나와야 하는가) + <b>선호 학습</b>(어떤 응답이 더 선호되는가).</p>
+<h4 class="subsub">지시 학습(Instruction Tuning) — FLAN</h4>
+<p>모든 NLP 태스크를 "지시+응답"으로 표현해 SFT. 성능 향상 3요소: ① 학습 태스크 개수 증가 ② 모델 크기(작은 모델은 오히려 손해 — 용량 경쟁) ③ 자연어 지시 방식(no instruction &lt; dataset name &lt; instruction).</p>
+<h4 class="subsub">선호 학습(RLHF) — InstructGPT 3단계</h4>
+<table>
+<tr><th>단계</th><th>내용</th><th>사람 개입</th></tr>
+<tr><td>1. SFT</td><td>주석자가 모범 응답 작성 → 지도학습</td><td>필요</td></tr>
+<tr><td>2. 보상모델(RM)</td><td>여러 응답에 순위 매김 → RM 학습</td><td>필요</td></tr>
+<tr><td>3. PPO(강화학습)</td><td>정책이 응답 생성→RM이 보상→정책 갱신</td><td><b>불필요</b>(확장 가능한 이유)</td></tr>
+</table>
+<div class="point exam">SFT만으로 안 되는 이유: SFT는 "정답을 따라 하기"일 뿐 나쁜 답을 낮추지 못함. 순위 매기기는 정답 작성보다 훨씬 저렴하고 일관적이며, 보상모델은 사람 없이도 무한히 신호를 줄 수 있음.</div>
+
+<h3 class="sub">10-4. 디코딩 알고리즘</h3>
+<table>
+<tr><th>방식</th><th>핵심</th><th>장점</th><th>단점</th></tr>
+<tr><td>Greedy</td><td>매번 최고확률 토큰</td><td>쉬움</td><td>최적해 보장X, 반복 심함</td></tr>
+<tr><td>Beam Search</td><td>k개 후보 동시 유지(누적 로그확률)</td><td>더 좋은 응답</td><td>계산비용↑</td></tr>
+<tr><td>Sampling</td><td>확률분포대로 무작위 샘플</td><td>다양성</td><td>품질 불안정</td></tr>
+<tr><td>Temperature</td><td>$p_i=\exp(z_i/T)/\sum\exp(z_j/T)$</td><td>T&gt;1 다양성↑, T&lt;1 안정성↑</td><td>양극단 부작용</td></tr>
+<tr><td>Top-K</td><td>상위 K개만 후보</td><td>잡음 배제</td><td>K 고정→문맥별 불균형</td></tr>
+<tr><td>Top-P(Nucleus)</td><td>누적확률 P까지 자동으로 K 조절</td><td>품질·다양성 균형</td><td>P 설정 필요</td></tr>
+</table>
+<div class="point exam">Greedy/Beam은 PPL은 낮지만(확신에 참) <b>반복(Repetition) 심함</b>(73.66%/28.94%). 좋은 생성=확률最高가 아니라 <b>사람 분포와 닮은 것</b> — Nucleus p=0.95가 Human PPL(12.38)에 가장 근접.</div>
+
+<h3 class="sub">10-5. 프롬프트 엔지니어링</h3>
+<p>프롬프트 = 지시(시스템프롬프트+유저쿼리) + 예시(few-shot). <b>시스템 프롬프트</b>는 "강제 규칙"이 아니라 "강한 권고"(환각으로 무시될 수 있음).</p>
+<p><b>예시 선택</b>: 무작위 예시 조합만으로 정확도가 9%p까지 흔들림 → <b>거리 기반(kNN) 예시 선택</b>이 무작위보다 우수(93.43 vs 87.95, T5 파인튜닝 95.2에 근접).</p>
+<p><b>Skill.md</b>: 태스크별 프롬프트를 파일로 모듈화, 이름+한줄설명만 상주하고 필요시 모델이 스스로 읽어들여 컨텍스트 절약.</p>
+
+<h3 class="sub">10-6. 평가 (Evaluation)</h3>
+<div class="kv"><b>평가 3요소</b><span>목표 / 평가 방법 / 평가 지표</span></div>
+<table>
+<tr><th>상황</th><th>평가 방법</th></tr>
+<tr><td>정답 O</td><td>Accuracy (예: MMLU 57개 과목)</td></tr>
+<tr><td>정답 X - #1</td><td>참조 정답과 비교: ROUGE(단어 겹침), Sentence-BERT(코사인 유사도)</td></tr>
+<tr><td>정답 X - #2</td><td>텍스트 자체 품질: Perplexity</td></tr>
+<tr><td>정답 X - #3</td><td>상대적 선호: LMArena(사람 투표), LLM-as-judge</td></tr>
+</table>
+<div class="point warn"><b>LLM-as-judge(G-Eval) 3대 편향</b>: ① 위치 편향(순서로 뒤바뀜→순서바꿔 평균) ② <b>길이 편향</b>(긴 응답 선호→Length-controlled win rate) ③ 자기선호 편향(같은 모델 응답 선호→다른 심판 모델 사용). "완벽해서"가 아니라 "틀리는 방식이 예측 가능해서" 쓸만함.</div>
+
+<h3 class="sub">10-7. 응용 & 한계</h3>
+<p><b>멀티모달</b>: LLaVA(Vision Encoder→Projection W→LM), 얇은 사영행렬 하나만 학습해 "언어모델이 이미지를 보게" 함. <b>합성데이터</b>: Self-Instruct(175 seed→52K), AlpaGasus(품질 필터링, 9k고품질이 52k전체보다 나음 — 단 MMLU는 예외, 지식폭 필요).</p>
+<table>
+<tr><th>한계</th><th>내용</th><th>대응</th></tr>
+<tr><td>환각(Hallucination)</td><td>확률적 다음토큰 예측 → 그럴듯하지만 틀린 답을 자신있게 생성</td><td>RAG(검색증강생성)</td></tr>
+<tr><td>탈옥(Jailbreaking)</td><td>목표충돌(Competing Objectives) / 일반화 불일치(Mismatched Generalization, 예: Base64 인코딩)</td><td>지속적 연구중, 완전 해결X</td></tr>
+<tr><td>AI 텍스트 검출</td><td>GPTZero, 워터마킹으로 어느정도 탐지 가능</td><td>무분별한 사용 자제</td></tr>
+</table>
+<div class="point exam">"최신 모델은 안전훈련이 잘 되어 탈옥이 안 일어난다"는 <b>틀린 명제</b>(모의고사 단골 오답 선지).</div>
+</section>
+
+<section class="chapter" id="ch11">
+<h2><span class="num">11</span> 이미지 파운데이션 모델</h2>
+<p class="desc">CLIP/SigLIP → VLM → 세그멘테이션 → 이미지/3D/비디오 생성 → Fine-tuning/PEFT → 합성데이터 → AGI.</p>
+
+<h3 class="sub">11-1. 파운데이션 모델 & 적응 방법</h3>
+<p>대규모 사전학습 + 다양한 작업에 범용 적용(Adaptation) 가능한 기반 모델. 3대 특징: <b>대규모 사전학습</b> / <b>적응성</b> / <b>범용성</b>.</p>
+<table>
+<tr><th>방법</th><th>내용</th></tr>
+<tr><td>Zero-shot</td><td>추가학습 없이 바로 적용</td></tr>
+<tr><td>Few-shot</td><td>예제 몇개로 적용</td></tr>
+<tr><td>Fine-tuning</td><td>가중치 자체가 변경됨</td></tr>
+</table>
+
+<h3 class="sub">11-2. CLIP (2021, OpenAI)</h3>
+<p>대조 학습(Contrastive Pre-training) 기반. 4억 개 이미지-텍스트 쌍. 텍스트 인코더=Transformer, 이미지 인코더=ViT-B(또는 ResNet50).</p>
+<div class="formula">
+$$L_{CLIP}=-\frac1N\sum_i\log\frac{e^{s_{ii}/\tau}}{\sum_j e^{s_{ij}/\tau}}\ (\text{Image→Text})\ +\ -\frac1N\sum_j\log\frac{e^{s_{ij}/\tau}}{\sum_i e^{s_{ij}/\tau}}\ (\text{Text→Image})
+$$
+</div>
+<p>목표 이미지(앵커)를 대응 텍스트(양성)와 가깝게, 무관한 텍스트(음성)와 멀게. 제로샷 이미지 인식: 텍스트 카테고리를 임베딩→쿼리 이미지와 비교→최고점 카테고리 반환.</p>
+
+<h4 class="subsub">SigLIP (2023)</h4>
+<div class="point warn">CLIP(Softmax 대조학습) 한계: 이미 먼 음성쌍도 계속 거리를 벌리려 해 비효율. SigLIP은 <b>Sigmoid 기반 손실</b>로 음성쌍 영향을 제한적으로 만듦 → 특히 노이즈 많은 데이터에서 CLIP보다 압도적 성능.</div>
+<p><b>멀티모달 정합(Alignment)</b> 손실: CLIP loss(사전학습된 CLIP 활용, 코사인 유사도 직접 비교) vs SDS loss(diffusion U-Net 활용, Text-to-3D 등).</p>
+
+<h3 class="sub">11-3. VLM (Vision-Language Model)</h3>
+<p><b>LLaVA(2023)</b>: Vision Encoder→Projection W→언어모델. 2단계 학습(①Projection layer만 학습 ②필요 부분 파인튜닝). <b>Qwen-VL</b>: 3단계 파이프라인(Pretraining→Multi-task Pretraining→SFT), M-RoPE(1D텍스트/2D시각/3D비디오 위치정보 통합).</p>
+<p>도메인 특화: MedCLIP·LLaVA-Med(의료), AnomalyGPT(제조업), 3D-LLM(3D).</p>
+<p><b>Small VLM</b>: SmolVLM(SigLIP+SmolLM2), Moondream 0.5B(양자화로 경량화), Gemini Nano(온디바이스). 한국어: HyperCLOVAX(NAVER), Kanana(Kakao).</p>
+
+<h3 class="sub">11-4. 세그멘테이션 & 탐지</h3>
+<p><b>SAM(2023)/SAM2(2024)</b>: 클릭/박스/텍스트 등 다양한 입력으로 마스크 추출, 1100만개 이미지(10억개 마스크) 학습. <b>Grounding DINO</b>: 텍스트로 물체 탐지. <b>Grounded SAM</b>=Grounding DINO+SAM 결합(탐지+분할 동시). <b>SAMURAI</b>: SAM2 기반 비주얼 트래킹.</p>
+
+<h3 class="sub">11-5. 이미지/3D/비디오 생성</h3>
+<p><b>Diffusion Model</b>: Forward(노이즈 추가) / Backward(노이즈 제거, 노이즈 예측 문제로 학습). <b>LDM(Latent Diffusion Model, Stable Diffusion)</b>: 저차원 latent에서 diffusion 수행 → 효율+품질↑.</p>
+<table>
+<tr><th>모델</th><th>구분</th><th>특징</th></tr>
+<tr><td>Midjourney v7</td><td>Closed</td><td>세부묘사·프롬프트 해석 우수</td></tr>
+<tr><td>FLUX.1</td><td>Open</td><td>12B, Rectified Flow Transformer</td></tr>
+</table>
+<p>파인튜닝 응용: ControlNet(조건 기반 생성), Zero123XL(2D→3D), Marigold(깊이추정), JointDiT(이미지+깊이 동시생성).</p>
+<p>3D/비디오: Depth Anything v2, Sapiens(인간인식), Sora(OpenAI, 월드모델), Veo3(Google, 싱크사운드). Audio-Vision LM: OneLLM, VideoLLaMA2, NExT-GPT(Any-to-Any).</p>
+
+<h3 class="sub">11-6. Fine-tuning & PEFT</h3>
+<div class="kv"><b>Fine-tuning</b><span>사전학습 모델을 소규모 데이터로 추가 학습(가중치 변경)</span></div>
+<p>Learning Rate: 너무 낮으면 local minimum에 갇힘, 너무 높으면 global minimum 근처에서 못 맞춤. 파인튜닝은 <b>작은 LR부터 보수적으로</b>.</p>
+<table>
+<tr><th>방식</th><th>파운데이션모델</th><th>입력</th><th>성향</th></tr>
+<tr><td>모델 튜닝</td><td>추가학습(가중치 변경)</td><td>입력 텍스트</td><td>높은 성능</td></tr>
+<tr><td>프롬프트 튜닝</td><td>고정</td><td>학습가능한 가상토큰+입력</td><td>중간</td></tr>
+<tr><td>프롬프트 디자인</td><td>고정</td><td>사람이 설계한 텍스트</td><td>높은 효율</td></tr>
+</table>
+<div class="point tip"><b>Prompt Tuning(2021)</b>: 가상 토큰(virtual token)의 임베딩만 학습, 본체는 고정(freeze) → 지식 손실 없음. <b>Adapter</b>: 레이어마다 작은 학습가능 모듈 삽입. <b>DreamBooth</b>: 소수(3~5장) 이미지+고유식별자([V])로 개인화 T2I 모델 학습.</div>
+
+<h3 class="sub">11-7. 합성 데이터</h3>
+<p><b>Knowledge Distillation</b>: Teacher(고성능 무거운 모델)의 soft-label을 Student(가벼운 모델)가 모방. <b>InstructPix2Pix</b>: GPT-3로 지시+캡션 45만개 생성 → Stable Diffusion+Prompt2Prompt로 이미지쌍 생성 → 명령 기반 이미지 편집 모델 학습.</p>
+<div class="point warn">합성데이터 유의점: <b>라벨 품질 불일치</b>(같은 객체도 표현이 다를 수 있음), <b>할루시네이션</b>(존재하지 않는 객체/특징 생성).</div>
+
+<h3 class="sub">11-8. AGI를 향해서</h3>
+<p>인지(Cognition)=지각(Perception)∪고차인지. <b>RAG</b>: 유연성(최신정보)+개인화+정확성(환각 감소). <b>Visual Programming(VISPROG)</b>: GPT-3가 자연어→프로그램(코드) 생성→인터프리터가 실제 실행(Loc/Seg/VQA 등 Python API 조합).</p>
+<p><b>전이학습(Transfer Learning)</b>: Linear Probing(출력층만 학습) vs Fine-tuning(일부/전체 재학습).</p>
+</section>
+
+<section class="chapter" id="ch12">
+<h2><span class="num">12</span> 공식 모음 & 헷갈리는 포인트 총정리</h2>
+
+<h3 class="sub">필수 암기 공식</h3>
+<div class="grid2">
+<div class="card"><b>선형회귀</b><br>$\hat\beta_1=\frac{\sum(x_i-\bar x)(y_i-\bar y)}{\sum(x_i-\bar x)^2}$<br>$\hat\beta=(X^\top X)^{-1}X^\top y$<br>$R^2=1-\mathrm{RSS/TSS}$</div>
+<div class="card"><b>로지스틱회귀</b><br>$p=\frac1{1+e^{-z}}$, odds$=\frac{p}{1-p}$<br>logit(p)$=\beta_0+\beta_1x$</div>
+<div class="card"><b>경사하강법</b><br>$\phi\leftarrow\phi-\alpha\frac{\partial L}{\partial\phi}$</div>
+<div class="card"><b>CNN 출력크기</b><br>$W'=\frac{W-K+2P}{S}+1$<br>Params$=C_{out}C_{in}K^2+C_{out}$</div>
+<div class="card"><b>ResNet</b><br>Output$=F(x)+x$</div>
+<div class="card"><b>MobileNet 절감비</b><br>$\frac{9C}{9+C}\to9$</div>
+<div class="card"><b>Attention</b><br>$\mathrm{softmax}(QK^T/\sqrt{d_k})V$</div>
+<div class="card"><b>He/Xavier 초기화</b><br>Xavier: $1/\sqrt{D_{in}}$, He: $\sqrt{2/D_{in}}$</div>
+<div class="card"><b>분류지표</b><br>$F_1=2\frac{PR}{P+R}$</div>
+<div class="card"><b>회귀지표</b><br>RMSE, MAE, $R^2=1-\frac{\sum(y-\hat y)^2}{\sum(y-\bar y)^2}$</div>
+<div class="card"><b>Perplexity</b><br>$\exp\{-\frac1t\sum\log p(x_i|x_{<i})\}$</div>
+<div class="card"><b>Temperature</b><br>$p_i=\frac{\exp(z_i/T)}{\sum\exp(z_j/T)}$</div>
+</div>
+
+<h3 class="sub">모의고사 단골 "옳지 않은 것은?" 패턴</h3>
+<ul>
+<li>"$R^2$는 항상 잔차 개수와 같다" → ✗ (틀린 진술의 전형)</li>
+<li>"Non-convex는 시작점과 무관하게 항상 같은 최소점" → ✗ 시작점에 따라 다름</li>
+<li>"결측치는 항상 평균으로 대체하는 것이 최선" → ✗ 치우친 분포엔 중앙값이 나을 수 있음</li>
+<li>"AUC는 특정 임계값 하나만 기준으로 계산" → ✗ 임계값 전체를 훑는 지표</li>
+<li>"PCA는 지도학습, 레이블 필요" → ✗ 비지도학습</li>
+<li>"RNN은 병렬 연산이 쉬워 속도가 빠르다" → ✗ 순차 처리라 병렬화 어려움</li>
+<li>"ViT는 데이터가 적어도 항상 CNN보다 좋다" → ✗ 데이터 적으면 CNN보다 떨어질 수 있음</li>
+<li>"LSTM은 순서 반영이 전혀 불가능" → ✗ 가능(RNN 계열)</li>
+<li>"self-attention 계산량 문제 해결책은 Dropout" → ✗ 근본 해결책 아님(위치인코딩/FFN/마스킹과 다른 이슈)</li>
+<li>"최신 모델은 안전훈련이 잘돼 탈옥이 안 일어난다" → ✗ 명백히 틀림</li>
+<li>"LLM-as-judge 길이 편향은 짧은 응답 선호" → ✗ <b>긴</b> 응답을 선호하는 방향</li>
+<li>"Temperature는 Beam Search 전용" → ✗ 여러 디코딩에 공통 적용</li>
+</ul>
+
+<h3 class="sub">과소적합 vs 과대적합 vs Degradation</h3>
+<table>
+<tr><th>증상</th><th>Train 오차</th><th>Test 오차</th><th>진단</th></tr>
+<tr><td>과소적합</td><td>높음</td><td>높음</td><td>모델이 너무 단순</td></tr>
+<tr><td>과대적합</td><td>낮음</td><td>높음</td><td>훈련 데이터에만 맞춤</td></tr>
+<tr><td>Degradation(ResNet)</td><td>높음(더 깊은데도!)</td><td>높음</td><td>표현력은 충분, 최적화 실패</td></tr>
+</table>
+
+<h3 class="sub">차시를 관통하는 개념 재사용 지도</h3>
+<table>
+<tr><th>개념</th><th>처음 등장</th><th>재사용된 곳</th></tr>
+<tr><td>시그모이드</td><td>로지스틱회귀</td><td>LSTM 게이트, GPT 이진분류 극한</td></tr>
+<tr><td>Softmax</td><td>다중클래스 확장</td><td>어텐션 가중치, 디코딩</td></tr>
+<tr><td>StandardScaler ((x-μ)/σ)</td><td>EDA 전처리</td><td>배치정규화, 이미지 Normalize</td></tr>
+<tr><td>L2 정규화</td><td>다중공선성/규제</td><td>Weight Decay</td></tr>
+<tr><td>PCA(차원축소)</td><td>비지도학습</td><td>1×1 합성곱(채널 축소)</td></tr>
+<tr><td>연쇄법칙(chain rule)</td><td>역전파</td><td>BPTT, Self-Attention 미분</td></tr>
+<tr><td>Receptive Field</td><td>CNN</td><td>RNN/Attention 등장 배경(장거리 의존성)</td></tr>
+</table>
+</section>
+
+<section class="chapter" id="ch13">
+<h2><span class="num">13</span> 자가 체크리스트</h2>
+<div class="checklist">
+<label><input type="checkbox"> 최소제곱법·RSS·R²의 정의와 관계를 설명할 수 있다</label>
+<label><input type="checkbox"> 로지스틱회귀 시그모이드·오즈·로짓·MLE 흐름을 설명할 수 있다</label>
+<label><input type="checkbox"> 보편적 근사 정리와 Deep의 "접기" 비유를 설명할 수 있다</label>
+<label><input type="checkbox"> 경사하강법·SGD·역전파(연쇄법칙)를 수식으로 쓸 수 있다</label>
+<label><input type="checkbox"> Train/Valid/Test, 과소/과대적합을 구분할 수 있다</label>
+<label><input type="checkbox"> 데이터 누수를 방지하는 올바른 전처리 순서를 안다</label>
+<label><input type="checkbox"> Precision/Recall/F1/ROC-AUC/RMSE/MAE/R²를 계산할 수 있다</label>
+<label><input type="checkbox"> CNN 출력크기·파라미터·FLOPs 공식을 계산할 수 있다</label>
+<label><input type="checkbox"> AlexNet→VGG→ResNet→MobileNet의 핵심 아이디어를 순서대로 말할 수 있다</label>
+<label><input type="checkbox"> Degradation problem이 과적합과 다른 이유를 설명할 수 있다</label>
+<label><input type="checkbox"> RNN 기울기 소실 원인과 LSTM 게이트 구조를 설명할 수 있다</label>
+<label><input type="checkbox"> Self-Attention의 Q/K/V, 스케일링 이유, 3가지 한계·해결책을 안다</label>
+<label><input type="checkbox"> ViT 구조와 CNN 대비 장단점(귀납적 편향)을 설명할 수 있다</label>
+<label><input type="checkbox"> 활성화함수/초기화(Xavier·He)/정규화/학습률 스케줄을 비교할 수 있다</label>
+<label><input type="checkbox"> Word2Vec(Skip-gram/CBOW), Seq2Seq, Attention bottleneck 해결을 설명할 수 있다</label>
+<label><input type="checkbox"> Transformer 인코더/디코더/Cross-Attention 구조를 그릴 수 있다</label>
+<label><input type="checkbox"> BERT(MLM/NSP), T5(Span Corruption), GPT(다음토큰) 차이를 안다</label>
+<label><input type="checkbox"> 규모의 법칙과 창발성의 차이를 설명할 수 있다</label>
+<label><input type="checkbox"> RLHF 3단계(SFT→RM→PPO)와 사람 개입 여부를 안다</label>
+<label><input type="checkbox"> 디코딩 알고리즘(Greedy/Beam/Temperature/Top-K/Top-P) 특징을 비교할 수 있다</label>
+<label><input type="checkbox"> LLM 평가 3요소와 LLM-as-judge 3대 편향을 안다</label>
+<label><input type="checkbox"> 환각/탈옥/RAG의 관계를 설명할 수 있다</label>
+<label><input type="checkbox"> CLIP/SigLIP 대조학습 손실함수 차이를 안다</label>
+<label><input type="checkbox"> PEFT(프롬프트튜닝/Adapter)와 Full fine-tuning의 차이를 안다</label>
+</div>
+</section>
+
+<div class="footer">본 치트시트는 제공된 강의 개념정리 8종(HTML) · 모의고사 5회차(200문항) · ssafy_quiz.html(200문항)을 근거로 재구성했습니다. 시험 직전 ★/HARD/⚠ 박스와 12장 공식 모음을 우선 훑어보세요.</div>
+
+</main>
+</div>
+</div>
+</body>
+</html>
