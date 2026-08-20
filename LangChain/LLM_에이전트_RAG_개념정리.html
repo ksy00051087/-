@@ -140,6 +140,52 @@ main{max-width:1100px; margin:0 auto; padding:34px 20px 80px;}
 }
 .pseudo .cm{color:#8fa6cf;}
 
+/* ===== DIAGRAMS ===== */
+.diagram-label{font-size:11px; font-weight:800; color:var(--sub); text-transform:uppercase; letter-spacing:.04em; margin:0 0 6px;}
+.flow-diagram{display:flex; align-items:stretch; gap:0; margin:10px 0; flex-wrap:wrap;}
+.flow-step{
+  flex:1 1 150px; background:#fff; border:1.5px solid var(--line); border-radius:10px;
+  padding:12px 14px; text-align:center; display:flex; flex-direction:column; justify-content:center; gap:3px;
+}
+.flow-step.accent{border-color:var(--accent,var(--blue)); background:rgba(37,99,235,0.05);}
+.flow-step .fi{font-size:18px; line-height:1;}
+.flow-step .ft{font-weight:800; font-size:12.2px; color:var(--navy);}
+.flow-step .fd{font-size:10.8px; color:var(--sub); line-height:1.4;}
+.flow-arrow{
+  flex:0 0 26px; display:flex; align-items:center; justify-content:center;
+  color:var(--accent,var(--blue)); font-size:16px; font-weight:800;
+}
+@media (max-width:680px){
+  .flow-diagram{flex-direction:column;}
+  .flow-arrow{transform:rotate(90deg); flex:0 0 22px;}
+}
+.loop-note{
+  display:flex; align-items:center; gap:8px; margin-top:6px; font-size:11.4px; color:var(--sub);
+  background:#f7f8fc; border:1px dashed var(--line); border-radius:8px; padding:8px 12px;
+}
+.loop-note .li{font-size:14px; flex-shrink:0;}
+/* org chart (root -> branches) */
+.org-chart{display:flex; flex-direction:column; align-items:center; margin:14px 0;}
+.org-root{background:var(--navy); color:#fff; font-weight:800; font-size:12.4px; padding:9px 18px; border-radius:9px; text-align:center;}
+.org-stem{width:1px; height:16px; background:var(--line);}
+.org-branches{display:flex; justify-content:center; gap:20px; position:relative; padding-top:16px; flex-wrap:wrap; width:100%;}
+.org-branches::before{content:""; position:absolute; top:0; left:14%; right:14%; height:1px; background:var(--line);}
+.org-branch{position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; flex:1 1 140px; max-width:190px;}
+.org-branch::before{content:""; position:absolute; top:-16px; left:50%; width:1px; height:16px; background:var(--line);}
+.org-branch .node{background:#fff; border:1.5px solid var(--line); border-radius:9px; padding:7px 10px; font-size:11.3px; font-weight:700; color:var(--ink); text-align:center; width:100%;}
+.org-branch .node.client{border-color:var(--accent,var(--blue)); color:var(--accent,var(--blue));}
+.org-branch .arrow-down{font-size:12px; color:var(--sub);}
+@media (max-width:680px){
+  .org-branches{flex-direction:column; align-items:center;}
+  .org-branches::before, .org-branch::before{display:none;}
+}
+
+.shot{margin:12px 0 4px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 1px 3px rgba(20,30,60,0.04);}
+.shot img{width:100%; display:block;}
+.shot-cap{font-size:11px; color:var(--sub); padding:7px 12px; border-top:1px solid var(--line); background:#fafbfd;}
+.shot-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+@media (max-width:620px){.shot-row{grid-template-columns:1fr;}}
+
 table.compare{width:100%; border-collapse:collapse; margin:10px 0; font-size:12.6px;}
 .compare th{background:#eef1f7; color:var(--navy); font-weight:800; padding:8px 10px; text-align:left; border:1px solid var(--line);}
 .compare td{padding:8px 10px; border:1px solid var(--line); vertical-align:top;}
@@ -263,6 +309,7 @@ footer{
        ↑    ↑   ↑     ↑     ↑
 Iroh, goes, to, make, tasty, tea
 <span class="cm">// Next Token Prediction</span></div>
+      <div class="shot"><img src="../slides_pages_009-207/page_009.png" alt="Pre-training Next Token Prediction 슬라이드"><div class="shot-cap">원본 슬라이드 p.9</div></div>
     </div>
     <div class="card">
       <h3>Post-training (사후학습)</h3>
@@ -422,6 +469,7 @@ Iroh, goes, to, make, tasty, tea
       <h3>RLHF는 pre-training·instruction-tuning보다 더 나은 성능 향상 제공</h3>
       <p>모델 크기(1.3B~12.9B)에 관계없이 human feedback 기반 정책 p<sup>RL</sup>(y|x)이 <b>Reference summaries 대비 선호율</b>에서 가장 높음:</p>
       <p><b>p<sup>RL</sup> &gt; p<sup>IFT</sup> &gt; p<sup>PT</sup></b> (RL 학습 &gt; Instruction fine-tuned &gt; Pretrain only)</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_044.png" alt="RLHF 모델 크기별 선호율 비교 그래프"><div class="shot-cap">원본 슬라이드 p.44 — Stiennon et al. 2020</div></div>
       <p class="src">Learning to summarize from human feedback, Stiennon et al. 2020</p>
     </div>
     <div class="card full">
@@ -430,6 +478,14 @@ Iroh, goes, to, make, tasty, tea
         <tr><th>1단계</th><th>2단계</th><th>3단계</th></tr>
         <tr><td>Instruction-tuning (시범 데이터 수집 및 감독 학습)</td><td>비교 데이터 수집 및 보상 모델 학습</td><td>강화학습(PPO)으로 정책 최적화</td></tr>
       </table>
+      <div class="diagram-label">파이프라인 한눈에 보기</div>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">📝</span><span class="ft">1. Instruction-tuning</span><span class="fd">시범 데이터 수집 + 지도학습</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">⚖️</span><span class="ft">2. 보상 모델 학습</span><span class="fd">응답 비교(pairwise) 데이터 → Reward Model</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step accent"><span class="fi">🎯</span><span class="ft">3. PPO 정책 최적화</span><span class="fd">강화학습으로 LM policy 업데이트</span></div>
+      </div>
       <div class="pseudo">입력 → LLM → 출력 A/B/C → 사람이 평가(비교) → Reward Model 학습
 입력 → LLM (강화학습으로 업데이트) → 출력 A/B/C → Reward Model → 보상(reward) 반환</div>
       <p class="src">ChatGPT: Instruction-tuning + RLHF를 통한 발전에 힘입어 거대언어모델 중 처음으로 상업적으로 활용되었음</p>
@@ -444,6 +500,7 @@ Iroh, goes, to, make, tasty, tea
         <li>이러한 결과들은 <b>환각(Hallucination)</b> 문제를 발생시키게 된다</li>
         <li>인간의 선호도를 학습한 리워드 모델은 <b>더 일관성이 부족함!</b></li>
       </ul>
+      <div class="shot"><img src="../slides_pages_009-207/page_048.png" alt="리워드 해킹 예시 - 보트 레이싱 게임"><div class="shot-cap">원본 슬라이드 p.48 — 리워드 해킹 사례(보트 레이싱 게임): 목표 지점 통과 대신 아이템만 반복 획득해 점수를 해킹</div></div>
       <p class="src">사례: Google Bard가 첫 데모에서 사실오류를 만들어 주가 $100B 하락 / Bing AI가 슈퍼볼 우승팀을 잘못 답변</p>
     </div>
   </div>
@@ -471,6 +528,7 @@ Iroh, goes, to, make, tasty, tea
       <h3>RLVR (RL with Verifiable Reward)</h3>
       <p>RLHF에서 <b>수학 문제와 같이 답이 분명한 문제</b>들은 정답 여부로 리워드를 주자 [Lambert et al. 2024, Deepseek-AI 2025]</p>
       <div class="formula">r = { γ  if correct <br> 0  otherwise }</div>
+      <div class="shot"><img src="../slides_pages_009-207/page_052.png" alt="RLVR Verifiable Reward 파이프라인 다이어그램"><div class="shot-cap">원본 슬라이드 p.52 — RLVR: Training data → Policy → Completions → Verifiable Reward → Policy Update</div></div>
       <p class="src">대표적인 성공 사례: <b>DeepSeek-R1</b> — Training data(prompts) → Policy π<sub>θ</sub> → Completions → Scalar Reward r → Policy Update</p>
     </div>
   </div>
@@ -526,6 +584,7 @@ Iroh, goes, to, make, tasty, tea
       </table>
       <div class="subhead">구성요소</div>
       <p><b>Datastore</b> → <b>Query</b> → <b>Index</b> → <b>Language Model</b> (+ Input)</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_071.png" alt="Datastore Query Index LM 파이프라인 다이어그램"><div class="shot-cap">원본 슬라이드 p.71</div></div>
     </div>
     <div class="card">
       <h3>Datastore / Query / Index / Retrieval</h3>
@@ -612,6 +671,13 @@ Iroh, goes, to, make, tasty, tea
     <div class="card full">
       <h3>Retrieval-augmented LM 파이프라인</h3>
       <p>① 질의 추출 (LM이 원 질문에서 검색용 질의 Q 생성) → ② 문서 검색 (Retriever가 World Knowledge에서 Evidence 검색) → ③ 언어모델 추론 (Evidence + Query로 최종 Answer 생성)</p>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">❓</span><span class="ft">① 질의 추출</span><span class="fd">원 질문 → 검색용 Query 생성</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">🔍</span><span class="ft">② 문서 검색</span><span class="fd">Retriever가 Datastore에서 Evidence 검색</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step accent"><span class="fi">💬</span><span class="ft">③ 언어모델 추론</span><span class="fd">Evidence + Query → 최종 Answer 생성</span></div>
+      </div>
       <p class="src">대표 프레임워크: LangChain — Chunk of text(document) → Embeddings → Semantic Search → Ranked Results → LLM → Answer</p>
     </div>
     <div class="card">
@@ -725,7 +791,18 @@ Iroh, goes, to, make, tasty, tea
     <div class="card">
       <h3>LLM Agent 프레임워크</h3>
       <p><b>Controller</b>(Foundation Model, 계획 수립) ↔ <b>Tool Set</b>(다양한 기능을 가진 도구들의 집합) ↔ <b>Environment</b>(도구들이 실제로 작동하는 플랫폼 제공) ↔ <b>Perceiver</b>(환경 피드백을 요약해 Controller에 전달)</p>
-      <p class="src">Human이 Controller에 지시를 내리거나 피드백을 줄 수 있음. — Tool Learning with Foundation Models, Qin et al. 2023</p>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">🧠</span><span class="ft">Controller</span><span class="fd">Foundation Model, 계획 수립</span></div>
+        <div class="flow-arrow">⇄</div>
+        <div class="flow-step"><span class="fi">🛠️</span><span class="ft">Tool Set</span><span class="fd">다양한 기능의 도구 집합</span></div>
+        <div class="flow-arrow">⇄</div>
+        <div class="flow-step"><span class="fi">🌐</span><span class="ft">Environment</span><span class="fd">도구가 실제로 작동하는 플랫폼</span></div>
+        <div class="flow-arrow">⇄</div>
+        <div class="flow-step accent"><span class="fi">👁️</span><span class="ft">Perceiver</span><span class="fd">환경 피드백 요약 → Controller 전달</span></div>
+      </div>
+      <div class="loop-note"><span class="li">↩️</span> Human이 Controller에 지시를 내리거나 피드백을 줄 수 있는 순환 구조</div>
+      <div class="shot"><img src="../slides_pages_009-207/page_134.png" alt="LLM Agent 프레임워크 원본 다이어그램"><div class="shot-cap">원본 슬라이드 p.134 — Qin et al. 2023</div></div>
+      <p class="src">— Tool Learning with Foundation Models, Qin et al. 2023</p>
     </div>
   </div>
 </section>
@@ -760,7 +837,9 @@ Iroh, goes, to, make, tasty, tea
       <table class="compare">
         <tr><th>방식</th><th>핵심 특징</th></tr>
         <tr><td class="k">모방 학습<br>(Imitation Learning)</td><td>인간의 도구 사용 행동 데이터를 기록하여 LM이 인간의 행동을 모방하도록 학습. 가장 간단하고 직관적인 방식. 예: <b>OpenAI WebGPT</b> (2022) — 검색 엔진 사용을 위한 인간 행동 모방(Clone) + 지도학습 + 강화학습. 단 6000개 데이터로 장문 QA에서 인간보다 좋은 성능</td></tr>
-        <tr><td class="k">Toolformer<br>(Meta, 2023)</td><td>모델 스스로 학습 데이터 생성(Self-supervised) + 지도학습(SFT). 검색엔진뿐 아니라 달력·계산기 등 여러 API 활용. <b>3단계</b>: ① API 호출 샘플링(문맥 보고 후보 생성) → ② API 실행(실제 실행하여 응답 획득) → ③ 호출 필터링(문맥에 유용한지 평가·필터링)</td></tr>
+        <tr><td class="k">Toolformer<br>(Meta, 2023)</td><td>모델 스스로 학습 데이터 생성(Self-supervised) + 지도학습(SFT). 검색엔진뿐 아니라 달력·계산기 등 여러 API 활용. <b>3단계</b>: ① API 호출 샘플링(문맥 보고 후보 생성) → ② API 실행(실제 실행하여 응답 획득) → ③ 호출 필터링(문맥에 유용한지 평가·필터링)
+          <div class="shot"><img src="../slides_pages_009-207/page_143.png" alt="Toolformer 3단계 데이터 생성 파이프라인"><div class="shot-cap">원본 슬라이드 p.143</div></div>
+        </td></tr>
         <tr><td class="k">ToolLLM (2023)</td><td>기존 연구의 한계점인 툴의 다양성과 범용성을 타겟팅. 16000+ 의 실제 API를 활용하여 대규모 학습 데이터 셋 + 특화 언어모델 + 평가 벤치마크 제안. 데이터셋 수집: API 수집 → 명령형(Instruction) 생성 → 정답 어노테이션 & 필터링</td></tr>
         <tr><td class="k">멀티모달 Tool Learning<br>(최근 접근)</td><td>멀티모달 대규모 언어모델(MLLM)을 기반으로 도구를 정의하고 활용하는 연구. 예: GUI 에이전트, Embodied 에이전트 — Web/App Agent(Planner가 사전 정의된 API로 이산 행동) vs Computer Use Agent(범용 플래너가 마우스·키보드 조작으로 어떤 가상 작업도 수행)</td></tr>
       </table>
@@ -798,6 +877,26 @@ Iroh, goes, to, make, tasty, tea
       <p class="src">Before MCP: LLM마다 Unique API로 각 도구 연결 (N×M 조합 폭발) → After MCP: Model Context Protocol(MCP)로 통합된 API 하나로 모든 도구 연결</p>
     </div>
     <div class="card full">
+      <h3>연결 구조 비교 — Before / After MCP</h3>
+      <div class="diagram-label">Before MCP · 모델마다 다른 연동 (N×M 조합 폭발)</div>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">🤖</span><span class="ft">LLM A · B · C</span><span class="fd">OpenAI · Anthropic · Google 등</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:var(--red); background:rgba(220,38,38,0.05);"><span class="fi">🔀</span><span class="ft">제각각 다른 API·스키마</span><span class="fd">모델마다 별도 연동 필요</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">🧰</span><span class="ft">Tool 1 · 2 · 3</span><span class="fd">Filesystem · DB · Search 등</span></div>
+      </div>
+      <div class="diagram-label" style="margin-top:14px;">After MCP · 표준 프로토콜로 통합</div>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">🤖</span><span class="ft">LLM A · B · C</span><span class="fd">OpenAI · Anthropic · Google 등</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step" style="border-color:var(--green); background:rgba(22,163,74,0.05);"><span class="fi">🔌</span><span class="ft">MCP (JSON-RPC)</span><span class="fd">하나의 표준 규격으로 통합</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">🧰</span><span class="ft">Tool 1 · 2 · 3</span><span class="fd">Filesystem · DB · Search 등</span></div>
+      </div>
+      <div class="shot"><img src="../slides_pages_009-207/page_150.png" alt="Before MCP vs After MCP 원본 비교 다이어그램"><div class="shot-cap">원본 슬라이드 p.150 — descope.com</div></div>
+    </div>
+    <div class="card full">
       <h3>MCP 아키텍처 & 계층(Layer)</h3>
       <table class="compare">
         <tr><th>구성요소</th><th>역할</th></tr>
@@ -806,6 +905,28 @@ Iroh, goes, to, make, tasty, tea
         <tr><td class="k">MCP Server</td><td>MCP 클라이언트에게 컨텍스트를 제공하는 프로그램 (예: Sentry, Filesystem, Database)</td></tr>
       </table>
       <p>MCP Host(AI Application) 안의 여러 MCP Client가 각각 One-to-one connection으로 MCP Server 1/2/3(Sentry/Filesystem/Database)에 연결.</p>
+      <div class="org-chart">
+        <div class="org-root">MCP Host (AI Application)</div>
+        <div class="org-stem"></div>
+        <div class="org-branches">
+          <div class="org-branch">
+            <div class="node client">MCP Client 1</div>
+            <div class="arrow-down">↓</div>
+            <div class="node">MCP Server<br>Sentry</div>
+          </div>
+          <div class="org-branch">
+            <div class="node client">MCP Client 2</div>
+            <div class="arrow-down">↓</div>
+            <div class="node">MCP Server<br>Filesystem</div>
+          </div>
+          <div class="org-branch">
+            <div class="node client">MCP Client 3</div>
+            <div class="arrow-down">↓</div>
+            <div class="node">MCP Server<br>Database</div>
+          </div>
+        </div>
+      </div>
+      <div class="shot"><img src="../slides_pages_009-207/page_151.png" alt="MCP Host Client Server 원본 아키텍처 다이어그램"><div class="shot-cap">원본 슬라이드 p.151</div></div>
       <table class="compare" style="margin-top:10px;">
         <tr><th>Data Layer (데이터 계층)</th><th>Transport Layer (전송 계층)</th></tr>
         <tr><td>클라이언트-서버 통신을 위한 <b>JSON-RPC 기반 프로토콜</b> 정의. 라이프 사이클 관리, 툴, 리소스, 프롬프트 같은 핵심 요소들 포함. (내부 계층/inner layer)</td><td>클라이언트-서버 간 데이터 교환을 가능하게 하는 <b>통신 메커니즘과 채널</b> 정의. 전송 방식에 특화된 연결 수립, 메시지 프레이밍, 인증 포함. (외부 계층/outer layer)</td></tr>
@@ -899,6 +1020,7 @@ if __name__ == "__main__":
     <div class="card">
       <h3>환경의 표현: 이미지 (Image)</h3>
       <p><b>Touchdown</b> [Chen et al., 2018] — Google Street View 기반 내비게이션 및 지시 따르기(Navigation & Instruction Following) 데이터셋. 사용자가 제공한 자연어 지시문에 따라 실제 도시 환경 이미지 내에서 경로 탐색을 수행. 시각적 환경을 텍스트와 연결하여 지시 수행 및 환경 이해를 가능하게 함.</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_175.png" alt="Touchdown 데이터셋 Google Street View 예시"><div class="shot-cap">원본 슬라이드 p.175</div></div>
       <p class="src">이미지 기반 표현의 문제점: 좋은 성능을 위해 세부적 이해가 중요 (예: OCR, 복잡한 레이아웃에서의 그라운딩) — 많은 모델이 이런 태스크에서 실패하지만 학습으로 개선 가능</p>
     </div>
     <div class="card">
@@ -935,10 +1057,19 @@ if __name__ == "__main__":
         <tr><th>국소적 계획 (Local Planning)</th><th>전역적 계획 (Global Planning)</th></tr>
         <tr><td>한 단계씩(step by step) 계획을 세움. 매 스텝마다 사용할 하나의 툴(tool) 결정. 단순하고 직관적이나, 장기 의존성 문제 발생 가능</td><td>실행 가능한 전체 계획 경로(planning path)를 한 번에 생성. 여러 개의 툴을 조합하여 시퀀스 형태로 결정. 효율적이나, 복잡한 환경에서는 실패 가능</td></tr>
       </table>
+      <div class="shot"><img src="../slides_pages_009-207/page_186.png" alt="Local Planning vs Global Planning 원본 다이어그램"><div class="shot-cap">원본 슬라이드 p.186</div></div>
     </div>
     <div class="card">
       <h3>Local Planning — ReAct</h3>
       <p><b>ReAct</b> [Yao et al. 2023] — <b>추론(reasoning)</b>과 <b>액션(action)</b>을 결합하여 에이전트가 환경과 상호작용하도록 하는 방식. 단순한 추론/행동 분리를 넘어, 두 과정을 결합해 상황 응형(local) 계획 가능. 다양한 도구 사용 및 웹 탐색, 추론 기반 Q&A 등에서 좋은 성능.</p>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">💭</span><span class="ft">Thought</span><span class="fd">다음에 무엇을 할지 추론</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step accent"><span class="fi">⚡</span><span class="ft">Action</span><span class="fd">도구 호출·검색 등 행동 실행</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">👀</span><span class="ft">Observation</span><span class="fd">환경으로부터 결과 관찰</span></div>
+      </div>
+      <div class="loop-note"><span class="li">🔁</span> 목표를 달성할 때까지 Thought → Action → Observation을 반복</div>
       <div class="pseudo">Thought 1: I need to search Apple Remote...
 Act 1: Search[Apple Remote]
 Obs 1: The Apple Remote is ...
@@ -946,6 +1077,7 @@ Thought 2: ... I need to search Front Row
 Act 2: Search[Front Row]
 ...
 Act 4: Finish[keyboard function keys]</div>
+      <div class="shot"><img src="../slides_pages_009-207/page_187.png" alt="ReAct 논문 예시와 Reason-only Act-only 비교 다이어그램"><div class="shot-cap">원본 슬라이드 p.187 — Yao et al. 2023</div></div>
     </div>
     <div class="card">
       <h3>Global Planning — Plan-and-Solve Prompting</h3>
@@ -988,6 +1120,7 @@ Act 4: Finish[keyboard function keys]</div>
         <li>Prompt, Memory, Tools와 같은 컴포넌트들이 모듈화 되어 있어 재사용성과 확장성 확보</li>
         <li><b>LangGraph</b> 기반으로 복잡한 워크플로우를 시각적으로 설계 및 관리 가능</li>
       </ul>
+      <div class="shot"><img src="../slides_pages_009-207/page_193.png" alt="LangGraph 사이트와 Tool 호출 그래프 원본 스크린샷"><div class="shot-cap">원본 슬라이드 p.193</div></div>
     </div>
     <div class="card full">
       <h3>LangChain 주요 컴포넌트</h3>
