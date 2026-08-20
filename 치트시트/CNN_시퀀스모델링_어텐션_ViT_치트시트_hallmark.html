@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CNN & 시퀀스모델링·어텐션·ViT 치트시트</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+/* Hallmark · macrostructure: per-file application of the locked "Field Notebook" design system
+   (new_style2.css, verbatim) — adapted Long-Document reference index (per-section colour-coded
+   card grid), applied here to CNN·시퀀스모델링·어텐션·ViT 치트시트 (source: CNN_시퀀스모델링_어텐션_ViT_치트시트.html)
+ * nav: sticky pill strip · footer: inline-rule
+ * genre: editorial · tone: technical / academic-reference
+ * theme: "Field Notebook" — navy anchor + 10-hue section-accent rotation, OKLCH-built
+ * content: 16 top-level chapters mapped 1:1 from source (Part A CNN 0~7, Part B 시퀀스·어텐션·ViT 0~6, 부록) — no summarizing
+ */
+/* Hallmark · pre-emit critique: P5 H5 E4 S4 R4 V5 */
+
+:root{
+  /* ---- OKLCH "field notebook" palette (navy anchor, multi-hue section accents) ---- */
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">CNN · 시퀀스모델링 · 어텐션 · ViT</span>
+    <h1>CNN & 시퀀스모델링·어텐션·ViT & 학습전략 완전정리</h1>
+    <p class="sub">업로드하신 두 자료(30_딥러닝_이미지모델_개념정리 · 31_시퀀스모델링_어텐션_ViT_학습전략_개념정리) 원문을 생략 없이 재구성했습니다. 원본의 "★ 핵심", "! 주의", "↺ 복습", "+ 더 알아보기", "실습" 박스를 그대로 재현했습니다.</p>
+    <div class="hero-meta">
+      <span>FCN vs Conv</span>
+      <span>AlexNet/VGG/ResNet/MobileNet</span>
+      <span>RNN/LSTM</span>
+      <span>Self-Attention/ViT</span>
+      <span>초기화·정규화·학습률</span>
+    </div>
+    <div class="hero-note">
+      30_딥러닝_이미지모델_개념정리 · 31_시퀀스모델링_어텐션_ViT_학습전략_개념정리 기반 · 모의고사 3·4회차 반영
+    </div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#ch1">A0. 왜 CNN인가</a>
+    <a href="#ch2">A1. FCN vs 합성곱</a>
+    <a href="#ch3">A2. 모델 구조 디테일</a>
+    <a href="#ch4">A3. AlexNet</a>
+    <a href="#ch5">A4. VGGNet</a>
+    <a href="#ch6">A5. ResNet</a>
+    <a href="#ch7">A6. MobileNet</a>
+    <a href="#ch8">A7. 종합비교·공식</a>
+    <a href="#ch9">B0. CNN의 한계</a>
+    <a href="#ch10">B1. RNN</a>
+    <a href="#ch11">B2. LSTM</a>
+    <a href="#ch12">B3. Attention</a>
+    <a href="#ch13">B4. ViT</a>
+    <a href="#ch14">B5. 학습 전략</a>
+    <a href="#ch15">B6. 복습·확인문제</a>
+    <a href="#ch16">부록. 오답 패턴</a>
+  </nav>
+</div>
+
+<main>
+
+<!-- ===================== A0. 왜 CNN인가 ===================== -->
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">A0</div>
+    <div><h2>왜 CNN인가 — 오버뷰</h2><p class="desc">이미지 기반 학습 모델의 구조·작동 방식과 CNN 변천사(원본 슬라이드 107장 기반)</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>이 자료가 답하는 질문들</h3>
+      <table class="compare">
+        <tr><th>질문</th><th>답을 찾는 곳</th></tr>
+        <tr><td>CNN의 기본 구조는 무엇이며, 왜 이미지 과업에서 중요한가?</td><td>1. CNN vs. FCN</td></tr>
+        <tr><td>CNN의 단위 연산과 디자인 철학은 어떻게 발전했을까?</td><td>2. 모델 구조(깊이·스케일·경량화)</td></tr>
+        <tr><td>CNN 기반 주요 모델은 어떻게 변화해왔고, 왜 중요한가?</td><td>3~6. AlexNet→VGG→ResNet→MobileNet</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>산업/일상 사례</h3>
+      <p>금형 표면 스크래치 검출, 식품·의약품 이물질 검출, PCB 불량(냉땜/플럭스잔여물/크랙) 자동판정, 안심우회전시설(AI카메라로 차량·보행자 실시간 감지→픽토그램 표출).</p>
+      <div class="note gap">↺ 복습 연결 — 1차시(선형회귀)에서 "입력→출력을 함수로 근사"를 배웠고, 3차시(신경망)에서 $\mathbf h=\mathrm a[\boldsymbol\beta+\boldsymbol\Omega\mathbf x]$로 확장, 4차시에서 손실을 정의하고 경사하강·역전파로 학습했다. 이번 차시는 그 신경망을 "이미지" 데이터에 맞게 <b>레이어의 모양만</b> 다시 설계하는 이야기다(학습 방법은 그대로).</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== A1. CNN vs. FCN ===================== -->
+<section class="section" id="ch2" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">A1</div>
+    <div><h2>CNN vs. FCN</h2><p class="desc">완전연결층의 한계에서 합성곱·필터·패딩·배치 표기까지.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>FCN(완전연결층)의 한계</h3>
+      <p><b>정의</b>: 입력을 받아 출력으로 변환하는 신경망의 기본 모듈. 이미지(32×32×3)를 전부 나열해 1차원 벡터(1×3072)로 만들어 입력받음 → $Wx$(10×3072 가중치)로 10개 중 1개로 분류.</p>
+      <div class="note gap">↺ 복습 연결 — $Wx$는 3차시에서 배운 $\boldsymbol\beta_k+\boldsymbol\Omega_k\mathbf h_k$의 가중치 부분 그대로. $\boldsymbol\Omega_k$의 크기 규칙도 동일(다음층×현재층 = 10×3072). 즉 FCN = 우리가 아는 그 신경망에 이미지를 일렬로 펴서 넣은 것뿐.</div>
+      <div class="note">⚠ 주의 — FCN이 이미지에 부적합한 3가지 이유
+      <ul>
+        <li><b>파라미터 폭발</b> — 32×32 한 장, 출력 10개인데 벌써 30,720개. 224×224면 첫 층만 1,505,280개.</li>
+        <li><b>공간 구조 파괴</b> — Flatten하는 순간 "옆 픽셀이 옆에 있다"는 정보가 사라짐(모델이 이웃관계를 처음부터 다시 배워야 함).</li>
+        <li><b>위치 의존</b> — 고양이가 왼쪽 위에 있을 때와 오른쪽 아래에 있을 때를 완전히 다른 입력으로 인식.</li>
+      </ul></div>
+      <div class="note">🧪 실습 포인트 — (FCN 파라미터 폭발 체감): 해상도를 키우면 FCN 첫 층 파라미터는 폭증하지만 Conv 첫 층은 <b>해상도와 무관</b>하게 필터 크기만큼만 필요 — 이것이 CNN의 첫 번째 존재 이유.</div>
+    </div>
+
+    <div class="card full">
+      <h3>합성곱 레이어(Convolution Layer)</h3>
+      <p><b>정의</b>: 입력 이미지를 필터와 연산해 특징맵(feature map)을 뽑는 모듈. 1차원으로 바꾸는 FCN과 달리 <b>3차원 구조를 그대로 보존</b>. Convolution = 필터를 이미지 상에서 이동시키며 내적을 반복.</p>
+      <div class="note">⚠ 주의 — 필터는 항상 입력의 깊이(채널) 축과 동일한 차원을 가짐. 입력이 3×32×32면 필터는 3×5×5처럼 깊이 3을 그대로 가짐("3×5×5 필터").</div>
+      <p>특정 위치의 연산: (3×5×5=75)차원 내적 + bias → $\mathbf w^\top\mathbf x+b$. 필터 이동 경로를 따라 모은 값 → 활성화 맵(28×28×1).</p>
+      <div class="note gap">↺ 복습 연결 — $\mathbf w^\top\mathbf x+b$는 1차시 선형회귀 $\beta_0+\beta_1x_1+\cdots+\beta_px_p$와 완전히 같은 식. 차이는 <b>같은 $\mathbf w$를 이미지 전체에서 재사용</b>한다는 것(파라미터 공유, weight sharing). FCN은 위치마다 다른 가중치, CNN은 "어디에 있든 엣지는 엣지"라는 가정을 구조에 새겨넣음.</div>
+      <div class="note">🧪 실습 포인트 — 박스필터($\frac19$의 3×3 평균필터)를 한 칸씩 옮기며 계산 → 경계 부분에서 값이 변하는 출력. 실습에서 소벨 세로/가로 엣지검출, 샤프닝 필터도 다룸.</div>
+    </div>
+
+    <div class="card">
+      <h3>활성화 맵과 다중 필터</h3>
+      <p>필터 하나 → 활성화맵 1장. 필터를 $C_{out}$개 쓰면 활성화맵도 $C_{out}$장 → 다음 층의 <b>채널</b>이 됨. 예) 3×32×32 + 6개 필터(6×3×5×5) → 6×28×28. 바이어스도 6×1 벡터로 각 활성화맵에 하나씩 더해짐.</p>
+    </div>
+
+    <div class="card">
+      <h3>출력 해상도와 패딩</h3>
+      <div class="formula">$$\text{출력 해상도} = \text{입력 해상도} - \text{필터 해상도} + 1$$ 예) $8=10-3+1$, $28=32-5+1$</div>
+      <p>해상도를 유지하려면 <b>패딩(padding)</b>: zero padding(가장자리 0으로, 가장 흔함) / replicate·reflect(경계 인공물 적어 영상처리에 유리).</p>
+      <div class="note tip">💡 정리 — 해상도를 유지하려면 $P=\dfrac{K-1}{2}$(홀수 커널). 3×3엔 pad=1, 5×5엔 pad=2. AlexNet Conv2가 5×5, pad=2인 이유.</div>
+      <div class="note">🧪 실습 포인트 — (출력 해상도 계산기, <b>시험 단골</b>): $W'=\dfrac{W-K+2P}{S}+1$. 나누어떨어지지 않으면(끝이 잘리면) 경고. 프리셋: AlexNet Conv1(227,11,0,4), VGG 3×3(224,3,1,1).</div>
+    </div>
+
+    <div class="card full">
+      <h3>배치와 일반형 표기</h3>
+      <table class="compare">
+        <tr><th>구분</th><th>표기</th><th>의미</th></tr>
+        <tr><td class="k">입력 배치</td><td>$N\times C_{in}\times H\times W$</td><td>N장의 이미지를 한 번에 처리</td></tr>
+        <tr><td class="k">필터</td><td>$C_{out}\times C_{in}\times K_w\times K_h$</td><td>필터 깊이 = 입력 채널 수</td></tr>
+        <tr><td class="k">바이어스</td><td>$C_{out}\times1$</td><td>출력 채널마다 하나씩</td></tr>
+        <tr><td class="k">출력 배치</td><td>$N\times C_{out}\times H'\times W'$</td><td>활성화 맵 묶음</td></tr>
+      </table>
+      <p>예) 2×3×32×32 + 6×3×5×5 필터 → (2×6×28×28) 출력.</p>
+      <div class="note gap">↺ 복습 연결 — $N$은 4차시 SGD에서 말한 미니배치 크기 $|\mathcal B_t|$. "전체가 아닌 일부로 기울기 계산" 개념이 여기선 텐서의 첫 번째 축으로 나타난다.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== A2. 모델 구조 디테일 ===================== -->
+<section class="section" id="ch3" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">A2</div>
+    <div><h2>모델 구조 디테일</h2><p class="desc">중첩·비선형, 필터 시각화, 수용영역, 풀링, 스트라이드 합성곱.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>중첩(stacking)과 비선형</h3>
+      <div class="note exam">★ 시험 단골 — Conv도 결국 선형 연산 — 선형만 계속 쌓으면 $W_{all}=W_3W_2W_1$이 되어 <b>결국 하나의 선형 변환</b>과 같아짐(층 100개 쌓아도 표현력 안 늘어남). 해결: <b>비선형 블록(Conv+ReLU)</b>을 함께 써야 모델링 파워가 향상. CNN의 기본 단위 = Conv→ReLU 한 쌍.</div>
+      <div class="note gap">↺ 복습 연결 — 3차시 "Deep 네트워크" 파트에서 합성함수와 접기(folding)를 배웠다. 활성화함수 없이는 $\mathbf y=\boldsymbol\Omega_2\boldsymbol\Omega_1\mathbf x$로 뭉개진다고 했는데, $W_{all}=W_3W_2W_1$이 바로 그것. "층을 쌓는 것=공간을 접는 것"이 이미지에서는 <b>엣지→무늬→부위→객체</b>라는 계층적 특징으로 나타난다.</div>
+    </div>
+
+    <div class="card">
+      <h3>필터의 의미 — 필터 시각화</h3>
+      <p>선형모델: 필터=각 카테고리의 템플릿 / FCN: 다양한 템플릿 / CNN: 계층별 지역적 템플릿(엣지, 색상 등).</p>
+      <div class="note tip">+ 더 알아보기 — Zeiler&Fergus(2013) 시각화: <b>1층</b>=엣지·색대비 → <b>2~3층</b>=코너·질감·반복무늬 → <b>4층</b>=개의 얼굴/새의 다리 같은 부위 → <b>5층</b>=객체 전체. 사람이 특징을 설계하지 않아도 데이터로부터 <b>계층적 특징</b>이 저절로 만들어짐 — 전이학습이 잘 통하는 이유(앞쪽 층은 어떤 이미지 문제에도 비슷하게 쓸모있음).</div>
+    </div>
+
+    <div class="card">
+      <h3>수용영역(Receptive Field)</h3>
+      <p><b>정의</b>: CNN이 한 번에 볼 수 있는 영역의 크기 = 네트워크의 시야. 깊어질수록 넓어짐. 확장 방법: Deep stacking, Pyramid structure, Pooling, Stride, Dilated Conv.</p>
+      <div class="note">⚠ 주의 — 고해상도 이미지 처리 시 많은 레이어를 통과해야 해 <b>비실용적</b> → 입력 사이즈를 줄여 처리(=풀링과 스트라이드가 등장한 이유).</div>
+      <div class="note tip">+ 더 알아보기 — $$j_k=j_{k-1}\cdot S_k,\qquad R_k=R_{k-1}+(K_k-1)\cdot j_{k-1}\quad(R_0=1,j_0=1)$$ 예: 3×3 conv(stride1)를 세 번 쌓으면 $1\to3\to5\to7$ — 7×7 필터 하나와 같은 시야(VGG 핵심 논리).</div>
+      <div class="note">🧪 실습 포인트 — (수용영역 성장 계산기): stride를 넣으면 수용영역이 훨씬 빠르게 커짐 — 풀링/스트라이드가 필요한 진짜 이유.</div>
+    </div>
+
+    <div class="card full">
+      <h3>풀링(Pooling) & 스트라이드 합성곱(Strided Convolution)</h3>
+      <p>CNN 출력을 줄여 연산 효율성 확보(2×2 풀링 시 해상도 ½ → 연산량 약 4배↓, 예: 1.85GFLOPS→0.46GFLOPS). <b>위치 변화 강건성</b>: 객체 위치가 다소 변해도 동일 출력(저해상도 정보 기반이라 몇 화소 이동은 무시됨).</p>
+      <div class="note exam">★ 시험 단골 — <b>맥스풀링(Max Pooling)</b>: 커널 사이즈(예 2×2)로 나눈 각 영역의 최댓값 선택. <b>학습 파라미터 없음(가장 자주 나오는 포인트)</b>.</div>
+      <p>필터를 S칸씩 이동 후 연산 → 풀링처럼 해상도 축소(연산효율+위치강건성). 풀링은 학습 상수 없음 vs 스트라이드는 <b>커널을 동시에 학습</b>. 정보 손실이 적고 풀링+합성곱을 한 레이어로 대체 → 고도화된 CNN은 풀링 대신 스트라이드 합성곱 선호 경향.</p>
+      <table class="compare">
+        <tr><th>방법</th><th>학습 파라미터</th><th>정보 손실</th><th>비고</th></tr>
+        <tr><td class="k">Max/Avg Pooling</td><td>없음</td><td>상대적으로 큼</td><td>단순·빠름, 위치 강건성</td></tr>
+        <tr><td class="k">Strided Conv</td><td>있음(커널 학습)</td><td>적음</td><td>풀링+합성곱을 한 레이어로</td></tr>
+        <tr><td class="k">입력 자체 축소</td><td>없음</td><td>매우 큼</td><td>고해상도 대응의 현실적 해법</td></tr>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== A3. AlexNet ===================== -->
+<section class="section" id="ch4" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">A3</div>
+    <div><h2>AlexNet (2012, Top-5 16.4%)</h2><p class="desc">8계층 CNN — 딥러닝 이미지 인식의 시작.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <p>5개 합성곱 레이어 + 3개 완전연결 레이어 = <b>8계층</b> CNN. 입력: 3×227×227 (논문엔 224로 표기됐으나 227로 정정). 출력: 1×1024(1000클래스 Softmax). 당시 GPU(GTX580, 3GB) 한계로 2개 GPU에 분산(채널을 반씩 나눔). 총 인용수 162,207회.</p>
+      <div class="note gap">↺ 복습 연결 — 2차시 로지스틱회귀에서 시그모이드로 이진 확률을 만들었는데, 클래스가 1000개일 때 그 일반화가 <b>소프트맥스</b> $p_k=\frac{e^{z_k}}{\sum_j e^{z_j}}$이다. $K=2$를 넣으면 정확히 시그모이드가 됨. 손실도 로지스틱의 log-likelihood를 확장한 <b>교차엔트로피</b>.</div>
+    </div>
+
+    <div class="card full">
+      <h3>단계별 구조</h3>
+      <table class="compare">
+        <tr><th>단계</th><th>설정</th><th>출력 크기</th></tr>
+        <tr><td class="k">입력</td><td>RGB 3채널</td><td>227×227×3</td></tr>
+        <tr><td class="k">Conv1</td><td>11×11, stride4, 96필터</td><td>55×55×96</td></tr>
+        <tr><td class="k">MaxPool1</td><td>3×3, stride2 (Overlapping)</td><td>27×27×96</td></tr>
+        <tr><td class="k">Conv2</td><td>5×5, pad2, 256필터</td><td>27×27×256</td></tr>
+        <tr><td class="k">MaxPool2</td><td>3×3, stride2</td><td>13×13×256</td></tr>
+        <tr><td class="k">Conv3</td><td>3×3, pad1, 384필터</td><td>13×13×384</td></tr>
+        <tr><td class="k">Conv4</td><td>3×3, pad1, 384필터</td><td>13×13×384</td></tr>
+        <tr><td class="k">Conv5</td><td>3×3, pad1, 256필터</td><td>13×13×256</td></tr>
+        <tr><td class="k">MaxPool3</td><td>3×3, stride2</td><td>6×6×256</td></tr>
+        <tr><td class="k">FC</td><td>Flatten 9216→FC1 4096→FC2 4096</td><td>—</td></tr>
+        <tr><td class="k">출력</td><td>FC3→Softmax(1000)</td><td>1000</td></tr>
+      </table>
+      <div class="note tip">+ 더 알아보기 — <b>Overlapping Pooling</b>: 보통 풀링은 커널=스트라이드로 겹치지 않는데, AlexNet은 3×3/stride2로 1칸씩 겹치게 함 → top-1 에러 0.4%↓(정규화 효과로 해석).</div>
+    </div>
+
+    <div class="card full">
+      <h3>★ 출력 크기·연산비용 계산 (시험 단골)</h3>
+      <div class="formula">
+출력 채널 = 필터 개수 &nbsp;|&nbsp; $W'=\dfrac{W-K+2P}{S}+1$<br>
+예) Conv1: $\dfrac{227-11+0}{4}+1=55$
+      </div>
+      <table class="compare">
+        <tr><th>항목</th><th>공식</th><th>Conv1 예시</th></tr>
+        <tr><td class="k">메모리(KB)</td><td>$C\times H'\times W'\times4$Byte</td><td>$96\times55\times55\times4=1{,}134$KB</td></tr>
+        <tr><td class="k">파라미터(K)</td><td>$C_{out}C_{in}K^2+C_{out}$</td><td>$96\times3\times11^2+96=34{,}944=34.9$K</td></tr>
+        <tr><td class="k">FLOPs</td><td>$(H'W')(C_{in}K^2C_{out})$</td><td>$(55^2)(3\cdot11^2\cdot96)=105.4$M</td></tr>
+      </table>
+      <div class="note exam">★ 시험 단골 — 세 그래프의 결론: <b>메모리</b>는 초기 레이어(해상도가 커서, Conv1 1,134KB→FC3 4KB) / <b>파라미터</b>는 FC 레이어(모두 연결되니까, FC1이 전체의 62%) / <b>FLOPs</b>는 합성곱(Conv2 447.9M vs FC1 37.7M)에 집중. → 메모리를 줄이려면 초반 해상도, 모델 크기를 줄이려면 FC, 속도를 올리려면 Conv를 손봐야 함.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== A4. VGGNet ===================== -->
+<section class="section" id="ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">A4</div>
+    <div><h2>VGGNet (2014, Top-5 7.3%, 19층)</h2><p class="desc">3×3 반복 + 규칙적 채널 확장.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <p>5개 합성곱 블록(블록당 Conv-ReLU 반복)+맥스풀링, 3개 FC. 총 16개 Conv/FC 레이어(VGG-16). 입력 3×224×224.</p>
+      <div class="note exam">★ 시험 단골 — VGG 디자인 룰 <b>3줄</b>: ① 3×3 합성곱/스트라이드1/패딩1 반복 ② 맥스풀링(2×2)으로 축소 ③ 풀링 후 <b>채널 크기 2배</b>.</div>
+    </div>
+
+    <div class="card">
+      <h3>왜 3×3인가</h3>
+      <table class="compare">
+        <tr><th></th><th>5×5 한개</th><th>3×3 두개</th></tr>
+        <tr><td class="k">Params</td><td>$25C^2$</td><td>$18C^2$</td></tr>
+        <tr><td class="k">FLOPs</td><td>$25C^2HW$</td><td>$18C^2HW$</td></tr>
+        <tr><td class="k">비선형</td><td>ReLU 1번</td><td>ReLU 2번(표현력↑)</td></tr>
+      </table>
+      <div class="note gap">↺ 복습 연결 — 3차시 "파라미터 20개 deep(16구역) vs 19개 shallow(7구역)" 표를 봤다. "비슷한 파라미터로 깊게 쌓는 쪽이 표현력이 크다"는 원리를 VGG는 $25C^2\to18C^2$(28% 절감, 시야 동일, 비선형 2배)라는 구체 숫자로 증명. 3×3 세 개(=$27C^2$)는 7×7 한 개(=$49C^2$)와 시야가 같으며 45% 저렴.</div>
+      <div class="note tip">+ 더 알아보기 — 풀링 후 채널을 2배로 늘리는 이유: 2×2풀링 시 HW가 ¼로 줄고 채널을 2배로 하면 FLOPs∝$C_{in}C_{out}HW$의 $C_{in}C_{out}$이 4배가 되어 정확히 상쇄 → 모든 블록의 연산량이 비슷해지고 하드웨어 활용률 일정. 이후 거의 모든 CNN(ResNet 포함)의 관례가 됨.</div>
+    </div>
+
+    <div class="card">
+      <h3>AlexNet vs VGGNet</h3>
+      <table class="compare">
+        <tr><th>항목</th><th>차이</th></tr>
+        <tr><td class="k">메모리</td><td>약 25배 (1.9MB → 48.6MB)</td></tr>
+        <tr><td class="k">파라미터</td><td>약 2.3배 (61M → 138M)</td></tr>
+        <tr><td class="k">연산량</td><td>약 19.4배 (0.7 → 13.6 GFLOPs)</td></tr>
+        <tr><td class="k">Top-5 Error</td><td>7.3% (AlexNet 16.4%의 절반 이하 = 성능은 더 좋음)</td></tr>
+      </table>
+      <div class="note exam">★ 시험 단골 — VGG는 AlexNet보다 <b>거대하지만 성능은 더 좋다</b>(메모리·파라미터·연산량 모두 크지만 에러는 낮음) — 모의고사 단골 선지.</div>
+      <div class="note gap">↺ 복습 연결 — "전이학습 베이스라인"이란? EDA 차시에서 StandardScaler+LogisticRegression 파이프라인을 만들었다. 전이학습은 여기서 <b>특징 추출 단계를 VGG가 대신</b>하는 것 — ImageNet으로 학습된 VGG의 마지막 FC를 떼고 앞부분을 고정한 채 특징 벡터만 뽑아 그 위에 로지스틱회귀를 얹으면, 데이터가 적어도 꽤 좋은 분류기가 됨.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== A5. ResNet ===================== -->
+<section class="section" id="ch6" style="--accent:var(--pink)">
+  <div class="section-head">
+    <div class="section-num">A5</div>
+    <div><h2>ResNet (2015, Top-5 3.6%, 152층)</h2><p class="desc">잔차 연결로 Degradation Problem을 해결.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <p>합성곱 블록(VGG유사)+<b>잔차(Residual) 블록</b>. Inception에서 차원축소로 쓰인 1×1 합성곱 적용.</p>
+    </div>
+
+    <div class="card">
+      <h3>Degradation Problem (등장 배경)</h3>
+      <div class="note exam">★ 시험 단골 — 배치정규화로 10+층 학습이 가능해졌지만, <b>56층 모델이 20층보다 training error까지 높음</b>(test error도 높음) → 단순히 깊게 하면 오히려 성능↓.</div>
+      <div class="note">⚠ 주의 — 이건 과적합이 아니다! 과적합이면 훈련오차는 낮고 테스트오차만 높아야 하는데, 56층은 <b>훈련오차조차 더 높음</b> — 표현력 부족이 아니라 <b>최적화(학습)가 안 되는 문제</b>.</div>
+      <div class="note gap">↺ 복습 연결 — EDA차시의 과소/과대적합 표로 정확히 판별: 과소적합(Train↑Test↑, 모델이 너무 단순)/ 과대적합(Train↓Test↑, 훈련데이터에만 맞춤)/ <b>Degradation</b>(Train↑Test↑인데 더 깊은데도!, 표현력은 충분하지만 최적화 실패). 이론적으로 56층은 앞 20층+나머지 36층을 항등함수로 두면 20층과 같아야 하는데, "항등함수를 학습하는 것"이 경사하강법에겐 의외로 어렵다는 게 본질.</div>
+    </div>
+
+    <div class="card">
+      <h3>Residual Block</h3>
+      <p>입력 $X$가 두 경로: 변환경로 $F(x)$(Conv3×3→ReLU→Conv3×3→ReLU) / Shortcut경로(Identity mapping, 잔차연결).</p>
+      <div class="formula">$$\text{Output}=F(x)+x$$</div>
+      <p>학습이 잘 안되면 $F(x)\approx0$ → 출력=$x$(<b>최소 성능 보장</b>). 0으로 초기화하면 작은 모델과 동일한 예측.</p>
+      <div class="note tip">+ 더 알아보기 — 기울기 관점: 4차시 역전파에서 여러 층의 미분이 곱해져 내려온다고 배웠다(계속 곱하면 0으로 사라지거나 폭발). 잔차연결이 있으면 $y=F(x)+x$이므로 $\dfrac{\partial y}{\partial x}=\dfrac{\partial F(x)}{\partial x}+1$ — <b>항상 +1이 남아</b> 곱셈 사슬 중간에도 기울기가 입구까지 도달. 152층 학습이 가능해진 수학적 이유.</div>
+    </div>
+
+    <div class="card full">
+      <h3>Plain vs Bottleneck 잔차 블록</h3>
+      <p>연산 효율을 위해 보틀넥 도입: 1×1 conv(4C→C)로 채널 <b>축소</b> → 3×3 conv는 64개 맵에만 적용 → 1×1 conv(C→4C)로 <b>복원</b>. FLOPs: $18HWC^2$(plain) vs $17HWC^2$(bottleneck) — "더 깊게, 더 적은 연산으로".</p>
+      <div class="note gap">↺ 복습 연결 — 1×1 합성곱 = 채널 방향 차원 축소. EDA 차시의 PCA(13차원→2차원)와 같은 역할: 각 픽셀 위치에서 채널 벡터에 선형변환 적용.</div>
+    </div>
+
+    <div class="card full">
+      <h3>Stem 구조 & 학습 레시피</h3>
+      <p>모델 초기에 Stem으로 해상도를 <b>¼</b>로 줄이고 잔차블록 적용. 여러 FC 제거(GoogLeNet 제안)하고 <b>전역평균풀링(GAP)</b> 사용 → 마지막 FC 1개만.</p>
+      <div class="note tip">+ 더 알아보기 — GAP: 특징맵 $C\times H\times W$를 채널마다 평균 내어 $C\times1\times1$ → <b>파라미터 0개</b>로 Flatten 대체. AlexNet/VGG는 FC1에 파라미터 대부분(AlexNet FC1이 전체의 62%) 몰렸었는데, GAP로 모델 크기 급감+과적합↓. ResNet-50이 VGG-16보다 깊은데 파라미터는 1/5인 이유.</div>
+      <table class="compare">
+        <tr><th>학습 레시피</th><th>4차시 연결</th></tr>
+        <tr><td class="k">SGD + 모멘텀 0.9</td><td>확률적 경사하강법. 모멘텀은 이전 이동방향 90% 이어받아 지그재그↓</td></tr>
+        <tr><td class="k">학습률 0.1→정체시 1/10</td><td>학습률 스케줄링</td></tr>
+        <tr><td class="k">미니배치 256</td><td>$\mathcal B_t$의 크기</td></tr>
+        <tr><td class="k">웨이트 디케이 1e-5</td><td>L2 정규화(EDA "과대적합 해결")</td></tr>
+        <tr><td class="k">He 초기화</td><td>Non-convex 시작점 선택 문제를 통계적으로 해결</td></tr>
+        <tr><td class="k">배치정규화</td><td>StandardScaler를 레이어 사이·미니배치 단위로</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>ResNet 계열 비교</h3>
+      <table class="compare">
+        <tr><th>모델</th><th>구조</th><th>Top-5 Err</th><th>GFLOPs</th></tr>
+        <tr><td class="k">ResNet-18</td><td>18층(Basic Residual)</td><td>10.92</td><td>1.8</td></tr>
+        <tr><td class="k">ResNet-34</td><td>34층(Basic Residual)</td><td>8.58</td><td>3.6</td></tr>
+        <tr><td class="k">VGG-16</td><td>16 conv(Plain)</td><td>9.62</td><td>13.6</td></tr>
+      </table>
+      <p>ResNet-34 vs ResNet-50 차이: <b>Basic 잔차블록 vs 보틀넥 잔차블록</b> 사용 여부. ResNet-50은 지금도 활발히 쓰이는 강력한 베이스라인.</p>
+      <p>제안 당시 MSRA가 ILSVRC & COCO 2015 5개 전 부문 1위 달성. 사람 에러(5.1%)를 처음으로 넘어섬(3.6%).</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== A6. MobileNet ===================== -->
+<section class="section" id="ch7" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">A6</div>
+    <div><h2>MobileNet — 경량화</h2><p class="desc">공간과 채널을 분리해 연산량을 절감.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <p><b>목표</b>: 모바일/임베디드 환경 구동. 기존 합성곱은 공간(H×W)과 채널(C)을 <b>동시</b> 처리해 연산량 과다.</p>
+      <div class="note exam">★ 시험 단골 — 핵심 아이디어 = 공간과 채널을 <b>두 단계로 분리</b>: <b>깊이별 합성곱(Depthwise)</b>(채널별 독립 3×3) + <b>화소별 합성곱(Pointwise)</b>(1×1을 채널방향으로).</div>
+      <div class="formula">
+일반 Conv 비용: $9C^2HW$ &nbsp;|&nbsp; Depthwise+Pointwise 비용: $9CHW+C^2HW$<br>
+$$\text{절감 비율}=\frac{9C^2HW}{9CHW+C^2HW}=\frac{9C}{9+C}\xrightarrow[C\to\infty]{}9(=K^2)$$
+      </div>
+      <div class="note tip">+ 더 알아보기 — <code>nn.Conv2d(C, C, 3, padding=1, groups=C)</code>가 깊이별 합성곱. groups=1(기본)이면 모든 입력채널이 모든 출력채널에 연결, groups=C면 채널 하나당 필터 하나가 독립 작동. AlexNet의 2-GPU "그룹 합성곱"은 groups=2인 셈이며, MobileNet은 이 아이디어를 극단까지 밀어붙인 것.</div>
+      <p>효과: 연산량 <b>9배 가량 절감</b>(채널 커질수록 정확히 $K^2$배 수렴, C=64면 이미 7.4배). 이후 경량 모델의 표준(깊이별 합성곱+보틀넥 구조)으로 지속 채택.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== A7. CNN 종합 비교 · 공식 · 체크리스트 ===================== -->
+<section class="section" id="ch8" style="--accent:var(--amber)">
+  <div class="section-head">
+    <div class="section-num">A7</div>
+    <div><h2>CNN 종합 비교 · 공식 · 체크리스트</h2><p class="desc">4개 모델 비교, 필수 공식 5개, 블록별 비용, 용어 대조표, 자가 체크리스트.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>4개 모델 종합 비교</h3>
+      <table class="compare">
+        <tr><th>모델</th><th>연도</th><th>Top-5 Err</th><th>깊이</th><th>Params</th><th>GFLOPs</th><th>핵심 아이디어</th><th>한계</th></tr>
+        <tr><td class="k">AlexNet</td><td>2012</td><td>16.4</td><td>8</td><td>61M</td><td>0.7</td><td>ReLU+GPU+대용량데이터, 큰 필터(11×11)</td><td>구조 임의적, FC 파라미터 집중</td></tr>
+        <tr><td class="k">VGG-16</td><td>2014</td><td>7.3</td><td>16~19</td><td>138M</td><td>13.6</td><td>3×3만 반복, 풀링후 채널2배(설계규칙)</td><td>거대함(메모리25배·연산19.4배)</td></tr>
+        <tr><td class="k">ResNet-50</td><td>2015</td><td>7.13</td><td>50</td><td>25M</td><td>3.8</td><td>잔차연결+보틀넥+GAP(깊이의 해방)</td><td>여전히 모바일엔 무거움</td></tr>
+        <tr><td class="k">MobileNet</td><td>2017</td><td>—</td><td>28</td><td>4.2M</td><td>0.57</td><td>깊이별+화소별 분리(연산9배절감)</td><td>정확도는 소폭 양보</td></tr>
+      </table>
+      <div class="note tip">💡 정리 — 발전의 세 방향: <b>깊이</b>(8→19→152층, 막은 것은 표현력이 아니라 최적화였고 잔차연결이 풀었다) / <b>단위연산</b>(큰필터→작은필터반복→1×1채널조절→채널공간분리, 항상 "같은 시야를 더 싸게") / <b>효율</b>(FC제거·보틀넥·그룹합성곱, 정확도만큼 비용도 설계 대상).</div>
+    </div>
+
+    <div class="card full">
+      <h3>★ 반드시 외울 공식 5개</h3>
+      <table class="compare">
+        <tr><th>항목</th><th>공식</th><th>예시</th></tr>
+        <tr><td class="k">출력 해상도</td><td>$W'=\dfrac{W-K+2P}{S}+1$</td><td>$\frac{227-11+0}{4}+1=55$</td></tr>
+        <tr><td class="k">출력 채널</td><td>$C_{out}$ = 필터 개수</td><td>필터 96개 → 96채널</td></tr>
+        <tr><td class="k">파라미터 수</td><td>$C_{out}\times C_{in}\times K^2+C_{out}$</td><td>$96\cdot3\cdot11^2+96=34{,}944$</td></tr>
+        <tr><td class="k">메모리(활성)</td><td>$C_{out}\times H'\times W'\times4$Byte</td><td>$96\cdot55\cdot55\cdot4=1{,}134$KB</td></tr>
+        <tr><td class="k">FLOPs</td><td>$(H'W')\times(C_{in}K^2C_{out})$</td><td>$55^2\cdot(3\cdot11^2\cdot96)=105.4$M</td></tr>
+      </table>
+      <div class="note">⚠ 주의 — FLOPs 세는 기준 주의: 이 자료는 "곱하기만 고려"한 값(105.4M). 문헌에 따라 곱셈+덧셈을 각각 1 FLOP으로 세어 2배(=MACs×2)로 적기도 함 — 숫자 비교시 기준을 먼저 확인.</div>
+    </div>
+
+    <div class="card">
+      <h3>블록별 비용 비교</h3>
+      <table class="compare">
+        <tr><th>블록</th><th>구성</th><th>FLOPs</th></tr>
+        <tr><td class="k">5×5 Conv</td><td>Conv(5×5,C→C)</td><td>$25C^2HW$</td></tr>
+        <tr><td class="k">3×3×2(VGG)</td><td>Conv(3×3)×2</td><td>$18C^2HW$ (같은 시야, 28%저렴, ReLU2번)</td></tr>
+        <tr><td class="k">Plain Residual</td><td>Conv(3×3,C→C)×2</td><td>$18HWC^2$</td></tr>
+        <tr><td class="k">Bottleneck Residual</td><td>1×1(4C→C)→3×3(C→C)→1×1(C→4C)</td><td>$17HWC^2$</td></tr>
+        <tr><td class="k">일반 Conv</td><td>Conv(3×3,C→C)</td><td>$9C^2HW$</td></tr>
+        <tr><td class="k">Depthwise Separable</td><td>DW(3×3,groups=C)+PW(1×1)</td><td>$9CHW+C^2HW$(절감 $\frac{9C}{9+C}\to9$)</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>용어 대조표</h3>
+      <table class="compare">
+        <tr><td class="k">특징맵/활성화맵</td><td>합성곱 결과 2차원 격자, 필터 1개당 1장</td></tr>
+        <tr><td class="k">필터/커널</td><td>학습되는 가중치, 항상 입력 채널 수와 같은 깊이($C_{in}\times K\times K$)</td></tr>
+        <tr><td class="k">스트라이드(S)</td><td>필터가 한번에 건너뛰는 칸 수</td></tr>
+        <tr><td class="k">패딩(P)</td><td>가장자리를 채워 해상도 유지. same 패딩 $P=(K-1)/2$</td></tr>
+        <tr><td class="k">수용영역</td><td>출력 한 칸이 참조하는 입력 영역 크기(네트워크 시야)</td></tr>
+        <tr><td class="k">풀링</td><td>영역별 대표값만 남김, 학습 파라미터 없음</td></tr>
+        <tr><td class="k">Overlapping Pooling</td><td>커널&gt;스트라이드라 영역이 겹치는 풀링(AlexNet 3×3/stride2)</td></tr>
+        <tr><td class="k">그룹 합성곱</td><td>채널을 그룹으로 나눠 따로 합성곱. groups=C면 깊이별</td></tr>
+        <tr><td class="k">깊이별 합성곱(depthwise)</td><td>채널마다 독립적인 3×3, 공간만 처리</td></tr>
+        <tr><td class="k">화소별 합성곱(pointwise)</td><td>1×1 합성곱, 채널만 섞음</td></tr>
+        <tr><td class="k">잔차 블록</td><td>$\text{out}=F(x)+x$, 지름길 연결로 최소 성능 보장</td></tr>
+        <tr><td class="k">보틀넥</td><td>1×1로 채널을 줄였다가(병목) 3×3 후 다시 복원</td></tr>
+        <tr><td class="k">Stem</td><td>모델 초입에서 해상도를 빠르게 줄이는 구간(ResNet은 ¼로)</td></tr>
+        <tr><td class="k">전역평균풀링(GAP)</td><td>$C\times H\times W\to C\times1\times1$. FC 대체, 파라미터 없앰</td></tr>
+        <tr><td class="k">Degradation problem</td><td>깊게 했더니 훈련오차까지 나빠지는 현상. 과적합 아닌 최적화 문제</td></tr>
+      </table>
+    </div>
+
+  </div>
+  <div class="summary-box" style="margin-top:14px">
+    <h4>자가 체크리스트 — CNN 파트</h4>
+    <label><input type="checkbox"> FCN이 이미지에 부적합한 이유를 3가지로 말할 수 있다</label>
+    <label><input type="checkbox"> 합성곱이 "이동+내적"임을 그림으로 설명할 수 있다</label>
+    <label><input type="checkbox"> 필터의 깊이가 항상 입력 채널 수와 같은 이유를 안다</label>
+    <label><input type="checkbox"> $W'=\frac{W-K+2P}{S}+1$을 외우고 적용할 수 있다</label>
+    <label><input type="checkbox"> 패딩이 필요한 상황과 same 패딩 값을 안다</label>
+    <label><input type="checkbox"> $N\times C\times H\times W$ 표기를 읽고 쓸 수 있다</label>
+    <label><input type="checkbox"> ReLU 없이 Conv만 쌓으면 왜 무의미한지 설명할 수 있다</label>
+    <label><input type="checkbox"> 수용영역이 무엇이고 왜 넓혀야 하는지 안다</label>
+    <label><input type="checkbox"> 풀링과 스트라이드 합성곱의 차이(학습 파라미터 유무)를 안다</label>
+    <label><input type="checkbox"> AlexNet 8계층 구성을 순서대로 말할 수 있다</label>
+    <label><input type="checkbox"> 메모리·파라미터·FLOPs가 각각 어느 레이어에 몰리는지 안다</label>
+    <label><input type="checkbox"> VGG 디자인 룰 3줄과 3×3 두개가 5×5보다 유리한 이유를 수식으로 보일 수 있다</label>
+    <label><input type="checkbox"> Degradation problem이 과적합과 다른 이유를 설명할 수 있다</label>
+    <label><input type="checkbox"> $F(x)+x$가 "최소 성능 보장"인 이유, 보틀넥 1×1→3×3→1×1 역할을 안다</label>
+    <label><input type="checkbox"> 깊이별+화소별 분리의 절감 비율 $\frac{9C}{9+C}$를 유도할 수 있다</label>
+  </div>
+</section>
+
+<!-- ===================== B0. CNN의 한계 ===================== -->
+<section class="section" id="ch9" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">B0</div>
+    <div><h2>CNN의 한계 — 왜 시퀀스 모델링이 필요한가</h2><p class="desc">순서 무시와 긴 거리 의존성 부족.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <div class="note exam">★ 시험단골 — CNN의 두 가지 한계
+      <ul>
+        <li><strong>순서 무시(순서 정보 미반영)</strong>: "약을 먹고 잠을 자고" vs "잠을 자고 약을 먹고"처럼 순서가 문맥·의미를 바꾸는 데이터(텍스트, 음성)를 CNN은 그대로 반영하지 못함.</li>
+        <li><strong>긴 거리 의존성 부족</strong>: 컨볼루션은 국소적(local) 영역에 집중하므로, 멀리 떨어진 요소 간의 관계는 receptive field를 아주 깊이 쌓아야 겨우 반영됨.</li>
+      </ul></div>
+      <div class="note gap">↺ 복습 연결 — Part A CNN, Receptive Field. Receptive Field(수용영역) 개념은 Part A에서 다룬 "층이 깊어질수록 한 뉴런이 보는 원본 영역이 커진다"는 내용 그대로입니다. 여기서는 그 receptive field를 <strong>무한히 넓혀야만</strong> 장거리 관계를 볼 수 있다는 점이 한계로 지적됩니다.</div>
+      <div class="note tip">💡 정리 — 이 자료의 뼈대: 이 두 한계를 풀기 위한 흐름: <strong>순서 문제 → RNN</strong>, <strong>장거리 의존성 문제 → Attention / ViT</strong>.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== B1. RNN ===================== -->
+<section class="section" id="ch10" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">B1</div>
+    <div><h2>RNN (Recurrent Neural Network)</h2><p class="desc">은닉 상태로 순서를 반영하는 신경망 구조.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <p><strong>정의:</strong> 순차적(sequential) 데이터를 처리하기 위해 고안된 신경망 구조. 이전 단계의 정보를 <strong>은닉 상태(hidden state)</strong>로 다음 단계에 전달하여 시간/순서의 흐름을 반영합니다.</p>
+      <table class="compare">
+        <tr><th>구성요소</th><th>역할</th></tr>
+        <tr><td class="k">Input $x_t$</td><td>현재 시점 입력 (One-hot encoding 등으로 벡터화)</td></tr>
+        <tr><td class="k">Hidden $h_t$</td><td>현재 입력 + 이전 은닉상태를 합쳐 만든 내부 메모리. "이전까지의 문맥(Context)"을 담아 다음 단계로 전달</td></tr>
+        <tr><td class="k">$W_{xh}$</td><td>입력 → 은닉 변환 가중치</td></tr>
+        <tr><td class="k">$W_{hh}$</td><td>이전 은닉 → 현재 은닉 변환 가중치 (재귀 연결의 핵심)</td></tr>
+        <tr><td class="k">$W_{hy}$ / Output</td><td>은닉 → 출력 변환. 각 값은 다음 문자가 될 확률 점수</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>★ 핵심 수식</h3>
+      <div class="note exam">
+      <div class="formula">$$h_t = f_W(h_{t-1}, x_t)$$</div>
+      <p>순수(vanilla) RNN에서는:</p>
+      <div class="formula">$$h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t)$$</div>
+      <p>RNN 상수(W)는 시계열(순서)에 무관하게 <strong>동일하게 재사용</strong>됩니다. tanh는 비선형 변환을 통해 더 복잡한 패턴 학습을 가능하게 합니다.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>RNN 구조 유형</h3>
+      <table class="compare">
+        <tr><th>구조</th><th>설명</th><th>대표 예시</th></tr>
+        <tr><td class="k">One-to-One</td><td>단일 입력 → 단일 출력</td><td>이미지 → 라벨 (CNN 분류)</td></tr>
+        <tr><td class="k">One-to-Many</td><td>단일 입력 → 시퀀스 출력</td><td>이미지 → 캡션 생성, 음악 생성, 문장 생성</td></tr>
+        <tr><td class="k">Many-to-One</td><td>시퀀스 입력 → 단일 출력</td><td>문장 → 감정 분류(긍/부정), 음성 → 단일 라벨, 비디오 → 행동 분류</td></tr>
+        <tr><td class="k">Many-to-Many</td><td>시퀀스 입력 → 시퀀스 출력</td><td>기계 번역(영어→한국어), 음성 → 텍스트</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>+ 더 알아보기 & 실습</h3>
+      <div class="note tip">+ 더 알아보기 — RNN도 결국 "펼치면" 깊은 신경망. 재귀(recursion) 표현은 사이클(cycle) 하나로 그려지지만, 시간축으로 펼치면(unroll) $t=1,\dots,T$ 개의 층이 W를 공유하는 매우 깊은 신경망과 같습니다. 이 때문에 역전파(BPTT, Backpropagation Through Time)는 T번의 층을 통과하며, 기울기 소실/폭발 문제가 CNN보다 훨씬 두드러지게 나타납니다.</div>
+      <div class="note">🧪 실습 포인트 — RNN 은닉상태 계산기: $h_t=\tanh(W_{hh}\cdot h_{t-1}+W_{xh}\cdot x_t)$를 단계별로 계산 (예: $W_{hh}=0.90$, $W_{xh}=0.50$). 스칼라(1차원)로 단순화한 RNN을 시퀀스에 적용해 은닉 상태가 누적되는 과정을 직접 계산해보는 것이 실습 포인트.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== B2. 단순 RNN의 한계와 LSTM ===================== -->
+<section class="section" id="ch11" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">B2</div>
+    <div><h2>단순 RNN의 한계와 LSTM</h2><p class="desc">기울기 소실/폭발 문제와 셀 상태·게이트 구조.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <div class="note">⚠ 주의 — 기울기 폭발 혹은 소실. 역전파에 시퀀스 데이터가 적용되면서 선형가중치 W가 기울기 계산 시 <strong>계속 곱셈으로 반영</strong>됨.
+      <ul>
+        <li>|W|의 특이값 ↑ → 곱할수록 무한히 커짐 → <strong>기울기 폭발</strong></li>
+        <li>|W|의 특이값 ↓ → 곱할수록 0에 수렴 → <strong>기울기 소실</strong></li>
+      </ul>
+      <p>이상적으로 W의 특이값이 1이면 온전한 학습이 가능하지만, 실제로 그렇게 유지되기는 어려움.</p>
+      </div>
+      <div class="note exam">★ 시험단골 — "강제 절삭(clipping)"은 임시방편. 폭발하지 않도록 기울기 값을 절삭(clipping)할 수는 있지만, 결국 잘못된 기울기 값을 양산하는 문제가 남습니다. <strong>기울기 소실은 절삭으로 해결되지 않으며</strong>, 근본적으로 다른 모델(LSTM 등)이 필요합니다.</div>
+    </div>
+
+    <div class="card">
+      <h3>LSTM (Long Short-Term Memory)</h3>
+      <p>셀 상태(Cell State)와 게이트(Gate) 유닛으로 구성됩니다.</p>
+      <ul>
+        <li><strong>셀 상태 (Cell State, $c_t$)</strong>: 중요한 정보를 유지/기억하는 역할 — <strong>장기(long-term)</strong> 정보</li>
+        <li><strong>게이트(Gate)</strong>: 정보의 흐름을 제어 — <strong>은닉 상태($h_t$)</strong>는 단기(short-term) 정보</li>
+      </ul>
+      <table class="compare">
+        <tr><th>게이트</th><th>역할</th></tr>
+        <tr><td class="k">입력 게이트 (i)</td><td>새로운 정보의 저장 — 새로운 정보를 적절히 추가해 학습 안정화</td></tr>
+        <tr><td class="k">망각 게이트 (f)</td><td>과거 정보를 제거 — 필요 없는 정보는 줄여 상태가 폭발하지 않도록 제어</td></tr>
+        <tr><td class="k">출력 게이트 (o)</td><td>셀 상태를 현재 은닉 상태로 출력 — 필요한 정보만 은닉 상태로 전달</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>★ 핵심 수식</h3>
+      <div class="note exam">
+      <div class="formula">$$\begin{pmatrix}i\\f\\o\\g\end{pmatrix} = \begin{pmatrix}\sigma\\\sigma\\\sigma\\\tanh\end{pmatrix} W\begin{pmatrix}h_{t-1}\\x_t\end{pmatrix}$$</div>
+      <div class="formula">$$c_t = f \odot c_{t-1} + i \odot g \qquad h_t = o \odot \tanh(c_t)$$</div>
+      <p>기울기 전파 시 선형가중치의 곱 이외에 <strong>덧셈 형태</strong>($f\odot c_{t-1}+i\odot g$)로 전달되어 기울기를 장기적으로 보존할 수 있습니다. 각 상태의 기울기를 덧셈과 곱셈 경로로 분리 — 셀 상태가 덧셈 경로로 이어져 소실을 방지.</p>
+      </div>
+      <div class="note gap">↺ 복습 연결 — 로지스틱회귀 시그모이드. LSTM의 게이트는 모두 <strong>시그모이드(σ)</strong>를 통과합니다. 로지스틱회귀에서 배운 시그모이드의 "0~1 사이 확률적 게이트" 성질이 여기서는 "정보를 얼마나 통과시킬지"를 결정하는 스위치 역할로 재사용됩니다.</div>
+      <div class="note">🧪 실습 포인트 — 기울기 소실/폭발 시뮬레이터: 단순 RNN의 역전파 기울기는 대략 $W^T$ 형태로 곱해집니다. |W|와 시퀀스 길이 T를 바꿔가며 기울기가 어떻게 폭발/소실하는지 확인 (|W|=0.90, T=30 예시).</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== B3. Attention ===================== -->
+<section class="section" id="ch12" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">B3</div>
+    <div><h2>어텐션 메커니즘</h2><p class="desc">Q, K, V로 "멀지만 관련 있는" 위치를 직접 연결.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <p>픽셀 거리와 상관없이 유사한 패치(patch)가 이미지 전역에 존재할 수 있습니다. 어텐션은 이런 "멀지만 관련 있는" 위치를 직접 연결합니다.</p>
+      <div class="note exam">★ Q, K, V와 어텐션 공식
+      <table class="compare">
+        <tr><th>기호</th><th>의미</th></tr>
+        <tr><td class="k">쿼리(Q)</td><td>질의 대상 (입력 토큰/이미지 패치), $q=xW_q$</td></tr>
+        <tr><td class="k">키(K)</td><td>특성 (입력 내 다른 토큰), $k=xW_k$</td></tr>
+        <tr><td class="k">값(V)</td><td>키의 실제 정보, $v=xW_v$</td></tr>
+        <tr><td class="k">어텐션(a)</td><td>쿼리와 키의 유사도(확률분포), $a_{ij}=\text{softmax}(q_i\cdot k_j/\sqrt{D})$</td></tr>
+        <tr><td class="k">출력(o)</td><td>어텐션으로 가중된 값의 총합, $y_j=\sum_i a_{ij}v_i$</td></tr>
+      </table>
+      <div class="formula">$$\text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$</div>
+      <p>$\sqrt{d_k}$로 나누는 이유: 내적 값이 커져 softmax가 지나치게 뾰족해지는 것을 방지하기 위함(스케일링).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💡 정리 — 교차 어텐션(Cross-Attention)</h3>
+      <div class="note tip">둘 이상의 이종(異種) 데이터에서 패치 정보(Q/K/V)를 정의하는 방식. 예: Text-to-Image 모델에서 이미지-텍스트 간 연결 — 쿼리(Q)는 이미지 패치, 키(K)는 텍스트. 이종 데이터 간 유사도를 반영하려면 서로 비교할 수 있는 공간을 구축해야 합니다.</div>
+    </div>
+
+    <div class="card">
+      <h3>🧪 실습포인트</h3>
+      <div class="note">Self-Attention 미니 계산기: 토큰 3개짜리 예시로 softmax(QKᵀ/√d)V 직접 계산 (score(A,A)=2.0, score(A,B)=0.5, score(A,C)=-1.0 등 슬라이더로 조정).</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== B4. Vision Transformer (ViT) ===================== -->
+<section class="section" id="ch13" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">B4</div>
+    <div><h2>Vision Transformer (ViT)</h2><p class="desc">패치 시퀀스 + 위치 인코딩 + 어텐션으로 전역을 이해.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <p>이미지를 패치로 나눈 뒤, <strong>위치 인코딩(사인파 인코딩 등)</strong>으로 패치 토큰의 순서(위치)를 학습에 반영합니다. 데이터 해상도가 바뀌어도 동일한 룰을 적용할 수 있다는 장점이 있지만, 고정된 방식이라 특정 데이터/과업에 최적화된 방식은 아닙니다.</p>
+      <p>ViT 인코더 = 정규화 → 다중헤드 어텐션 → 정규화 → 연결층(MLP)의 반복. 일반적으로 인코더 12개 이상 통과.</p>
+      <div class="note gap">↺ 복습 연결 — CNN vs ViT의 전역 관계 학습. CNN은 지역적 영역에서 수용영역(receptive field)을 넓혀가며 전역을 이해하지만, ViT는 <strong>수용영역을 넓히지 않고도</strong> 어텐션 한 번으로 전역 맥락을 이해할 수 있습니다. Part A에서 "receptive field를 키우려면 층을 깊게 쌓아야 한다"고 배운 문제를, ViT는 구조적으로 우회합니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3>CNN · RNN · LSTM · Attention 비교</h3>
+      <table class="compare">
+        <tr><th></th><th>CNN</th><th>RNN</th><th>LSTM</th><th>Attention</th></tr>
+        <tr><td class="k">강점</td><td>지역적 특성에 집중</td><td>데이터 순서 반영</td><td>순서 반영 + 장거리 맥락</td><td>장거리 맥락에 탁월, 정보 희석 없음</td></tr>
+        <tr><td class="k">약점</td><td>장거리 맥락 이해 어려움, 순서 반영 불가</td><td>장거리 맥락 학습 어려움 (기울기 소실/폭발)</td><td>정보 희석 문제</td><td>데이터 순서 정보 없음 → 위치 인코딩 필요</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>HARD — ViT 학습 시 유의점</h3>
+      <div class="note hard">ViT는 파라미터가 막대하고 CNN 같은 <strong>귀납적 편향(inductive bias)이 없어</strong> 정규화 기법·데이터 증강이 매우 중요합니다. 지식 증류(Knowledge Distillation, DeiT 2021)를 활용하면 상당한 개선 효과가 확인되었습니다 (원본 ViT-B/16 78% → 증류+장기학습+고해상도 입력 시 86%대까지 향상).</div>
+    </div>
+
+    <div class="card">
+      <h3>+ 더 알아보기 — ViT의 트렌드</h3>
+      <div class="note tip">
+      <ul>
+        <li><strong>Swin Transformer</strong>: 이미지 전역에 직접 어텐션은 고비용·비효율 → 윈도우 단위로 어텐션을 계산하고, 다음 층에서 윈도우를 비껴가게 설정해 두 단계로 전역을 커버.</li>
+        <li><strong>ViT-22B</strong>(구글): 220억 파라미터, 대규모 비공개 레이블 데이터(JFT-3B) 지도학습.</li>
+        <li><strong>DINOv2</strong>(메타 AI): 자기지도(self-supervised) 학습, 최대 10억 파라미터, 공개 웹데이터 14억장 활용 — 현재 가장 많이 활용되는 백본.</li>
+        <li><strong>EVA-CLIP</strong>: 이미지-텍스트 대조 학습 + 마스킹 기반 사전학습 결합.</li>
+        <li><strong>InternImage-H</strong>: Conv+Transformer 하이브리드 백본, 탐지/분할에서 최고 수준 성능.</li>
+      </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>💡 정리 — ViT 장단점 요약</h3>
+      <div class="note tip">
+      <ul>
+        <li><strong>장점</strong>: 전역 문맥을 한 번에 고려 가능 / 시계열·시퀀스 데이터에서도 순서 고려 가능(위치 인코딩)</li>
+        <li><strong>단점</strong>: 대규모 학습 자원 필요(데이터·GPU) / 학습 데이터가 적으면 CNN보다 성능 저하 / 한 번에 고려할 수 있는 토큰이 제한적</li>
+        <li><strong>활용</strong>: 이미지 분류/탐지/분할/생성에서 SoTA / 멀티모달 모델의 기준 아키텍처</li>
+      </ul>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h3>🧪 실습포인트 — ViT 패치 분할 계산기</h3>
+      <div class="note">ViT는 이미지를 $(H/P)\times(W/P)$개의 패치 토큰으로 변환합니다 (예: 224px 이미지, 16px 패치 → 14×14=196 토큰). 해상도·패치 크기에 따라 시퀀스 길이(=어텐션 연산량과 직결)가 얼마나 늘어나는지 계산 연습.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== B5. 이미지 모델 학습 전략 ===================== -->
+<section class="section" id="ch14" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">B5</div>
+    <div><h2>이미지 모델 학습 전략</h2><p class="desc">활성화 함수 · 전처리 · 초기화 · 정규화 · 학습률 스케줄 · 하이퍼파라미터.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>① 활성화 함수 선택</h3>
+      <p>신경망에 비선형성 부여 → 복잡한 패턴 학습 가능. 활성화 함수가 없다면 아무리 층을 쌓아도 단순 선형모델과 동일합니다.</p>
+      <table class="compare">
+        <tr><th>함수</th><th>수식</th><th>장점</th><th>문제점</th></tr>
+        <tr><td class="k">Sigmoid</td><td>$a(x)=1/(1+e^{-x})$</td><td>출력을 0~1 확률로 해석 가능</td><td>입력이 매우 크거나 작으면 출력 포화 → 역전파 신호 소실. 지수 연산으로 계산비용 큼</td></tr>
+        <tr><td class="k">Tanh</td><td>범위 [-1,1]</td><td>0 중심 대칭 → 학습 안정성 ↑ (Sigmoid보다 효과적)</td><td>양 끝에서 여전히 포화 → 기울기 소실 가능</td></tr>
+        <tr><td class="k">ReLU</td><td>$f(x)=\max(0,x)$</td><td>양의 영역 비포화, 단순 연산으로 매우 빠름, 6배 이상 빠른 수렴 보고됨</td><td>음수 입력이면 뉴런이 완전히 죽어버릴 수 있음(Dead ReLU)</td></tr>
+        <tr><td class="k">Leaky ReLU</td><td>$f(x)=\max(0.01x,x)$</td><td>ReLU 장점 유지 + 음수에도 작은 기울기 부여</td><td>0.01 기울기 값이 임의적, 항상 ReLU보다 우세하지는 않음</td></tr>
+        <tr><td class="k">ELU</td><td>$x>0$이면 $x$, 아니면 $\alpha(e^x-1)$</td><td>음수 영역에서도 부드럽게 포화 → 노이즈에 강건</td><td>지수 연산으로 계산 복잡성 증가, 하이퍼파라미터 α 필요</td></tr>
+      </table>
+      <div class="note exam">★ 결론 — "큰 고민 말고, 일단 ReLU부터 시도!" 성능 경쟁이 필요한 상황이라면 개선판(Leaky ReLU, ELU 등)을 실험적으로 비교.</div>
+    </div>
+
+    <div class="card">
+      <h3>② 데이터 전처리</h3>
+      <p>이미지 조건을 일치시켜야 모델이 안정적으로 학습됩니다. 색상 채널 통일(3-channel) → 모델 입력 크기 고정.</p>
+      <div class="formula">basic_rgb_pipeline = transforms.Compose([
+transforms.Resize(256, interpolation=InterpolationMode.BICUBIC),
+transforms.CenterCrop(224),
+transforms.ToTensor(),
+transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD)
+])</div>
+      <div class="note gap">↺ 복습 연결 — EDA 차시 StandardScaler. 이미지의 <strong>Normalize(mean, std)</strong>는 EDA/ML 파이프라인 차시에서 다룬 <strong>StandardScaler</strong>($(x-\mu)/\sigma$)와 동일한 발상입니다. 표 형태 데이터든 이미지든, 입력 스케일을 통일해야 학습이 안정적입니다.</div>
+    </div>
+
+    <div class="card">
+      <h3>③ 가중치 초기화</h3>
+      <div class="note">⚠ 주의 — 0 초기화는 실패. 모든 W, b를 0으로 초기화하면 모든 뉴런의 출력과 기울기가 동일해져, 뉴런들이 서로 다른 패턴을 학습하지 못합니다 → <strong>학습이 이뤄지지 않음</strong>.</div>
+      <table class="compare">
+        <tr><th>방식</th><th>공식</th><th>비고</th></tr>
+        <tr><td class="k">랜덤(작은값)</td><td>$0.01\times N(0,1)$</td><td>깊지 않은 모델에서만 잘 동작</td></tr>
+        <tr><td class="k">Xavier</td><td>$\text{std}=1/\sqrt{D_{in}}$</td><td>선형/Tanh 가정</td></tr>
+        <tr><td class="k">He</td><td>$\text{std}=\sqrt{2/D_{in}}$</td><td>ReLU 가정, 입력 절반이 0이 되는 것을 보정 — 분산 2배</td></tr>
+      </table>
+      <div class="note exam">★ 시험단골 — ResNet과 He 초기화. ResNet은 ReLU 구조이므로 He 초기화를 사용. Skip connection으로 입력이 그대로 더해져 깊은 층에서도 기울기가 끊기지 않고 전달됨 — 두 번째 conv는 0으로 초기화, 첫 번째 conv는 He 초기화하여 $\text{Var}(x+F(x))\approx\text{Var}(x)$를 유도.</div>
+      <div class="note">🧪 실습포인트 — 10개 층을 통과하는 동안(ReLU 가정) 각 초기화 방식이 활성값 표준편차를 어떻게 유지/붕괴시키는지 시뮬레이션 — 0초기화/작은랜덤/Xavier/He 비교.</div>
+    </div>
+
+    <div class="card full">
+      <h3>④ 정규화 — 가중치 감소 & 드롭아웃</h3>
+      <div class="formula">$$R(W)=\sum_k\sum_l \beta W_{k,l}^2 + |W_{k,l}|$$</div>
+      <p>Elastic Net(L1+L2): β가 크면 L2 효과(모든 가중치를 작게), β가 작으면 L1 효과(희소한 모델). 훈련 오차를 줄이면서 가중치도 적당히 작게 유지하는 균형이 핵심.</p>
+      <table class="compare">
+        <tr><th></th><th>내용</th></tr>
+        <tr><td class="k">드롭아웃 장점</td><td>과적합 방지, 여러 작은 모델의 앙상블과 유사한 효과, 간단하지만 강력함</td></tr>
+        <tr><td class="k">드롭아웃 단점</td><td>학습시간 증가, 최적 드롭 비율 탐색 필요, RNN/LSTM에는 변형 기법 필요, 배치정규화와 함께 쓰면 비선호되기도 함</td></tr>
+      </table>
+      <div class="note exam">★ Inverted Dropout (실행단계 해결책). 학습 시 살아남은 뉴런의 출력을 <strong>$1/(1-p)$배</strong>로 스케일링(예: p=0.5면 ×2) → <strong>테스트 시엔 추가 연산 없이 그대로 사용</strong>. 기존 방식(테스트 때 (1-p)를 곱함)보다 실제 서비스 속도에 유리합니다.</div>
+    </div>
+
+    <div class="card">
+      <h3>⑤ 학습률 스케줄링</h3>
+      <div class="note exam">★ 학습률은 가장 중요한 하이퍼파라미터. 기본 전략: 큰 값에서 시작하여 epoch가 지날수록 작은 값으로 조정.</div>
+      <table class="compare">
+        <tr><th>방식</th><th>수식</th><th>특징</th></tr>
+        <tr><td class="k">코사인 감소</td><td>$\eta_t=\eta_0\cdot\frac{1}{2}(1+\cos\frac{\pi t}{T})$</td><td>부드럽게 감소, 가장 널리 쓰임</td></tr>
+        <tr><td class="k">역제곱 꼴</td><td>$\eta_t=\eta_0/\sqrt{t}$</td><td>처음엔 크게, 이후 느리게. 대규모 학습에는 부적합</td></tr>
+        <tr><td class="k">일정값 유지</td><td>$\eta_t=\eta_0$</td><td>데이터가 많고 과적합 위험이 없을 때 활용</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>⑥ 하이퍼파라미터 선택 비법</h3>
+      <ul>
+        <li><strong>학습률·초기값 확인</strong>: 작은 샘플로 정확도 100% 달성까지 일부러 과적합. 손실이 폭발하면 학습률↓ 또는 초기화 변경(가장 흔한 이슈), 또는 구조적 이슈(RNN) 의심</li>
+        <li><strong>조합 탐색</strong>: 후보 학습률 + 후보 가중치 변형 방식 중 좋은 조합을 1~5 epoch만 짧게 훈련해 탐색 (검증 세트 성능으로 관찰)</li>
+        <li><strong>곡선 진단</strong>: 초반 손실값 유지=초기값 문제 / 학습률 줄인 뒤 진행 안 됨=너무 일찍 줄임 / 학습·검증 정확도 격차=과적합(정규화 필요)</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== B6. 복습 지도 · 확인문제 · 심화 질문 ===================== -->
+<section class="section" id="ch15" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">B6</div>
+    <div><h2>복습 지도 · 확인문제 · 심화 질문</h2><p class="desc">이전 차시와의 연결 지도, 확인문제, 심화 질문(펼쳐보기).</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>복습 지도</h3>
+      <table class="compare">
+        <tr><th>이번 자료 개념</th><th>연결되는 이전 내용</th></tr>
+        <tr><td class="k">RNN 순차 처리 필요성</td><td>CNN의 Receptive Field 한계</td></tr>
+        <tr><td class="k">LSTM 게이트(σ)</td><td>로지스틱회귀의 시그모이드(확률적 게이트)</td></tr>
+        <tr><td class="k">어텐션 softmax 가중치</td><td>Softmax(다중클래스 확률 분포)</td></tr>
+        <tr><td class="k">ViT vs CNN 전역 관계 학습</td><td>Receptive Field 성장 공식</td></tr>
+        <tr><td class="k">활성화 함수(ReLU 등)</td><td>신경망 모델의 비선형 함수 선택</td></tr>
+        <tr><td class="k">데이터 정규화(Normalize)</td><td>EDA 차시 · StandardScaler</td></tr>
+        <tr><td class="k">과적합/검증 오차 진단</td><td>EDA 차시 · train/val 성능 격차 해석</td></tr>
+        <tr><td class="k">가중치 감소(L1/L2)</td><td>회귀의 다중공선성/규제 개념</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>확인문제 (원본 자료 수록)</h3>
+      <div class="qa"><div class="q">Q1. CNN 구조의 장점이 아닌 것은?</div><div class="a">정답: 텍스트나 음성과 같은 순차적 데이터의 순서 정보를 효과적으로 반영한다. (CNN은 이 부분이 한계이며, RNN/Transformer 계열이 더 적합)</div></div>
+      <div class="qa"><div class="q">Q2. RNN의 특징으로 옳지 않은 것은?</div><div class="a">정답: 병렬 연산이 쉬워 대규모 데이터 처리에서 속도가 빠르다. (RNN은 순차 처리 특성상 병렬화가 어려움)</div></div>
+      <div class="qa"><div class="q">Q3. RNN의 대표적 한계는 ___ 문제와 장기 의존성 학습의 어려움이다.</div><div class="a">정답: 기울기 소실 / 기울기 폭발</div></div>
+      <div class="qa"><div class="q">Q4. ViT의 특징 설명 중 옳지 않은 것은?</div><div class="a">정답: 데이터가 작을 때도 CNN보다 항상 높은 성능을 보장한다. (데이터가 적으면 오히려 CNN보다 성능이 떨어질 수 있음)</div></div>
+    </div>
+
+    <div class="card full">
+      <h3>심화 질문 — 생각해본 뒤 열어보기</h3>
+      <div class="qa">
+      <details><summary>멀티헤드 어텐션에서 헤드 수를 늘리면 항상 표현력이 좋아지나요?</summary>헤드 수와 각 헤드의 차원($d_k$) 사이에는 트레이드오프가 있습니다 — 총 차원이 고정이면 헤드가 늘수록 헤드당 차원은 줄어듭니다.</details>
+      </div>
+      <div class="qa">
+      <details><summary>RNN의 BPTT는 순차 계산, Transformer의 어텐션은 병렬 계산 — 실제 GPU 활용률에 어떤 영향?</summary>병렬화 가능 여부는 학습 속도에 결정적 영향을 미치며, 이는 Transformer가 대규모 학습에서 우세한 핵심 이유 중 하나입니다.</details>
+      </div>
+      <div class="qa">
+      <details><summary>LSTM 망각 게이트 vs 어텐션의 낮은 가중치 — 둘 다 "정보를 버린다"는 점에서 비슷한가?</summary>메커니즘은 다릅니다: 망각 게이트는 시간축을 따라 누적된 상태를 순차적으로 지우는 것이고, 어텐션은 매 시점 전체 시퀀스를 다시 훑어 동적으로 가중치를 재분배하는 것입니다.</details>
+      </div>
+      <div class="qa">
+      <details><summary>ViT는 위치 인코딩이 없으면 성능이 얼마나 떨어질까? 귀납적 편향을 데이터 양만으로 대체 가능한가?</summary>대규모 데이터로 상당 부분 보완 가능하지만, 구조적 한계(귀납적 편향 부재)는 완전히 사라지지 않는다는 것이 일반적 견해입니다.</details>
+      </div>
+      <div class="qa">
+      <details><summary>코사인 학습률 스케줄 + 웜 리스타트(SGDR)의 이득은?</summary>손실 곡면의 여러 지역 최솟값을 탐색할 기회를 제공해 단순 코사인 감소보다 더 나은 일반화 성능을 얻을 수 있습니다.</details>
+      </div>
+      <div class="qa">
+      <details><summary>Xavier/He 초기화는 GELU/Swish 같은 최신 활성화 함수에 그대로 적합한가?</summary>이론적 유도는 선형/ReLU 가정에 기반하므로, 최신 활성화 함수에는 근사적으로만 적용되며 완벽히 최적은 아닙니다.</details>
+      </div>
+      <div class="qa">
+      <details><summary>드롭아웃과 배치 정규화를 함께 쓰면 상충하는 이유는?</summary>배치정규화는 미니배치 통계에 의존하는데, 드롭아웃이 배치 내 활성값 분산을 학습·테스트 간 다르게 만들어 정규화 통계의 일관성을 깨뜨리기 때문입니다.</details>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 부록. 모의고사 오답 패턴 모음 ===================== -->
+<section class="section" id="ch16" style="--accent:var(--pink)">
+  <div class="section-head">
+    <div class="section-num">부록</div>
+    <div><h2>모의고사 오답 패턴 모음 (3·4회차)</h2><p class="desc">시험 직전 최종 점검용 — 함정 선지와 정답 핵심.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>★ 시험단골 — CNN 파트 (3회차 발췌)</h3>
+      <div class="note exam">
+      <table class="compare">
+        <tr><th>문제 포인트</th><th>정답/핵심</th></tr>
+        <tr><td class="k">출력 해상도 공식</td><td>$W'=\dfrac{W-K+2P}{S}+1$</td></tr>
+        <tr><td class="k">same 패딩 (홀수 K)</td><td>$P=(K-1)/2$</td></tr>
+        <tr><td class="k">AlexNet Conv1 출력</td><td>227×227×3, 필터96, K11, S4, P0 → <strong>55</strong> (오답으로 27을 고르기 쉬움 — 이는 MaxPool 이후 크기)</td></tr>
+        <tr><td class="k">파라미터 수 공식</td><td>$C_{out}\times C_{in}\times K^2+C_{out}$(바이어스)</td></tr>
+        <tr><td class="k">메모리·파라미터·FLOPs 분포</td><td>메모리→초기(고해상도) 레이어 / 파라미터→FC 레이어 / FLOPs→합성곱 레이어</td></tr>
+        <tr><td class="k">VGG 설계 규칙 아닌 것</td><td>"필터 크기를 랜덤하게 바꾼다" ← 오답 함정 (실제론 항상 3×3 고정)</td></tr>
+        <tr><td class="k">3×3×2 vs 5×5×1</td><td>수용영역 동일, 3×3×2가 파라미터 더 적고 비선형 더 많음</td></tr>
+        <tr><td class="k">AlexNet vs VGG</td><td>VGG가 메모리·파라미터·연산량 모두 크지만 Top-5 에러는 더 낮음(성능 더 좋음)</td></tr>
+        <tr><td class="k">Degradation Problem</td><td>훈련·테스트 오차 모두 나빠짐 = 과적합 아닌 최적화 실패</td></tr>
+        <tr><td class="k">Residual Block 수식</td><td>$\text{Output}=F(x)+x$</td></tr>
+        <tr><td class="k">보틀넥 순서</td><td>1×1(축소)→3×3→1×1(복원)</td></tr>
+        <tr><td class="k">GAP 효과</td><td>FC 대체 → 파라미터 크게 절감</td></tr>
+        <tr><td class="k">Depthwise Separable 절감비</td><td>$\dfrac{9C}{9+C}\to 9$ (C→∞)</td></tr>
+        <tr><td class="k">ResNet 등장 연도</td><td>2015년, Top-5 에러 3.6% (사람 5.1% 넘어섬)</td></tr>
+        <tr><td class="k">3×3 conv n번 쌓았을 때 RF</td><td>$R=2n+1$</td></tr>
+      </table>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h3>★ 시험단골 — 시퀀스/어텐션/ViT/학습전략 파트 (4회차 발췌)</h3>
+      <div class="note exam">
+      <table class="compare">
+        <tr><th>문제 포인트</th><th>정답/핵심</th></tr>
+        <tr><td class="k">RNN이 W를 재사용하는 이유</td><td>가변 길이 입력을 처리하고, 학습한 방법을 길이에 상관없이 재사용하기 위해</td></tr>
+        <tr><td class="k">기울기 소실/폭발 근본 원인</td><td>역전파 시 동일 가중치 W가 시퀀스 길이만큼 반복 곱해지기 때문</td></tr>
+        <tr><td class="k">Clipping의 한계</td><td>폭발은 막지만 소실 문제는 해결 못하는 임시방편</td></tr>
+        <tr><td class="k">셀 상태 vs 은닉 상태</td><td>셀 상태=장기(long-term), 은닉 상태=단기(short-term)</td></tr>
+        <tr><td class="k">√d_k로 나누는 이유</td><td>내적 값이 커져 softmax가 지나치게 뾰족해지는 것 방지(스케일링)</td></tr>
+        <tr><td class="k">교차 어텐션</td><td>이종 데이터에서 Q/K,V를 각각 정의해 연결 (예: 이미지-텍스트)</td></tr>
+        <tr><td class="k">LSTM 제안 연도</td><td>1997년</td></tr>
+        <tr><td class="k">He vs Xavier</td><td>He는 ReLU가 입력 절반을 0으로 만드는 것을 감안해 분산을 Xavier의 2배로 설정</td></tr>
+        <tr><td class="k">4개 모델 강약점 비교(옳지 않은 것 찾기 함정)</td><td>"LSTM은 순서 반영이 전혀 불가능하다" ← 오답 (LSTM은 RNN 계열로 순서 반영 가능)</td></tr>
+        <tr><td class="k">Inverted Dropout</td><td>학습 시 $1/(1-p)$배 스케일링 → 테스트 시 추가 연산 없음</td></tr>
+        <tr><td class="k">하이퍼파라미터 탐색 전략</td><td>작은 샘플로 과적합시켜 진단 + 후보 조합 1~5epoch 짧게 훈련, 검증 성능 비교 (모든 조합 끝까지 학습 X)</td></tr>
+      </table>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h3>⚠ 주의 — 자주 틀리는 빈칸 채우기 포인트</h3>
+      <div class="note">
+      <ul>
+        <li>ResNet 지름길 연결 명칭: <strong>잔차 연결(Residual/Shortcut Connection)</strong></li>
+        <li>CNN 파라미터 공식의 "+( )": <strong>$C_{out}$ (바이어스)</strong></li>
+        <li>RNN 핵심 수식의 빈칸: $h_t=f_W(\underline{h_{t-1}}, x_t)$</li>
+        <li>ViT 순서 반영 장치: <strong>위치 인코딩(Positional Encoding)</strong> — 두 문항(33, 40번)에서 반복 출제됨에 유의</li>
+        <li>학습률 역제곱 꼴: $\eta_t=\eta_0/\sqrt{t}$ → <strong>"역제곱 꼴"</strong>이라는 명칭 자체가 빈칸으로 나올 수 있음</li>
+        <li>Self-Attention 출력 공식의 빈칸: $y_j=\sum_i \alpha_{ij}(\underline{v_i})$</li>
+      </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<a href="#ch1" id="top-btn">↑</a>
+
+<footer>
+본 치트시트는 업로드된 딥러닝 이미지모델 개념정리(30차시) · 시퀀스모델링·어텐션·ViT·학습전략 개념정리(31차시) · 모의고사 3·4회차를 근거로 생략 없이 재구성했습니다. 시험 직전 ★ 시험단골 · HARD · ⚠ 주의 박스와 부록의 오답 패턴 모음을 우선 훑어보세요.
+</footer>
+
+</body>
+</html>
