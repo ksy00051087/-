@@ -357,6 +357,31 @@ Iroh, goes, to, make, tasty, tea
       </table>
       <p>즉, <b>다양한 태스크</b>에서 (지시문, 응답) 쌍을 모아서 언어모델을 파인튜닝한다. 학습에 사용되지 않은 <b>새로운 태스크</b>에서도 평가를 진행한다 (Zero-shot generalization).</p>
     </div>
+    <div class="card full">
+      <h3>(참고) 파인튜닝(Fine-tuning) 이란? — 더 넓은 개념</h3>
+      <p>이미 <b>사전 학습된 기존 모델</b>에 특정 작업이나 도메인에 맞게 <b>추가로 학습</b>시키는 과정. Instruction-tuning은 이 파인튜닝의 한 종류다.</p>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">🗄️</span><span class="ft">Massive Data</span><span class="fd">대규모 원천 데이터</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">🧠</span><span class="ft">Base LLM</span><span class="fd">Transfer Learning으로 습득한 기본 모델</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step accent"><span class="fi">✏️</span><span class="ft">Finetuning</span><span class="fd">Train Data로 특정 작업/도메인에 적응</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">🤝</span><span class="ft">Finetuned Model</span><span class="fd">User의 Query에 Answer 응답</span></div>
+      </div>
+      <div class="loop-note"><span class="li">🔄</span> Validation & Monitoring 결과를 바탕으로 Re-Finetuning을 반복해 모델을 지속 개선</div>
+    </div>
+    <div class="card full">
+      <h3>Instruction-tuning 구체 예시 — Flan-T5</h3>
+      <p><b>Flan-T5</b> [Chung et al., 2022] — 다양한 태스크에서 (지시문, 응답) 쌍을 모아 언어모델을 파인튜닝하는 방식의 대표 사례.</p>
+      <table class="compare">
+        <tr><th>학습에 사용한 태스크 예시</th><th>학습에 없던 새로운 태스크로 평가(Zero-shot)</th></tr>
+        <tr>
+          <td>"Please answer the following question. What is the boiling point of Nitrogen?" → "-320.4F" / "Answer by reasoning step-by-step. The cafeteria had 23 apples..." → 단계별 풀이로 정답 도출</td>
+          <td>"Can Geoffrey Hinton have a conversation with George Washington? Give the rationale." → "Geoffrey Hinton은 1947년생, George Washington은 1799년 사망 → 대화가 불가능하므로 답은 'no'"</td>
+        </tr>
+      </table>
+    </div>
     <div class="card">
       <h3>더 많은 태스크를 가진 데이터 학습</h3>
       <ul>
@@ -372,7 +397,19 @@ Iroh, goes, to, make, tasty, tea
         <li>57개의 지식을 요구하는 태스크에서 언어모델의 성능을 평가하는 벤치마크</li>
         <li>천문학·생물학 등 다지선다형 문제로 구성</li>
       </ul>
-      <p class="src">K-MMLU: 한국 문화·법·지역 지식을 다루는 한국어 버전 벤치마크 (Son et al., 2024)</p>
+      <p class="src">예시(천문학): "Type-Ia 초신성에 대해 옳은 것은? A.쌍성계에서 발생 B.젊은 은하에서 발생 C.감마선 폭발을 낸다 D.많은 양의 X선을 낸다"</p>
+      <p class="src">K-MMLU: 한국 문화·법·지역 지식을 다루는 한국어 버전 벤치마크 (Son et al., 2024) — 예: "한강 둔치에서 열리는 대표적인 여름 축제는?", "한국채택국제회계기준(K-IFRS)하에서 금융자산으로 분류되지 않는 것은?"</p>
+    </div>
+    <div class="card full">
+      <h3>MMLU에서의 발전 & 최근 거대 언어모델 벤치마크</h3>
+      <p>지식 중심 벤치마크에서 GPT-2(약 25%) → GPT-3/UnifiedQA → Chinchilla/Gopher → Flan-PaLM → GPT-4 → Gemini Ultra(CoT@32, <b>90.0%</b>)까지 빠르게 성능이 향상되어 왔다.</p>
+      <table class="compare">
+        <tr><th></th><th>Claude 3 Opus</th><th>Claude 3 Sonnet</th><th>GPT-4</th><th>Gemini 1.0 Ultra</th></tr>
+        <tr><td class="k">MMLU (대학 수준 지식)</td><td>86.8%</td><td>79.0%</td><td>86.4%</td><td>83.7%</td></tr>
+        <tr><td class="k">GSM8K (초등 수준 수학)</td><td>95.0%</td><td>92.3%</td><td>92.0%</td><td>94.4%</td></tr>
+        <tr><td class="k">HumanEval (코드)</td><td>84.9%</td><td>73.0%</td><td>67.0%</td><td>74.4%</td></tr>
+      </table>
+      <p class="src">Meta Llama 3 Instruct 8B는 MMLU 68.4 / GSM-8K 79.6으로 동급(7B) 모델인 Gemma·Mistral을 크게 상회, 70B는 MMLU 82.0으로 Gemini Pro 1.5(81.9)·Claude 3 Sonnet(79.0)과 견줄 수준</p>
     </div>
     <div class="card full">
       <h3>지시 기반 Fine-tuning의 효과 (대명사 해석 문제 예시)</h3>
@@ -387,6 +424,13 @@ Iroh, goes, to, make, tasty, tea
     <div class="card">
       <h3>이로부터 배운 것 — 데이터 예시</h3>
       <p><b>Alpaca</b>: LLaMA 7B 모델을 52K개의 instruction-following 데이터로 파인튜닝 [Wang et al., 2022]</p>
+      <div class="flow-diagram">
+        <div class="flow-step"><span class="fi">🌱</span><span class="ft">175 Self-Instruct 시드</span><span class="fd">text-davinci-003으로 확장</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><span class="fi">📦</span><span class="ft">52K 지시 데이터</span><span class="fd">Modified Self-instruct 생성</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step accent"><span class="fi">🦙</span><span class="ft">Alpaca 7B</span><span class="fd">LLaMA 7B → Supervised Finetuning</span></div>
+      </div>
       <table class="compare">
         <tr><th>출처(Source)</th><th>예시 개수</th></tr>
         <tr><td>과학·기술·공학·수학(STEM) Q&A</td><td>200</td></tr>
@@ -396,11 +440,20 @@ Iroh, goes, to, make, tasty, tea
         <tr><td>자연어처리 태스크 설명 데이터셋</td><td>50</td></tr>
         <tr><td>논문 저자들이 직접 작성한 예시</td><td>200</td></tr>
       </table>
+      <p class="src">예: Instruction "회의실을 디자인하기 위한 창의적인 아이디어를 브레인스토밍하시오." → Output "…가변형 벽과 가구 같은 유연한 요소를 활용하는 아이디어 포함…"</p>
     </div>
     <div class="card">
       <h3>이로부터 배운 것 — 데이터 요구량</h3>
       <p>Instruction-tuning에는 Pre-training에 비해 <b>훨씬 적은 데이터</b>가 필요함 (예: "LIMA: Less is More for Alignment", Zhou et al. 2023)</p>
       <p>LIMA(단 1000개 예시로 학습)가 사람 평가에서 Alpaca 65B·DaVinci003·BARD·GPT-4(4월) 등과 <b>우열을 가리기 어려운 수준</b>의 win-rate를 보임.</p>
+      <table class="compare">
+        <tr><th>비교 상대</th><th>LIMA 승리</th><th>동률</th><th>LIMA 패배</th></tr>
+        <tr><td class="k">Alpaca 65B</td><td>53%</td><td>21%</td><td>26%</td></tr>
+        <tr><td class="k">DaVinci003</td><td>44%</td><td>21%</td><td>35%</td></tr>
+        <tr><td class="k">BARD (April)</td><td>33%</td><td>25%</td><td>42%</td></tr>
+        <tr><td class="k">Claude (April)</td><td>24%</td><td>22%</td><td>54%</td></tr>
+        <tr><td class="k">GPT-4 (April)</td><td>18%</td><td>25%</td><td>57%</td></tr>
+      </table>
     </div>
   </div>
 </section>
@@ -432,17 +485,28 @@ Iroh, goes, to, make, tasty, tea
         <li><b>주관식</b>: "아인슈타인이 오늘날 살아있다면, 현대 과학기술에 어떤 기여를 했을까?" (정답 없음 — 응답의 <b>스타일·품질</b>에 대한 선호가 갈림)</li>
       </ul>
     </div>
+    <div class="card full">
+      <h3>주관식 질문엔 "정답"이 없다 — 실제 4개 LLM 비교</h3>
+      <p>같은 주관식 질문("아인슈타인이 오늘날 살아있다면?")에 대해 서로 다른 모델이 서로 다른 스타일·내용으로 답한다 — 어느 쪽이 "더 나은 답"인지는 사람의 선호(preference)에 달려 있다.</p>
+      <table class="compare">
+        <tr><th>Claude Sonnet 4</th><th>Gemini 2.5 Flash</th></tr>
+        <tr><td>"양자컴퓨팅과 양자정보학 분야에서 혁신적 기여를 했을 것" — 양자암호학·양자통신, 중력파 검출, 블랙홀 물리학 연구 참여 가능성 등을 구체적으로 서술</td><td>"통일장 이론을 완성하고 양자역학과 상대성 이론을 통합하는 데 기여했을 것" — 네 가지 기본 힘을 하나로 통합하는 '모든 것의 이론' 완성에 주력했을 것으로 서술</td></tr>
+      </table>
+      <p class="src">Copilot·GPT-5 등 다른 모델들도 각기 다른 강조점(GPS·상대성이론의 실용적 영향 vs 다중우주·암흑물질 등)으로 답변 — 정답이 없는 질문이기에 <b>리워드 모델도 결국 "사람이 어떤 스타일을 선호하는가"를 학습</b>하게 됨</p>
+    </div>
     <div class="card">
       <h3>보상을 점수로 상상하기</h3>
       <p>언어모델을 학습한다고 가정했을 때 (e.g., 요약 태스크), 어떤 지시문 x와 언어모델의 응답 y가 있을 때, 해당 응답에 대한 인간이 준 보상(human reward)을 얻을 수 있다고 상상해보자:</p>
       <div class="formula">R(x, y) ∈ ℝ, 점수가 높을수록 좋음</div>
       <p>언어모델의 응답 중 <b>기대 보상(expected reward)</b>을 최대화 하는 것을 목표로 한다:</p>
       <div class="formula">E<sub>{ŷ~p<sub>θ</sub>(y|x)}</sub> [R(x, ŷ)]</div>
+      <p class="src">예: 뉴스 요약 태스크에서 같은 원문 x에 대한 두 요약 y₁, y₂ 중 사람이 y₁에 8.0점, y₂에 1.2점을 준다면 R(x,y₁)=8.0, R(x,y₂)=1.2 — 이렇게 점수가 매겨진다고 "상상"한 뒤, 이 기대 보상을 최대화하도록 언어모델을 학습시키는 것이 RLHF의 목표</p>
     </div>
     <div class="card">
       <h3>Intuition: Human-in-the-loop ML</h3>
       <p>사람이 매긴 <b>Labeled Data</b> → 모델 학습(Training Model) → 헷갈리는 데이터 선별(Selecting Confusing Data) → 다시 사람이 라벨링, 의 순환 구조.</p>
       <div class="pillrow"><span class="pill">Human Annotator</span><span class="pill">Labeled Data</span><span class="pill">Training Model</span><span class="pill">Selecting Confusing Data</span></div>
+      <div class="shot"><img src="../slides_pages_009-207/page_036.png" alt="Human-in-the-loop ML 순환 구조 원본 다이어그램"><div class="shot-cap">원본 슬라이드 p.36</div></div>
     </div>
     <div class="card full">
       <h3>인간의 선호도를 어떻게 모델링 할 것인가?</h3>
@@ -455,6 +519,7 @@ Iroh, goes, to, make, tasty, tea
       <div class="subhead">Bradley-Terry 비교 모델 손실함수</div>
       <div class="formula">J<sub>RM</sub>(φ) = −E<sub>(x,y<sup>w</sup>,y<sup>l</sup>)~D</sub> [log σ(RM<sub>φ</sub>(x,y<sup>w</sup>) − RM<sub>φ</sub>(x,y<sup>l</sup>))]</div>
       <p class="src">y<sup>w</sup> = winning sample(더 선호되는 응답), y<sup>l</sup> = losing sample. y<sup>w</sup>가 y<sup>l</sup>보다 높은 점수를 받도록 학습.</p>
+      <p class="src">구체 예 (샌프란시스코 지진 요약): Human preference y₂ &gt; y₁ &gt; y₃ → Pairwise label 3쌍 (y₂&gt;y₁, y₁&gt;y₃, y₂&gt;y₃)으로 분해 → Loss = −Σ log σ(RM(x,y₂)−RM(x,y₁)) − log σ(RM(x,y₁)−RM(x,y₃)) − log σ(RM(x,y₂)−RM(x,y₃)) 를 최소화하도록 리워드 모델 학습</p>
     </div>
     <div class="card">
       <h3>어떻게 최적화 할 것인가? — 강화학습</h3>
@@ -486,6 +551,7 @@ Iroh, goes, to, make, tasty, tea
         <div class="flow-arrow">→</div>
         <div class="flow-step accent"><span class="fi">🎯</span><span class="ft">3. PPO 정책 최적화</span><span class="fd">강화학습으로 LM policy 업데이트</span></div>
       </div>
+      <div class="shot"><img src="../slides_pages_009-207/page_038.png" alt="RLHF 3단계 파이프라인 원본 다이어그램 (InstructGPT)"><div class="shot-cap">원본 슬라이드 p.38 — InstructGPT 논문 Figure 기반</div></div>
       <div class="pseudo">입력 → LLM → 출력 A/B/C → 사람이 평가(비교) → Reward Model 학습
 입력 → LLM (강화학습으로 업데이트) → 출력 A/B/C → Reward Model → 보상(reward) 반환</div>
       <p class="src">ChatGPT: Instruction-tuning + RLHF를 통한 발전에 힘입어 거대언어모델 중 처음으로 상업적으로 활용되었음</p>
@@ -501,6 +567,7 @@ Iroh, goes, to, make, tasty, tea
         <li>인간의 선호도를 학습한 리워드 모델은 <b>더 일관성이 부족함!</b></li>
       </ul>
       <div class="shot"><img src="../slides_pages_009-207/page_048.png" alt="리워드 해킹 예시 - 보트 레이싱 게임"><div class="shot-cap">원본 슬라이드 p.48 — 리워드 해킹 사례(보트 레이싱 게임): 목표 지점 통과 대신 아이템만 반복 획득해 점수를 해킹</div></div>
+      <div class="shot"><img src="../slides_pages_009-207/page_049.png" alt="Google Bard 주가 하락 뉴스와 Bing AI 슈퍼볼 오답 스크린샷"><div class="shot-cap">원본 슬라이드 p.49 — 실제 보도자료 스크린샷</div></div>
       <p class="src">사례: Google Bard가 첫 데모에서 사실오류를 만들어 주가 $100B 하락 / Bing AI가 슈퍼볼 우승팀을 잘못 답변</p>
     </div>
   </div>
@@ -523,6 +590,7 @@ Iroh, goes, to, make, tasty, tea
         <tr><th>RLHF</th><th>DPO</th></tr>
         <tr><td>preference data → reward model 학습 → sample completions → <b>강화학습</b>으로 LM policy 업데이트</td><td>preference data → <b>maximum likelihood</b>로 final LM 직접 학습 (보상모델·강화학습 불필요)</td></tr>
       </table>
+      <div class="shot"><img src="../slides_pages_009-207/page_051.png" alt="RLHF vs DPO 원본 비교 다이어그램"><div class="shot-cap">원본 슬라이드 p.51 — Rafailov et al. 2023</div></div>
     </div>
     <div class="card">
       <h3>RLVR (RL with Verifiable Reward)</h3>
@@ -598,6 +666,7 @@ Iroh, goes, to, make, tasty, tea
     <div class="card">
       <h3>Retrieval-augmented Generation (RAG)</h3>
       <p>사용자의 질문에 답하기 위해, datastore에서 관련 정보를 검색(Retrieval)해와서, 이를 언어모델이 <b>생성(Generation)</b> 단계에 함께 활용하는 방법.</p>
+      <p class="src">예: "Who is the president of the US?" → <b>Retriever</b>가 Wikipedia에서 "Joe Biden is the 46th and current president..." 문서를 검색(Memory: 새 도메인·뉴스로 지식 확장·갱신 가능) → <b>Generator</b>가 이를 근거로 "Joe Biden" 답변 생성(근거 문서를 함께 제시해 Interpretability 확보)</p>
     </div>
     <div class="card full">
       <h3>Information Retrieval(정보검색) 이란?</h3>
@@ -628,7 +697,7 @@ Iroh, goes, to, make, tasty, tea
       <div class="subhead">Sparse Retriever 장·단점</div>
       <table class="compare">
         <tr><th>장점</th><th>단점</th></tr>
-        <tr><td>단순성(구현 쉬움) · 효율성(inverted index로 빠른 검색) · 투명성(용어 매칭 기반이라 설명 명확)</td><td>제한된 의미 이해 — 쿼리 "bad guy"와 문서의 "villain"이 실제로는 같은 뜻이어도 매칭되지 않음</td></tr>
+        <tr><td>단순성(구현 쉬움) · 효율성(inverted index로 빠른 검색) · 투명성(용어 매칭 기반이라 설명 명확)</td><td>제한된 의미 이해 — 쿼리 "Who is the bad guy in the movie lord of the rings?"와 문서의 "Sala Baker is best known for portraying the villain Sauron..."이 실제로는 같은 뜻이어도 매칭되지 않음</td></tr>
       </table>
     </div>
     <div class="card">
@@ -636,8 +705,11 @@ Iroh, goes, to, make, tasty, tea
       <p>임베딩 모델(e.g., BERT)은 단어/문장의 의미를 벡터 공간에 표현할 수 있음.</p>
       <div class="subhead">Bi-encoder</div>
       <p>대조 학습(contrastive learning)으로 학습, 쿼리가 긍정 문서와는 가깝게, 부정 문서와는 멀어지게 유도. 두 문장을 <b>따로</b> 인코딩 → 매우 빠름, 대규모 검색에 적합, 정확도는 상대적으로 낮음</p>
+      <p class="src">예: Query "When was Dubai founded?" + Document 1(정답 문서) → Positive pair로 가깝게, + Document 2("New York is the most populous...", 무관 문서) → Negative pair로 멀게. Loss = −log[ exp(sim(q,p⁺)) / (exp(sim(q,p⁺)) + Σexp(sim(q,pⱼ⁻))) ]를 최소화</p>
       <div class="subhead">Cross-encoder</div>
       <p>"query [SEP] document" 형태로 <b>두 텍스트를 하나의 시퀀스로 결합</b>해 self-attention으로 완전히 상호작용 → 정확도 높으나, 모든 쿼리-문서 쌍을 개별 입력해야 하므로 계산 비용이 크고 느림</p>
+      <p class="src">예: "Query: When was Dubai founded? + Document 1" → Score 0.8 / "...+ Document 2" → Score 0.4 처럼 쿼리-문서 쌍마다 개별적으로 관련도 점수를 계산</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_091.png" alt="Bi-encoder vs Cross-encoder 원본 비교 다이어그램"><div class="shot-cap">원본 슬라이드 p.91</div></div>
     </div>
     <div class="card">
       <h3>Dense Retriever 장·단점</h3>
@@ -667,6 +739,7 @@ Iroh, goes, to, make, tasty, tea
         <li><b>거대언어모델의 답변은 해석과 검증이 어렵다</b> — RAG는 근거(reference to source) 문서를 함께 제공해 해석 가능성(Interpretability) 확보</li>
         <li><b>기업 내부 정보와 같은 보안 정보는 언어모델 학습에 활용되지 않음</b> — 사내 챗봇/기업 시스템에 LLM을 학습시키면 정보 유출 위험이 있으므로, RAG로 <b>학습 없이</b> 내부 지식 활용</li>
       </ol>
+      <div class="shot"><img src="../slides_pages_009-207/page_096.png" alt="ChatGPT와 BingChat의 실시간 지식 질문 응답 비교 스크린샷"><div class="shot-cap">원본 슬라이드 p.96 — "BTS 정국의 신곡 제목이 뭐야?" 질문에 ChatGPT(GPT-3.5)는 "2022년 1월 이후 정보를 알지 못해 답할 수 없다"고 답하는 반면, 검색 기반 BingChat은 최신 정보를 찾아 정답을 제시</div></div>
     </div>
     <div class="card full">
       <h3>Retrieval-augmented LM 파이프라인</h3>
@@ -679,6 +752,7 @@ Iroh, goes, to, make, tasty, tea
         <div class="flow-step accent"><span class="fi">💬</span><span class="ft">③ 언어모델 추론</span><span class="fd">Evidence + Query → 최종 Answer 생성</span></div>
       </div>
       <p class="src">대표 프레임워크: LangChain — Chunk of text(document) → Embeddings → Semantic Search → Ranked Results → LLM → Answer</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_099.png" alt="RAG 파이프라인 구체 예시 - BTS 정국 신곡 질의응답"><div class="shot-cap">원본 슬라이드 p.99 — "BTS 정국의 신곡이 뭐야?" → Query 추출 → Retriever가 World Knowledge에서 Evidence 검색 → LM이 최종 답변 "스탠딩 넥스트 투 유" 생성</div></div>
     </div>
     <div class="card">
       <h3>Challenge 1. Context를 어떻게 구성해야 하는가?</h3>
@@ -693,6 +767,10 @@ Iroh, goes, to, make, tasty, tea
         <tr><th>Noise Robustness</th><th>Negative Rejection</th></tr>
         <tr><td>검색된 문서에 노이즈(관련 없는 정보)가 섞여 있어도 <b>올바른 정보를 식별</b>하고 정답 생성 (예: 2022 수상자 질문 시 관련없는 2021년 수상자 문서가 섞여도 정답 "Annie Ernaux" 도출)</td><td>검색된 문서에 <b>정답 정보 자체가 없을 때</b>, 추측하지 않고 "문서에 관련 정보가 없어 답변할 수 없어요" 라고 명확히 거부</td></tr>
       </table>
+      <p class="src">Noise Robustness 예: "Saratoga는 캘리포니아에 있는 도시입니다..." 컨텍스트에서 "산호세 시장 Sam Liccardo는 어느 도시에서 태어났나요?" 질문 시, Text-davinci-003·GPT-3.5 Turbo·LLaMA-2-70B-chat 모두 컨텍스트를 정확히 반영해 "Saratoga"(또는 컨텍스트가 "Sunnyvale"로 바뀌면 "Sunnyvale")로 정확히 답변 — 노이즈가 아닌 정답 컨텍스트 자체가 바뀌어도 모델이 이를 잘 따라감</p>
+      <p class="src">Negative Rejection 예: "2022년 노벨 문학상 수상자는?" 질문에 검색된 문서가 2021년(Abdulrazak Gurnah)·2020년(Louise Glück) 수상자 정보뿐이라면, RAG는 추측하지 않고 "문서에 2022년 정보가 없어 답변할 수 없어요"라고 명확히 응답</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_103.png" alt="Noise Robustness 3개 모델 비교 실험"><div class="shot-cap">원본 슬라이드 p.103</div></div>
+      <div class="shot"><img src="../slides_pages_009-207/page_107.png" alt="Negative Rejection 다이어그램 - 2022 노벨 문학상 예시"><div class="shot-cap">원본 슬라이드 p.107</div></div>
     </div>
     <div class="card full">
       <h3>Challenge 3. LLM의 사전지식과 컨텍스트 간의 충돌(Conflict) 발생</h3>
@@ -708,6 +786,9 @@ Iroh, goes, to, make, tasty, tea
         <tr><th>Information Integration</th><th>Counterfactual Robustness</th></tr>
         <tr><td>여러 외부 문서에 흩어진 정보를 통합해야 정답 도출 가능 (예: ChatGPT iOS 출시일 - 여러 문서 정보를 종합해야 "5월 18일과 3월 1일"처럼 정확히 답할 수 있음)</td><td>외부 문서에 <b>반사실적(counterfactual) 정보</b>가 포함된 경우(예: 조작된 올림픽 발상지 문서), 이를 식별하지 못하면 "제공된 문서에는 사실 오류가 있어 정답은 애매합니다"와 같이 명확히 인지하지 못하는 문제 발생</td></tr>
       </table>
+      <p class="src">Information Integration 예: "ChatGPT iOS 앱과 ChatGPT API가 언제 출시되었나요?" — 외부 문서에 "2023년 5월 18일 iOS 앱 출시"와 "3월 1일 API 접근 발표" 두 정보가 분리되어 있으면, 이를 통합해 "5월 18일과 3월 1일"로 답해야 함</p>
+      <p class="src">Counterfactual Robustness 예: "2004년 올림픽은 어느 도시에서 개최되었나요?" — 외부 문서가 "발상지인 뉴욕으로 돌아왔다"는 반사실적(조작된) 정보를 담고 있다면, RAG는 이를 그대로 따르지 않고 "제공된 문서에는 사실 오류가 있으며, 정답은 아테네입니다"라고 명확히 인지해야 함</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_111.png" alt="Information Integration과 Counterfactual Robustness 원본 다이어그램"><div class="shot-cap">원본 슬라이드 p.111</div></div>
     </div>
   </div>
 
@@ -754,6 +835,7 @@ Iroh, goes, to, make, tasty, tea
       <h3>Agent란?</h3>
       <p><b>센서를 통해 환경(environment)을 인지</b>하고, <b>액추에이터(Actuator)를 통해 환경에 대해 액션(action)을</b> 통해 영향을 미치는 것으로 간주될 수 있는 모든 것 — Russell & Norvig, <i>AI: A Modern Approach</i> (2020)</p>
       <p class="src">Agent ← Percepts(Sensors) ← Environment / Agent → Actions(Actuators) → Environment</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_129.png" alt="Agent-Environment 원본 다이어그램 (Russell & Norvig)"><div class="shot-cap">원본 슬라이드 p.129</div></div>
     </div>
     <div class="card">
       <h3>강화학습(RL) — 의사결정의 과학</h3>
@@ -825,6 +907,8 @@ Iroh, goes, to, make, tasty, tea
         <span class="pill">(b) GUI 기반 도구</span>
         <span class="pill">(c) Program 기반 도구</span>
       </div>
+      <p class="src">(a) 로봇팔·자율주행차 등 Agent가 Real world와 물리적으로 상호작용 / (b) User가 Photoshop·웹·Office 같은 GUI Tools를 관찰·조작 / (c) Developer가 Knowledge Graph·Database·GitHub Copilot 같은 Software/SDK를 프로그래밍으로 호출 — Tool Learning with Foundation Models, Qin et al. 2023</p>
+      <div class="shot"><img src="../slides_pages_009-207/page_137.png" alt="Tool 3종 원본 다이어그램 (Physical/GUI/Program)"><div class="shot-cap">원본 슬라이드 p.137</div></div>
     </div>
     <div class="card">
       <h3>도구 사용 패러다임 (Tool Use Paradigms)</h3>
@@ -840,7 +924,10 @@ Iroh, goes, to, make, tasty, tea
         <tr><td class="k">Toolformer<br>(Meta, 2023)</td><td>모델 스스로 학습 데이터 생성(Self-supervised) + 지도학습(SFT). 검색엔진뿐 아니라 달력·계산기 등 여러 API 활용. <b>3단계</b>: ① API 호출 샘플링(문맥 보고 후보 생성) → ② API 실행(실제 실행하여 응답 획득) → ③ 호출 필터링(문맥에 유용한지 평가·필터링)
           <div class="shot"><img src="../slides_pages_009-207/page_143.png" alt="Toolformer 3단계 데이터 생성 파이프라인"><div class="shot-cap">원본 슬라이드 p.143</div></div>
         </td></tr>
-        <tr><td class="k">ToolLLM (2023)</td><td>기존 연구의 한계점인 툴의 다양성과 범용성을 타겟팅. 16000+ 의 실제 API를 활용하여 대규모 학습 데이터 셋 + 특화 언어모델 + 평가 벤치마크 제안. 데이터셋 수집: API 수집 → 명령형(Instruction) 생성 → 정답 어노테이션 & 필터링</td></tr>
+        <tr><td class="k">ToolLLM (2023)</td><td>기존 연구의 한계점인 툴의 다양성과 범용성을 타겟팅. 16000+ 의 실제 API를 활용하여 대규모 학습 데이터 셋 + 특화 언어모델 + 평가 벤치마크 제안. 데이터셋 수집: API 수집 → 명령형(Instruction) 생성 → 정답 어노테이션 & 필터링
+          <p class="src" style="margin-top:6px;">비교(툴 개수 / API 개수 / 실제 API 호출 여부): ToolBench(본 연구) 3,451개 툴·16,464개 API·실제 호출 O, ToolAlpaca 400개 툴·400개 API·실제 호출 X, API-Bank 53개 툴·53개 API·실제 호출 O — 기존 벤치마크 대비 규모와 실전성이 압도적으로 큼</p>
+          <div class="shot"><img src="../slides_pages_009-207/page_145.png" alt="ToolLLM 데이터 구축 파이프라인과 벤치마크 비교표"><div class="shot-cap">원본 슬라이드 p.145</div></div>
+        </td></tr>
         <tr><td class="k">멀티모달 Tool Learning<br>(최근 접근)</td><td>멀티모달 대규모 언어모델(MLLM)을 기반으로 도구를 정의하고 활용하는 연구. 예: GUI 에이전트, Embodied 에이전트 — Web/App Agent(Planner가 사전 정의된 API로 이산 행동) vs Computer Use Agent(범용 플래너가 마우스·키보드 조작으로 어떤 가상 작업도 수행)</td></tr>
       </table>
     </div>
