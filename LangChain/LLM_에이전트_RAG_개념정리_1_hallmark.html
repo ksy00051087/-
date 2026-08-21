@@ -6,38 +6,48 @@
 <title>Post-training·RAG·LLM Agent·MCP·LangChain — 개념정리</title>
 <style>
 :root{
-  --navy:#12294d;
-  --navy-light:#1b3a6b;
-  --blue:#2563eb;
-  --indigo:#4f46e5;
-  --purple:#7c3aed;
-  --teal:#0d9488;
-  --orange:#ea580c;
-  --pink:#db2777;
-  --green:#16a34a;
-  --amber:#b45309;
-  --red:#dc2626;
-  --slate:#475569;
-  --bg:#f4f6fb;
-  --card:#ffffff;
-  --ink:#1e2530;
-  --sub:#5b6472;
-  --line:#e4e8f0;
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
 }
 *{box-sizing:border-box;}
+html{overflow-x:clip;}
 body{
-  margin:0;
-  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
   background:var(--bg);
   color:var(--ink);
   line-height:1.6;
 }
 a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
 
 /* ===== HERO ===== */
 .hero{
-  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 55%,#284a82 100%);
-  color:#fff;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 55%,oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
   padding:52px 24px 40px;
   position:relative;
   overflow:hidden;
@@ -46,40 +56,40 @@ a{color:inherit;}
   content:"";
   position:absolute; right:-60px; top:-60px;
   width:280px; height:280px; border-radius:50%;
-  background:radial-gradient(circle,rgba(255,255,255,0.10),transparent 70%);
+  background:radial-gradient(circle,oklch(100% 0 0 / .10),transparent 70%);
 }
-.hero-inner{max-width:1100px;margin:0 auto;position:relative;}
+.hero-inner{max-width:1120px;margin:0 auto;position:relative;}
 .hero-eyebrow{
   display:inline-block;
   font-size:12.5px; letter-spacing:.08em; font-weight:700;
-  background:rgba(255,255,255,0.14);
+  background:oklch(100% 0 0 / .14);
   padding:5px 12px; border-radius:999px;
   margin-bottom:14px;
 }
-.hero h1{font-size:29px; margin:0 0 8px; font-weight:800; letter-spacing:-0.5px;}
-.hero .sub{font-size:15.5px; color:#c9d6ee; margin:0 0 20px;}
+.hero h1{font-size:29px; margin:0 0 8px; font-weight:800; letter-spacing:-0.5px; overflow-wrap:anywhere;}
+.hero .sub{font-size:15.5px; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
 .hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:13px;}
 .hero-meta span{
-  background:rgba(255,255,255,0.10);
-  border:1px solid rgba(255,255,255,0.18);
+  background:oklch(100% 0 0 / .10);
+  border:1px solid oklch(100% 0 0 / .18);
   padding:6px 12px; border-radius:8px;
 }
 .hero-note{
-  margin-top:18px; font-size:12.5px; color:#b9c6de;
-  background:rgba(0,0,0,0.18); border-radius:8px; padding:10px 14px;
-  border-left:3px solid #f5b942;
+  margin-top:18px; font-size:12.5px; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
 }
 
 /* ===== TOC ===== */
 .toc-wrap{
   position:sticky; top:0; z-index:50;
-  background:rgba(255,255,255,0.96);
+  background:oklch(99% 0.002 258 / .96);
   backdrop-filter:blur(6px);
   border-bottom:1px solid var(--line);
-  box-shadow:0 2px 10px rgba(20,30,60,0.05);
+  box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
 }
 .toc{
-  max-width:1100px; margin:0 auto;
+  max-width:1120px; margin:0 auto;
   display:flex; gap:6px; flex-wrap:wrap;
   padding:10px 20px;
 }
@@ -87,14 +97,14 @@ a{color:inherit;}
   font-size:12px; font-weight:700;
   padding:7px 11px; border-radius:8px;
   text-decoration:none; color:var(--slate);
-  background:#eef1f7;
+  background:oklch(94% 0.008 258);
   white-space:nowrap;
   transition:.15s;
 }
-.toc a:hover{background:var(--navy); color:#fff;}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
 
 /* ===== LAYOUT ===== */
-main{max-width:1100px; margin:0 auto; padding:34px 20px 80px;}
+main{max-width:1120px; margin:0 auto; padding:34px 20px 80px;}
 .section{margin-bottom:52px; scroll-margin-top:64px;}
 .section-head{
   display:flex; align-items:center; gap:12px;
@@ -106,48 +116,54 @@ main{max-width:1100px; margin:0 auto; padding:34px 20px 80px;}
   background:var(--accent, var(--blue)); color:#fff;
   display:flex; align-items:center; justify-content:center;
   font-weight:800; font-size:16px; flex-shrink:0;
+  font-family:var(--font-mono);
 }
-.section-head h2{margin:0; font-size:21px; font-weight:800; color:var(--navy);}
+.section-head h2{margin:0; font-size:21px; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
 .section-head .desc{font-size:12.5px; color:var(--sub); margin-top:2px;}
 
 .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
 @media (max-width:760px){.grid{grid-template-columns:1fr;}}
 
 .card{
-  background:var(--card); border:1px solid var(--line); border-radius:14px;
-  padding:18px 20px; box-shadow:0 1px 3px rgba(20,30,60,0.04);
+  background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent,var(--blue));
+  border-radius:12px;
+  padding:18px 20px; box-shadow:0 1px 3px oklch(20% 0.03 258 / .05);
+  min-width:0;
 }
 .card.full{grid-column:1/-1;}
 .card h3{
-  margin:0 0 10px; font-size:14.5px; font-weight:800; color:var(--accent,var(--navy));
-  display:flex; align-items:center; gap:6px;
+  margin:0 0 10px; font-size:14.5px; font-weight:800; color:var(--navy);
+  display:flex; align-items:center; gap:6px; overflow-wrap:anywhere;
 }
 .card p{font-size:13.3px; color:var(--ink); margin:6px 0;}
 .card ul{margin:6px 0; padding-left:19px;}
 .card li{font-size:13.3px; margin-bottom:5px;}
+.card li::marker{color:var(--accent,var(--blue));}
 .card li ul{margin-top:4px;}
 .card li li{font-size:12.6px; color:var(--sub);}
 
 .formula{
-  background:#f7f8fc; border:1px solid var(--line); border-radius:10px;
-  padding:12px 16px; font-family:"Cambria Math","STIX Two Math",serif;
-  font-size:14.5px; text-align:center; margin:10px 0; color:var(--navy);
+  background:var(--navy-deep); border:1px solid var(--navy-deep); border-radius:10px;
+  padding:12px 16px; font-family:var(--font-mono);
+  font-size:14px; text-align:center; margin:10px 0; color:oklch(90% 0.02 258);
+  overflow-x:auto;
 }
+
 .pseudo{
-  background:#12294d; color:#dbe6f7; border-radius:10px;
-  padding:12px 16px; font-family:"SF Mono","Consolas",monospace;
+  background:var(--navy-deep); color:oklch(88% 0.02 258); border-radius:10px;
+  padding:12px 16px; font-family:var(--font-mono);
   font-size:12.3px; line-height:1.7; margin:10px 0; overflow-x:auto;
 }
-.pseudo .cm{color:#8fa6cf;}
+.pseudo .cm{color:oklch(66% 0.03 258);}
 
 /* ===== DIAGRAMS ===== */
 .diagram-label{font-size:11px; font-weight:800; color:var(--sub); text-transform:uppercase; letter-spacing:.04em; margin:0 0 6px;}
 .flow-diagram{display:flex; align-items:stretch; gap:0; margin:10px 0; flex-wrap:wrap;}
 .flow-step{
-  flex:1 1 150px; background:#fff; border:1.5px solid var(--line); border-radius:10px;
+  flex:1 1 150px; background:var(--card); border:1.5px solid var(--line); border-radius:10px;
   padding:12px 14px; text-align:center; display:flex; flex-direction:column; justify-content:center; gap:3px;
 }
-.flow-step.accent{border-color:var(--accent,var(--blue)); background:rgba(37,99,235,0.05);}
+.flow-step.accent{border-color:var(--accent,var(--blue)); background:oklch(94% 0.02 258 / .5);}
 .flow-step .fi{font-size:18px; line-height:1;}
 .flow-step .ft{font-weight:800; font-size:12.2px; color:var(--navy);}
 .flow-step .fd{font-size:10.8px; color:var(--sub); line-height:1.4;}
@@ -161,9 +177,10 @@ main{max-width:1100px; margin:0 auto; padding:34px 20px 80px;}
 }
 .loop-note{
   display:flex; align-items:center; gap:8px; margin-top:6px; font-size:11.4px; color:var(--sub);
-  background:#f7f8fc; border:1px dashed var(--line); border-radius:8px; padding:8px 12px;
+  background:oklch(94% 0.008 258); border:1px dashed var(--line); border-radius:8px; padding:8px 12px;
 }
 .loop-note .li{font-size:14px; flex-shrink:0;}
+
 /* org chart (root -> branches) */
 .org-chart{display:flex; flex-direction:column; align-items:center; margin:14px 0;}
 .org-root{background:var(--navy); color:#fff; font-weight:800; font-size:12.4px; padding:9px 18px; border-radius:9px; text-align:center;}
@@ -172,7 +189,7 @@ main{max-width:1100px; margin:0 auto; padding:34px 20px 80px;}
 .org-branches::before{content:""; position:absolute; top:0; left:14%; right:14%; height:1px; background:var(--line);}
 .org-branch{position:relative; display:flex; flex-direction:column; align-items:center; gap:6px; flex:1 1 140px; max-width:190px;}
 .org-branch::before{content:""; position:absolute; top:-16px; left:50%; width:1px; height:16px; background:var(--line);}
-.org-branch .node{background:#fff; border:1.5px solid var(--line); border-radius:9px; padding:7px 10px; font-size:11.3px; font-weight:700; color:var(--ink); text-align:center; width:100%;}
+.org-branch .node{background:var(--card); border:1.5px solid var(--line); border-radius:9px; padding:7px 10px; font-size:11.3px; font-weight:700; color:var(--ink); text-align:center; width:100%;}
 .org-branch .node.client{border-color:var(--accent,var(--blue)); color:var(--accent,var(--blue));}
 .org-branch .arrow-down{font-size:12px; color:var(--sub);}
 @media (max-width:680px){
@@ -180,21 +197,22 @@ main{max-width:1100px; margin:0 auto; padding:34px 20px 80px;}
   .org-branches::before, .org-branch::before{display:none;}
 }
 
-.shot{margin:12px 0 4px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 1px 3px rgba(20,30,60,0.04);}
+.shot{margin:12px 0 4px; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:var(--card); box-shadow:0 1px 3px oklch(20% 0.03 258 / .05);}
 .shot img{width:100%; display:block;}
-.shot-cap{font-size:11px; color:var(--sub); padding:7px 12px; border-top:1px solid var(--line); background:#fafbfd;}
+.shot-cap{font-size:11px; color:var(--sub); padding:7px 12px; border-top:1px solid var(--line); background:oklch(97% 0.005 258);}
 .shot-row{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
 @media (max-width:620px){.shot-row{grid-template-columns:1fr;}}
 
-table.compare{width:100%; border-collapse:collapse; margin:10px 0; font-size:12.6px;}
-.compare th{background:#eef1f7; color:var(--navy); font-weight:800; padding:8px 10px; text-align:left; border:1px solid var(--line);}
-.compare td{padding:8px 10px; border:1px solid var(--line); vertical-align:top;}
-.compare td.k{font-weight:700; color:var(--navy); white-space:nowrap;}
+.compare{width:100%; border-collapse:collapse; margin:10px 0; font-size:12.6px; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800; padding:8px 10px; text-align:left; border:1px solid var(--line); white-space:normal;}
+.compare td{padding:8px 10px; border:1px solid var(--line); vertical-align:top; white-space:normal;}
+.compare td.k{font-weight:700; color:var(--navy); white-space:normal;}
 
 .pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
 .pill{
   font-size:11.3px; font-weight:700; padding:4px 10px; border-radius:999px;
-  background:#eef1f7; color:var(--slate); border:1px solid var(--line);
+  background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);
 }
 
 .subhead{
@@ -203,8 +221,8 @@ table.compare{width:100%; border-collapse:collapse; margin:10px 0; font-size:12.
 }
 
 .summary-box{
-  background:linear-gradient(135deg,#eef4ff,#f7f2ff);
-  border:1px solid #dbe3fb; border-radius:14px; padding:20px 22px;
+  background:linear-gradient(135deg,oklch(95% 0.02 250),oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
 }
 .summary-box h4{margin:0 0 10px; font-size:14.5px; color:var(--navy);}
 .summary-box ul{margin:0; padding-left:20px;}
@@ -212,13 +230,18 @@ table.compare{width:100%; border-collapse:collapse; margin:10px 0; font-size:12.
 
 .note{
   font-size:12.6px; border-radius:10px; padding:12px 16px; margin:10px 0;
-  border-left:3px solid var(--accent,var(--blue)); background:#f7f8fc; color:var(--sub);
+  border-left:3px solid var(--accent,var(--blue)); background:oklch(94% 0.008 258); color:var(--sub);
 }
 .note b{color:var(--ink);}
-.note.quiz{background:#f0fbf6; border-left-color:var(--green);}
+.note.quiz{background:oklch(95% 0.03 155); border-left-color:var(--green); color:oklch(34% 0.05 155);}
+.note.quiz b{color:var(--navy);}
+.note.tip{background:oklch(94% 0.035 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+.note.tip b{color:var(--navy);}
+.note.tip ul{margin:4px 0 0; padding-left:19px;}
+.note.tip li{margin-bottom:6px;}
 
 .qa{
-  background:#fbfbfd; border:1px dashed var(--line); border-radius:10px;
+  background:oklch(98% 0.003 258); border:1px dashed var(--line); border-radius:10px;
   padding:12px 16px; margin:8px 0 0;
 }
 .qa .q{font-size:12.8px; font-weight:700; color:var(--ink); margin-bottom:6px;}
@@ -226,10 +249,10 @@ table.compare{width:100%; border-collapse:collapse; margin:10px 0; font-size:12.
 .qa .a{font-size:12.3px; color:var(--sub);}
 .qa .a b{color:var(--green);}
 
-.src{font-size:11px; color:#98a0ae; margin-top:10px; font-style:normal;}
+.src{font-size:11px; color:oklch(64% 0.02 258); margin-top:10px; font-style:normal;}
 
 footer{
-  text-align:center; padding:30px 20px 50px; color:#98a0ae; font-size:12px;
+  text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:12px;
 }
 
 #top-btn{
@@ -238,13 +261,16 @@ footer{
   background:var(--navy); color:#fff;
   display:flex; align-items:center; justify-content:center;
   text-decoration:none; font-size:18px; font-weight:700;
-  box-shadow:0 4px 14px rgba(20,30,60,0.3);
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3);
   z-index:60;
 }
 
 @media (max-width:640px){
   .hero h1{font-size:22px;}
   .section-head h2{font-size:18px;}
+  main{padding:24px 16px 72px;}
+  .hero{padding:32px 16px 24px;}
+  .toc{padding:8px 12px;}
 }
 </style>
 </head>
@@ -333,6 +359,16 @@ Iroh, goes, to, make, tasty, tea
         </tr>
       </table>
       <p class="src">→ 사전학습 후 거대 언어모델은 <b>유저의 의도와 일치하지 않음</b>. 이를 해결하기 위해 파인튜닝(Post-training)을 진행.</p>
+    </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>Pre-training만 거친 모델이 "질문을 잇는 질문"만 반복 생성한 사례처럼, next-token prediction 목표와 "유저 의도 파악" 사이의 간극은 근본적으로 어디서 비롯되는가?</li>
+          <li>Post-training의 네 기법(Instruction-tuning·RLHF·DPO·RLVR)을 실제 서비스에 도입한다면 어떤 순서·조합으로 적용하는 것이 합리적일까?</li>
+          <li>정답이 분명한 태스크(RLVR 대상)와 정답이 없는 태스크(RLHF 대상)를 같은 모델에 함께 학습시킬 때 어떤 충돌이나 트레이드오프가 발생할 수 있을까?</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -455,6 +491,16 @@ Iroh, goes, to, make, tasty, tea
         <tr><td class="k">GPT-4 (April)</td><td>18%</td><td>25%</td><td>57%</td></tr>
       </table>
     </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>LIMA가 단 1000개 예시로 Alpaca 65B급 모델과 견줄 성능을 보인 사례는 "데이터 양보다 질"이라는 결론을 어디까지 일반화할 수 있게 해줄까?</li>
+          <li>Zero-shot generalization을 평가할 때 "학습에 없던 새로운 태스크"라는 기준을 실무에서 어떻게 엄밀히 검증할 수 있을까?</li>
+          <li>MMLU·K-MMLU 같은 벤치마크 점수가 실제 사용자 체감 성능과 괴리될 때, 이를 보완하기 위해 어떤 평가 방식을 추가해야 할까?</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -570,6 +616,16 @@ Iroh, goes, to, make, tasty, tea
       <div class="shot"><img src="../slides_pages_009-207/page_049.png" alt="Google Bard 주가 하락 뉴스와 Bing AI 슈퍼볼 오답 스크린샷"><div class="shot-cap">원본 슬라이드 p.49 — 실제 보도자료 스크린샷</div></div>
       <p class="src">사례: Google Bard가 첫 데모에서 사실오류를 만들어 주가 $100B 하락 / Bing AI가 슈퍼볼 우승팀을 잘못 답변</p>
     </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>리워드 모델이 "사람이 어떤 스타일을 선호하는가"를 학습한다면, 그 선호 자체에 편향이 있을 경우 RLHF는 그 편향을 어떻게 증폭시킬 수 있을까?</li>
+          <li>Reward Hacking과 Hallucination이 함께 발생하는 근본 원인은 강화학습 구조 자체일까, 리워드 모델 학습 데이터의 품질 문제일까?</li>
+          <li>RLHF의 3단계 파이프라인(Instruction-tuning → 보상 모델 학습 → PPO) 중 어느 단계에 인간 개입을 늘리는 것이 비용 대비 개선 효과가 가장 클까?</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -629,6 +685,16 @@ Iroh, goes, to, make, tasty, tea
     <div class="qa">
       <div class="q"><b>Q.</b> DPO의 특징으로 옳은 것은?</div>
       <div class="a"><b>A.</b> 강화학습(RL) 단계를 제거하여 학습을 단순화하였다. (RLHF와 달리 별도 보상모델 학습 불필요, 사람 피드백은 여전히 사용함 — preference data 형태로)</div>
+    </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>DPO가 "RL을 제거"했다고 하지만 여전히 사람의 preference data에 의존한다. 이는 RLHF의 진짜 대안일까, 아니면 RLHF의 근사(approximation)에 가까울까?</li>
+          <li>RLVR은 "답이 분명한 문제"에서만 작동하는데, 글쓰기·코드 리뷰처럼 정답이 모호한 업무로 이 아이디어를 확장하려면 무엇이 필요할까?</li>
+          <li>DPO와 RLVR을 하나의 학습 파이프라인에 순차적으로 결합한다면 어떤 순서가 합리적이며, 그 이유는 무엇일까?</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -717,6 +783,16 @@ Iroh, goes, to, make, tasty, tea
         <tr><th>장점</th><th>단점</th></tr>
         <tr><td>의미적 이해(동의어·다양한 표현 처리) · 풍부한 쿼리 표현(복잡하고 긴 질의도 잘 포착)</td><td>높은 연산 비용 · 제한된 투명성(블랙박스적) · 데이터/모델 의존성(학습 데이터 품질에 크게 영향받음)</td></tr>
       </table>
+    </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>Sparse Retriever(TF-IDF/BM25)와 Dense Retriever를 하이브리드로 함께 쓸 때, 두 점수를 어떤 기준으로 결합해야 할까?</li>
+          <li>Bi-encoder(빠르지만 부정확)와 Cross-encoder(느리지만 정확)를 리랭킹 파이프라인으로 결합한다면, 각각을 어느 단계에 배치해야 할까?</li>
+          <li>"쿼리가 언어모델의 입력과 같을 필요는 없다"는 설명처럼, 좋은 검색 질의를 자동으로 생성하는 것 자체가 또 하나의 난제 아닐까? 어떻게 접근할 수 있을까?</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -818,6 +894,16 @@ Iroh, goes, to, make, tasty, tea
       <div class="q"><b>Q.</b> RALM(Retrieval-Augmented LM)의 특징으로 옳은 것은?</div>
       <div class="a"><b>A.</b> 외부 데이터 저장소를 불러와 활용함으로써 최신 정보 기반의 추론이 가능하다. (검색기 없이 답변을 생성하거나, 정보검색 단계를 제거하는 것이 아니라 오히려 추가하여 정확성을 높인다)</div>
     </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>LLM의 사전지식과 검색된 Context가 충돌할 때, "Context 기반 grounding 강화"와 "답변 회피 학습" 중 어느 전략을 기본값으로 삼아야 더 안전할까?</li>
+          <li>Counterfactual Robustness(반사실적 정보 식별)를 실제 서비스에서 구현하려면 출처 신뢰도·최신성·교차검증 중 어떤 신호를 우선 활용해야 할까?</li>
+          <li>검색 노이즈에 대한 Noise Robustness 학습이 지나치면, 오히려 "진짜 무관한 문서를 걸러내지 못하는" 부작용을 낳을 위험은 없을까?</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -886,6 +972,16 @@ Iroh, goes, to, make, tasty, tea
       <div class="shot"><img src="../slides_pages_009-207/page_134.png" alt="LLM Agent 프레임워크 원본 다이어그램"><div class="shot-cap">원본 슬라이드 p.134 — Qin et al. 2023</div></div>
       <p class="src">— Tool Learning with Foundation Models, Qin et al. 2023</p>
     </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>"정보를 검색하고 생성하는 RAG 시스템"을 에이전트가 아니라고 판단한 기준(점진적이지 않음)은 타당한가? 에이전트와 단순 파이프라인의 경계는 어디에 있을까?</li>
+          <li>Controller-Tool Set-Environment-Perceiver 프레임워크에서 Perceiver의 요약 품질이 나쁘면 전체 시스템에 어떤 실패가 전파될까?</li>
+          <li>LLM-first view와 Agent-first view 중 현재 산업에서 더 많이 채택되는 방향은 무엇이며, 그 이유는 무엇일까?</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -934,6 +1030,16 @@ Iroh, goes, to, make, tasty, tea
     <div class="card">
       <h3>Tool Learning — 강화학습 접근</h3>
       <p>지도 학습을 넘어 <b>에이전트에서의 강화학습을 도입</b>하는 연구. 예: <b>Web-Shepherd</b> — Checklist 생성(Step 1) → Reward Model 기반 체크리스트 채점(Step 2) → 리워드 모델 피드백으로 개선(Refine)</p>
+    </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>Toolformer의 self-supervised 데이터 생성 방식이 ToolLLM처럼 대규모로 수집된 API 데이터셋보다 확장성 면에서 어떤 장단점을 가질까?</li>
+          <li>Web/App Agent(사전 정의된 API로 이산 행동)와 Computer Use Agent(마우스·키보드로 범용 조작) 중 신뢰성과 범용성 사이의 트레이드오프는 어떻게 다를까?</li>
+          <li>Web-Shepherd처럼 체크리스트 기반 보상을 도구 사용 학습에 도입하는 방식을, 글쓰기처럼 정답이 없는 정성적 작업에도 적용할 수 있을까?</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -1078,6 +1184,16 @@ if __name__ == "__main__":
       <div class="q"><b>Q.</b> MCP의 두 계층(Layer)과 각각의 역할에 대한 설명으로 옳은 것은?</div>
       <div class="a"><b>A.</b> Data Layer는 JSON-RPC 2.0 기반으로 메시지 형식과 Tools/Resources를 정의하고, Transport Layer는 stdio, HTTP 등 실제 데이터 전송을 담당한다.</div>
     </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>MCP가 "N×M 조합 폭발" 문제를 표준화로 해결했다면, 새로운 툴·모델이 계속 등장할 때 표준 자체를 확장·유지하는 비용은 얼마나 될까?</li>
+          <li>Data Layer(JSON-RPC 메시지·툴 정의)와 Transport Layer(stdio·HTTP 등 통신)를 분리한 설계가 재사용성과 보안(인증 등)을 동시에 만족시키려면 무엇이 더 필요할까?</li>
+          <li>OpenAI가 Anthropic 주도의 MCP를 채택한 사례처럼, 특정 기업이 제안한 표준이 업계 사실상 표준(de facto standard)이 되는 과정에는 어떤 리스크가 있을까?</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1124,6 +1240,16 @@ if __name__ == "__main__":
         <tr><td class="k">환경 탐색<br>(Environment Exploration)</td><td>모델이 환경을 탐색할 때 보상(reward)을 부여하여 학습을 유도 → <b>호기심(curiosity) 기반 보상</b>. 예: Super Mario Bros에서 외적 보상 없이(without rewards) 예측 불가능한 상태공간 진입 시 내적 보상 부여 → 탐색 가속</td></tr>
         <tr><td class="k">탐색 기반 궤적 기억<br>(Exploration-based Trajectory Memorization)</td><td><b>BAGEL</b> [Murtey et al. 2024] - 명령어를 샘플링하여 실행한 뒤, 더 정확한 새로운 명령어로 궤적(trajectory)을 재라벨링. LM-agent가 환경을 탐색하고, LM-labeler가 이를 바탕으로 지시를 다시 정제. 기존 데이터에 의존하지 않고, 탐색과 자기교정(self-correction)을 통해 데이터 생성 → 에이전트의 일반화 성능과 환경 적응력 향상</td></tr>
       </table>
+    </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>텍스트·이미지·텍스트기반 웹(HTML/DOM) 중 어떤 환경 표현이 가장 일반화 가능한 에이전트를 만들 수 있을까? 각 표현의 근본적 한계는 무엇인가?</li>
+          <li>Agent Workflow Memory처럼 성공한 워크플로우만 기억·재사용하는 방식은, 실패 사례로부터도 배울 수 있을까 아니면 구조적으로 성공 경험만 축적하게 될까?</li>
+          <li>호기심(curiosity) 기반 탐색 보상이 실수(예: 잘못된 결제·삭제)의 대가가 큰 실제 웹/앱 환경에서도 안전하게 적용될 수 있을까?</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -1178,6 +1304,16 @@ Act 4: Finish[keyboard function keys]</div>
     <div class="card">
       <h3>계획 재검토 (Revisiting Plans)</h3>
       <p><b>CoAct</b> [Hou et al. 2024] — 에이전트가 실행 도중 계획을 <b>재검토(revisit)</b>하고 수정 가능. 두 개의 에이전트(Global Planning Agent + Local Execution Agent)가 서로 협력하여 오류 발생 시 재계획과 피드백을 수행. 초기 계획이 불완전하더라도 실행 과정에서 보완 가능 → 장기 작업(Long-horizon tasks)에서 안정성과 성공률 향상.</p>
+    </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>Local Planning(ReAct)과 Global Planning(Plan-and-Solve) 중, 여러 단계로 이어지는 장기 작업(long-horizon task)에서 오류 누적에 더 취약한 쪽은 어느 것일까?</li>
+          <li>Reflexion처럼 스스로 반성(reflect)하는 구조가 같은 실패를 반복하지 않으려면, 단순히 "다시 시도"하는 것을 넘어 구체적으로 무엇을 학습해야 할까?</li>
+          <li>CoAct의 Global/Local 2-에이전트 협업 구조가 단일 에이전트의 Reflexion보다 나은 지점은 어디이며, 그 대가(비용·지연)는 어느 정도일까?</li>
+        </ul>
+      </div>
     </div>
   </div>
 </section>
@@ -1234,6 +1370,16 @@ Act 4: Finish[keyboard function keys]</div>
       <p>MCP를 langchain으로 활용할 수 있도록 최근 langchain에서 개발한 라이브러리. 자기만의 MCP 서버를 만들 수 있게 되었음.</p>
       <p class="src">구조: MCP Servers(각 서버가 여러 tool 보유, 예: Math, Data) ↔ MCP Clients(호스트 앱 내 여러 연결 유지) — 예: Claude Desktop App Client, PyClient(load_mcp_tools → LangGraph Agent)</p>
     </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>LangChain 같은 프레임워크를 쓰는 것과 에이전트 오케스트레이션을 직접 구현하는 것 사이의 트레이드오프는 무엇일까? 어떤 규모·상황에서 직접 구현이 더 나을까?</li>
+          <li>Prompt/Memory/Tools를 모듈화한 구조가 재사용성은 높이지만, 디버깅이나 성능 튜닝을 오히려 어렵게 만드는 지점은 없을까?</li>
+          <li>MCP와 LangChain처럼 표준 프로토콜과 특정 프레임워크가 결합될 때, 프레임워크에 대한 락인(lock-in) 위험을 어떻게 최소화할 수 있을까?</li>
+        </ul>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1273,6 +1419,16 @@ Act 4: Finish[keyboard function keys]</div>
         <span class="pill">Reward Hacking</span><span class="pill">Sparse/Dense Retriever</span><span class="pill">RAG</span>
         <span class="pill">LLM Agent</span><span class="pill">Tool Learning</span><span class="pill">ReAct</span>
         <span class="pill">MCP</span><span class="pill">LangChain</span><span class="pill">Reflexion</span><span class="pill">CoAct</span>
+      </div>
+    </div>
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>1~4차시 전체 흐름(Post-training → RAG → LLM Agent → MCP → LangChain)을 하나의 실제 프로젝트로 엮는다면, 어떤 순서로 구현해 나가는 것이 합리적일까?</li>
+          <li>이 강의에서 다룬 기법 중 지금 시점에서 가장 빠르게 구식화(deprecated)될 가능성이 큰 것은 무엇이며, 그 이유는 무엇일까?</li>
+          <li>Reward Hacking, 검색 노이즈, 환경 표현의 한계 등 각 단계에서 등장한 "실패 모드"들을 관통하는 공통 원인이 있다면 무엇일까?</li>
+        </ul>
       </div>
     </div>
   </div>

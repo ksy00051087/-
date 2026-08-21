@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 개념정리 — SSAFY AI</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+/* Hallmark · macrostructure: adapted Long-Document reference index (per-section colour-coded card grid,
+   modelled on 이미지_파운데이션모델_개념정리.html — user-directed format match)
+ * nav: adapted N12-style sticky pill strip · footer: adapted Ft2 inline-rule
+ * genre: editorial · tone: technical / academic-reference
+ * theme: custom "Field Notebook" — navy anchor + 10-hue section-accent rotation, OKLCH-built
+ * differs from prior pilot build on: paper band (mid→light card-on-tint), display style (grotesk-sans
+   vs prior serif), accent hue (rotating multi-hue vs single warm accent) — user-requested repaint
+ */
+/* Hallmark · pre-emit critique: P5 H5 E4 S4 R4 V5 */
+
+:root{
+  /* ---- OKLCH "field notebook" palette (navy anchor, multi-hue section accents) ---- */
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY AI · 4차시 강의자료</span>
+    <h1>AI Agent 개념정리</h1>
+    <p class="sub">Perception AI에서 Agentic Deep Research까지 — Multi-Agent 협업, Memory &amp; Tool, Reasoning &amp; Planning, 그리고 도메인 특화 에이전트의 구조와 한계를 정리했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 8개 챕터</span>
+      <span>🤖 Multi-Agent System</span>
+      <span>🧠 Reasoning &amp; Planning</span>
+      <span>🔍 Deep Research</span>
+    </div>
+    <div class="hero-note">원본 슬라이드 170페이지를 페이지 단위로 정리했습니다. 각 챕터 끝의 "🤔 생각해 볼 질문"은 스터디용으로 새로 추가한 토론 질문입니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#ch0">0. 강의 개요 & 배경</a>
+<a href="#ch1">1. AI Agent 기초</a>
+<a href="#ch2">2. Multi-Agent System</a>
+<a href="#ch3">3. Memory & Tool</a>
+<a href="#ch4">4. Reasoning & Planning</a>
+<a href="#ch5">5. Domain-Specific: Deep Research</a>
+<a href="#ch6">6. 한계점 및 발전 방향</a>
+<a href="#ch7">7. 핵심 정리 & 확인 문제</a>
+  </nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div>
+      <h2>강의 개요 &amp; 배경</h2>
+      <div class="desc">강의자 소개, 학습 목표, 그리고 "ChatGPT가 최고의 의사를 대신할 수 있을까?"라는 질문을 중심으로 LLM의 발전과 의료 분야 AI Agent 사례를 통해 본 강좌의 문제의식을 살펴봅니다.</div>
+    </div>
+  </div>
+
+  <div class="card-grid">
+
+    <div class="card">
+      <h3>강의자 소개 <span class="tag">Instructor</span></h3>
+      <p><b>도재영 교수</b> — 서울대학교 전기·정보공학부 / AI 대학원</p>
+      <ul>
+        <li>서울대학교 (jaeyoung.do@snu.ac.kr) · AIDAS Lab (https://aidas.snu.ac.kr)</li>
+      </ul>
+      <div class="subhead">경력 타임라인</div>
+      <ul>
+        <li>2003.03 ~ 2007.09 — 학사, 카이스트, 전산학</li>
+        <li>2007.09 ~ 2012.12 — 석사·박사, UW-Madison, Computer Sciences</li>
+        <li>2012.12 ~ 2014.02 — Research Engineer, Microsoft Data Lab</li>
+        <li>2014.03 ~ 2016.09 — Senior Scientist, Microsoft Jim Gray Systems Lab (GSL)</li>
+        <li>2016.10 ~ 2021.02 — Senior Researcher, Microsoft Research (MSR)</li>
+        <li>2021.02 ~ 2023.11 — Senior Applied Scientist &amp; Science Manager, Amazon AI</li>
+        <li>2024.02 ~ 현재 — 서울대학교 전기·정보공학부, 인공지능 대학원 조교수</li>
+      </ul>
+      <div class="note tip">"THE KEY TO SUCCESS" = <b>Best AI Modeler + Best AI System Architecture</b> — 모델링 역량과 시스템 아키텍처 역량을 함께 갖추는 것이 핵심이라는 메시지 (원 슬라이드에서는 두 농구선수의 1:1 대결 삽화로 비유).</div>
+    </div>
+
+    <div class="card">
+      <h3>AIDAS 연구실 <span class="tag">Lab</span></h3>
+      <p><b>AIDAS (AI, Big Data, and System) 연구실</b> — 연구실 핵심 가치:</p>
+      <ul>
+        <li>CoreAI(인공지능 모델), SysAI(대규모 데이터 중심 AI 시스템), 도메인 특화 응용(의료·제조) 관점에서 생성형 AI 기술을 혁신적으로 연구</li>
+        <li>작은 스타트업과 같은 유연하고 기민한 연구 구조 지향 — 창의성과 실질적 임팩트 중시</li>
+      </ul>
+      <div class="subhead">연구 구조 다이어그램</div>
+      <p>AI(브레인 아이콘) → CoreAI(모델) + SysAI(시스템)가 결합되어, Medical Domain / Manufacturing Domain에 적용. 중심부: 사람 ↔ Question/Answer ↔ LLM(Training) ↔ 아이디어. LLM은 Physical AI(로봇) + World Model(글로브)과 결합되어 최종적으로 RAG(데이터베이스)와 Inference(GPU) 출력을 생성.</p>
+    </div>
+
+    <div class="card">
+      <h3>학습 개요 (목차) <span class="tag">Contents</span></h3>
+      <ul>
+        <li>Chapter 0. 강의자 소개 (Instructor Introduction)</li>
+        <li>Chapter 1. Introduction to AI Agent</li>
+        <li>Chapter 2. 방법론: 협업 유형 (Methodology: Collaboration Types)</li>
+        <li>Chapter 3. Memory &amp; Tool in Multi-Agent System</li>
+        <li>Chapter 4. Reasoning and Planning in AI Agent</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>학습 목표 <span class="tag">Objectives</span></h3>
+      <ul>
+        <li>AI Agent의 정의 및 핵심 특성을 이해합니다.</li>
+        <li>대규모 언어 모델의 고정된 매개변수 메모리 한계를 인식하고, 이를 극복하기 위한 에이전트형 RAG 역할을 이해합니다.</li>
+        <li>LLM 에이전트의 추론 및 계획 능력을 강화하는 프롬프트 기법을 적용할 수 있습니다.</li>
+        <li>다중 에이전트 시스템의 필요성, 협업 유형, 커뮤니케이션 구조 등 복잡한 에이전트 시스템의 원리를 이해합니다.</li>
+        <li>에이전트 행동 정책을 형성하기 위한 강화 학습 기반 훈련 방법과 표준화된 프로토콜 역할을 이해합니다.</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>왜 이 강좌인가: 누구나 최고의 의사를 만나고 싶어 한다 <span class="tag">Motivation</span></h3>
+      <p>환자들은 대학병원의 우수 의료진을 선호하는 경향이 있음:</p>
+      <ul>
+        <li>빅5 병원 급여 진료 수입 중 <b>60%</b>가 지방 환자 (지역별 의료이용 통계연보, 2024)</li>
+        <li>빅5 병원 초진 환자 평균 <b>1달 이상</b> 대기 (건강보험심사평가원, 2020)</li>
+        <li>국내 암 환자의 <b>61.8%</b>는 상급종합병원을 이용 (지역별 의료이용 통계연보, 2024)</li>
+      </ul>
+      <p>환자 목소리(원 슬라이드 인용): "대학병원 가고 싶은데 너무 오래 기다려요" / "지방에서 가면 2박 3일은 잡아야 해요" / "집 근처에서는 빨리 해 주긴 하는데 치료받다가 문제생기면 어떻게 하죠?"</p>
+      <table class="compare">
+        <thead><tr><th>지표</th><th>서울대병원 / 빅5</th><th>의원급 / 일반 병원</th></tr></thead>
+        <tbody>
+          <tr><td class="k">평균 진료 대기 일수</td><td>74일 (서울대병원)</td><td>6일 (의원급)</td></tr>
+          <tr><td class="k">당일 예약 접수 비율</td><td>16% (빅5 병원)</td><td>50% (일반 병원)</td></tr>
+        </tbody>
+      </table>
+      <p class="src">출처: 1) 보건복지부 의료 서비스 경험 조사, 2021 · 2) 건강보험심사평가원, 의료 이용 추이 모니터링 고도화 연구, 2020 · 3) 지역별 의료이용 통계연보, 2024</p>
+    </div>
+
+    <div class="card full">
+      <h3>배경: LLM의 등장과 발전 <span class="tag">History</span></h3>
+      <p>대형 언어 모델(LLM)의 계보는 2019~2023년에 걸쳐 폭발적으로 분화했습니다 (잘 알려진 "LLM 진화 트리" 다이어그램 재구성):</p>
+      <ul>
+        <li><b>2019</b> — T5 (Google)</li>
+        <li><b>2020</b> — GPT-3 (OpenAI)</li>
+        <li><b>2021</b> — GShard·mT5(Google), PanGu-α(Huawei), PLUG(Alibaba), Jurassic-1(AI21 Labs), HyperCLOVA(Naver), LaMDA(Google), CPM-2, Ernie 3.0(Baidu), BLOOM, MT-NLG(Microsoft), Codex(OpenAI), WebGPT(OpenAI), FLAN(Google), Gopher(DeepMind), GLaM(Google) 등 대거 등장. 오픈소스 그룹(Jurassic-1, HyperCLOVA, LaMDA, CPM-2, AlphaCode, Chinchilla, PanGu-Σ)도 형성. 이어 Ernie 3.0 Titan, InstructGPT(OpenAI), GPT-NeoX-20B, GLM, OPT, AlexaTM(Amazon) 등</li>
+        <li><b>2022</b> — UL2·PaLM·Flan-T5·Flan-PaLM·Bard(Google), Sparrow(DeepMind), ERNIE Bot(Baidu), LLaMA(Meta)</li>
+        <li><b>2023</b> — ChatGPT(OpenAI), GPT-4(OpenAI)</li>
+      </ul>
+      <div class="subhead">LLM이란 무엇인가 (1/2) — 개념의 계보</div>
+      <ul>
+        <li><b>[1980년대] Language Model (LM):</b> 텍스트의 토큰(단어·부분단어·형태소) 순차적 사용을 모델링하는 확률 모델. 이전 토큰 기반으로 다음 토큰의 가능성을 예측하고 새 텍스트 시퀀스를 생성. (참고: Vaswani et al., "Attention Is All You Need", 2017 — Transformer 아키텍처 다이어그램)</li>
+        <li><b>[2017년] Transformer Architecture:</b> 기존 모델의 1) 긴 문장 학습 능력 제한, 2) 비싼 훈련 비용을 획기적으로 개선. 긴 문장에서 선택적으로 집중(어텐션)하며 대규모 사전학습에 용이.</li>
+      </ul>
+      <div class="subhead">LLM이란 무엇인가 (2/2)</div>
+      <ul>
+        <li><b>[2018년~] Large Language Model (LLM):</b> Book, Wikipedia 등 대규모 데이터를 활용해 언어적 지식과 패턴을 학습.
+          <ul>
+            <li><b>마스킹 언어 모델링(MLM):</b> 입력 텍스트 일부를 마킹하여 토큰 간 의미적 관계 학습. 예) 입력 "의사는 환자의 [MASK]을 진단합니다." → 예측 "의사는 환자의 병을 진단합니다."</li>
+            <li><b>다음 토큰 예측(NTP):</b> 이전 토큰 기반으로 다음 토큰 예측, 언어 패턴 학습. 예) 입력 "의사는 환자의 병을" → 예측 "...진단합니다."</li>
+          </ul>
+        </li>
+        <li><b>[2022년~] Multimodal LLM (MLLM):</b> LLM 기반 모델이 텍스트와 시각·음성 등 데이터를 결합하여 작업 (예: GPT-4.0 발표).</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>최고의 의사를 ChatGPT가 대신할 수 있을까? <span class="tag">Case Study</span></h3>
+      <p>동일한 임상 증례(38세 남성, 3일 전부터 인후통·기침·가래·호흡곤란, 12년 전부터 천식 병력, 야간 악화, 발열·비강폐쇄·비루·쉰목소리·객혈 없음)를 두 시점의 모델에 질의한 비교:</p>
+      <table class="compare">
+        <thead><tr><th>구분</th><th>#1 범용 LLM (Generalist LLM) — GPT-3.5, 2022.11</th><th>#2 의료 특화 LLM (Medical LLM) — GPT-5, 2025.8</th></tr></thead>
+        <tbody>
+          <tr><td class="k">성격</td><td>모든 도메인에서 일정 수준 이상 응답 가능. 가정의학과 전문의처럼 넓은 지식 기반으로 대부분 문제에 1차 대응</td><td>의료 지식에 특화되어 진단·처방·환자 응대에 전문화. 내과·외과 전문의처럼 특정 도메인에 깊이 있는 지식 보유</td></tr>
+          <tr><td class="k">답변 예시</td><td>1) 기관지 확장제·스테로이드 치료 2) 부종제·해열제 3) 천식 관리(기존 치료 조정) 4) 안정과 휴식 5) 의사 지시에 따른 항생제 사용 검토 — 급성 기관지염 치료법 요약 수준의 일반적 답변</td><td>1) 흡입 베타-2 작용제(SABA): Salbutamol 흡입기 필요 시 2) 흡입 스테로이드(ICS) 또는 ICS/LABA: Fluticasone·Budesonide·Symbicort 고려 3) 단기 경구 스테로이드: Prednisolone 30~40mg/day 5일(야간 호흡곤란 심할 시) 4) 대증치료: 진해거담제(Dextromethorphan, Guaifenesin), 비강스프레이(Oxymetazoline 3일 이내), 해열진통제(Acetaminophen) 5) 추후 평가: 천식 조절 상태 확인 및 폐기능검사(PFT) 계획 — 구체적 약물·용량·후속 계획까지 포함한 전문의 수준의 답변</td></tr>
+        </tbody>
+      </table>
+      <div class="note exam">범용 LLM과 의료 특화 LLM의 차이는 "지식의 폭 vs 깊이" 문제로 이해할 수 있습니다 — 이 대비가 이후 챕터에서 다룰 Agentic RAG·다중 에이전트 협업의 필요성을 예고합니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3>의료 분야에서의 AI Agent 예시 <span class="tag">Applied AI Agent</span></h3>
+      <div class="subhead">예시 1 — 의학 영상 판독 (다중 전문가 에이전트 협업)</div>
+      <p>출처: MDAgents: An Adaptive Collaboration of LLMs for Medical Decision-Making, Kim et al., NeurIPS 2024. Gross Sectioned Myelolipoma 영상 판독 사례(정답: (C) hemorrhage)를 통한 5단계 협업 워크플로:</p>
+      <ul>
+        <li><b>Step 1. 난이도 판단:</b> Low–<b>Moderate</b>(선택)–High 게이지로 케이스 복잡도 평가. "병리 전문가에게는 단순해 보일 수 있으나 섬유화·출혈 등의 구분은 미묘하고 해석의 여지가 있다"</li>
+        <li><b>Step 2. 전문가 모집:</b> GP Moderator가 Pathologist·Radiologist·Endocrinologist·Surgeon·Oncologist 5명의 전문가 에이전트를 소집</li>
+        <li><b>Step 3. 초기 진단 의견 제시:</b> (1)Pathologist: (A)fibrosis (2)Radiologist: (A)fibrosis (3)Surgeon: (C)hemorrhage (4)Oncologist: (C)hemorrhage (5): (A)fibrosis</li>
+        <li><b>Step 4. 협업 토론:</b> Turn 1, Turn 2 … Turn T에 걸쳐 라운드 r∈{1,…,R} 단위로 Communication channel을 통해 논의, 매 라운드 후 종료(Terminate) 조건 확인</li>
+        <li><b>Step 5. 최종 판단 및 결론:</b> GP Moderator가 토론을 종합 — Pathologist(Agent 1)의 fibrosis 주장도 유효하지만, Surgeon(Agent 3, Round1-Turn3)·Oncologist(Agent 4, Round2-Turn2)의 hemorrhage 설명이 실제 임상 소견과 myelolipoma의 잘 알려진 합병증에 더 부합 → 최종 결론 <b>(C) hemorrhage</b></li>
+      </ul>
+      <div class="subhead">예시 2 — 의료 수술 보조 로봇</div>
+      <p>출처: 의료 수술 보조 작업을 위한 일반화된 로봇 제어 시스템, AIDAS 연구실, 2025. 카메라로 수술 상황과 기구를 인식하는 로봇이 갑상선 수술 중: 1) 리트랙터 등 수술기구로 수술을 보조하고, 2) 집도의가 구두로 요청한 기구("Blade")를 인식하여 건네줌. 로봇 디스플레이는 Real-view Scene(카메라 피드), Instrument Inspection(기구 인식 패널)을 표시하며, 수술 단계(Anesthesia → Incision → Exposure of Thyroid → Removal → Retraction and Under Placement → Closure)를 추적하여 "Next Step needed!" 등으로 다음 단계를 안내.</p>
+    </div>
+
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>범용 LLM(가정의학과형)과 의료 특화 LLM(전문의형) 중 어느 쪽이 실제 임상 현장에 먼저, 그리고 더 안전하게 도입되어야 할까요? 두 유형을 다중 에이전트로 함께 활용한다면 어떤 협업 구조가 바람직할까요?</li>
+          <li>MDAgents 사례처럼 여러 전문가 에이전트가 토론 끝에 다수 의견(hemorrhage)이 소수 의견(fibrosis)을 이긴 경우, 이 협업적 의사결정 과정을 환자와 의료진이 얼마나 신뢰할 수 있을까요? 신뢰를 높이려면 어떤 설명(explanation) 장치가 필요할까요?</li>
+          <li>수술 보조 로봇처럼 AI Agent가 물리적 행위(기구 전달)까지 수행하게 될 때, 책임 소재(집도의 vs 로봇 시스템)는 어떻게 나뉘어야 할까요? 지역 간 의료 접근성 격차(74일 vs 6일 대기) 문제를 AI Agent가 실제로 해소할 수 있을지도 함께 생각해봅시다.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section" id="ch1" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>AI Agent 기초</h2><p class="desc">Perception → Generative → Agentic → Physical AI로 이어지는 진화, "에이전트란 무엇인가"의 정의(세탁기 비유 포함), AI 에이전트의 6대 특성과 남은 과제(원본 슬라이드 21~48p 기반)</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>인공지능의 새로운 지평 <span class="tag">개요</span></h3>
+      <p>인공지능 분야는 빠르게 발전하고 있으며, <b>AI 에이전트</b>가 핵심적인 혁신 기술로 부상하면서 인간과 컴퓨터의 상호작용 및 자동화 영역을 새롭게 정의할 것으로 기대된다. 이 흐름을 하나의 상승 곡선(화살표)으로 표현하면, AI는 아래 4단계를 순서대로 밟아왔다: <b>Perception AI → Generative AI → Agentic AI → Physical AI</b>. 각 단계는 이전 단계 위에 새로운 능력을 쌓아 올리는 구조이며, "해석·분석 → 콘텐츠 생성 → 능동적 작업 수행 → 물리적 실체 획득"의 순서로 AI의 역할 범위가 확장된다.</p>
+    </div>
+
+    <div class="card">
+      <h3>① Perception AI <span class="tag">지각 AI</span></h3>
+      <ul>
+        <li>특화된 분야에서 해석 및 분석을 수행 (Interpretation and analysis in specialized domains)</li>
+        <li><b>현대 기계학습의 기반</b> — 이미지 인식, 음성 인식 등 인식·분류 중심의 초기 AI 능력</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>② Generative AI <span class="tag">생성형 AI</span></h3>
+      <ul>
+        <li>콘텐츠 제작 (텍스트, 이미지 등)을 수행</li>
+        <li>"The Creative Powerhouse" — 창작의 원동력으로 불림</li>
+      </ul>
+      <div class="note">생성형 AI(예: LLM, VLM, MLLM)가 크게 발전하는 가운데, 더욱 복잡한 환경에서 이 모델들을 적용하려는 시도가 증가하며 다음 단계인 Agentic AI로의 전환을 이끌었다.</div>
+    </div>
+
+    <div class="card">
+      <h3>③ Agentic AI <span class="tag">에이전트형 AI</span></h3>
+      <ul>
+        <li>능동적인 작업 수행 (Proactive/autonomous task execution)</li>
+        <li>"자율형 문제해결 시스템" — 스스로 문제를 해결하는 시스템</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>④ Physical AI <span class="tag">물리적 AI</span></h3>
+      <ul>
+        <li>현실 세계에서 작동 (Operates in the real/physical world)</li>
+        <li>AI 시스템이 물리적 실체를 얻음 (AI systems gain physical embodiment)</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>연구 사례 — AI가 3단계로 논문을 완성하는 과정 <span class="tag">그림1-1</span></h3>
+      <p>Agentic AI가 실제로 복잡한 지적 작업을 수행하는 예시로, AI가 <b>아이디어 생성 → 트리 기반 실험 → 논문 작성</b>의 3단계를 거쳐 학술 논문을 완성하는 파이프라인이 제시된다.</p>
+      <ul>
+        <li><b>Idea Generation</b>: LLM Idea/Plan Innovation → Novelty Check(Semantic Scholar로 참신성 검증) → 아이디어 점수화·보관</li>
+        <li><b>Tree-Based Experimentation</b>: ① 사전 아이디어 조사 ② 베이스라인 하이퍼파라미터 튜닝 ③ 연구 어젠다 실행 ④ Ablation study 수행 — 각 단계마다 실험 로그를 기록하고 최적 노드를 선택</li>
+        <li><b>Paper Write-Up</b>: 플롯팅 + VLM 피드백 → 원고 템플릿 → 원고 작성 → LLM이 논문 리뷰까지 수행</li>
+      </ul>
+      <p>실제로 이 파이프라인이 만든 논문("Compositional Regularization: Unexpected Obstacles in Enhancing Neural Network Generalization")이 ICLR 2025 워크숍에 제출된 예시가 함께 제시된다.</p>
+      <p class="src">출처: Yamada et al., "The AI Scientist-v2: Workshop-Level Automated Scientific Discovery via Agentic Tree Search", ICLR Workshop 2025.</p>
+    </div>
+
+    <div class="card full">
+      <h3>지금은 AI 에이전트의 시대 <span class="tag">타임라인</span></h3>
+      <p>2024~2025년 사이 짧은 기간 동안 주요 AI 에이전트 제품·프로토콜이 잇달아 출시되며 "지금은 AI 에이전트의 시대"임을 보여준다.</p>
+      <div class="pillrow">
+        <span class="pill">Bedrock Agents (2024.05.02)</span>
+        <span class="pill">Model Context Protocol (2024.11.26)</span>
+        <span class="pill">MS Copilot Studio (2024.11.19)</span>
+        <span class="pill">Gemini CLI (2025.06.25)</span>
+        <span class="pill">ChatGPT Agent (2025.07.17)</span>
+        <span class="pill">OpenClaw (2025.11.24)</span>
+      </div>
+      <div class="note tip">이렇게 다양한 사례를 보여준 뒤, 슬라이드는 "그래서... AI 에이전트가 뭐지?"라는 질문을 던지며 다음의 정의 파트로 전환한다.</div>
+    </div>
+
+    <div class="card">
+      <h3>에이전트란? <span class="tag">일반 정의</span></h3>
+      <ul>
+        <li><b>에이전트</b>: 다른 사람 또는 단체를 대신하여 행동하는 개인 또는 단체</li>
+        <li>에이전트는 특정 작업을 수행하고, 결정을 내리며, 합의를 도출하는 것을 목표로 함</li>
+      </ul>
+      <p>AI와 무관한 일반적 의미의 "에이전트" 정의로 시작하여, 이후 구체적 예시(세탁기)를 통해 AI 에이전트 정의로 발전시킨다.</p>
+    </div>
+
+    <div class="card">
+      <h3>세탁기 비유 <span class="tag">예시</span></h3>
+      <p>일반 세탁기(사진: 백색 상단개폐형 세탁기, 상단에 검은 조작 패널)를 하나의 "에이전트"로 보면, 앞서 정의한 에이전트의 3요소가 그대로 대응된다.</p>
+      <ul>
+        <li><b>작업(Task)</b>: 옷을 세탁하기</li>
+        <li><b>의사 결정(Decision-making)</b>: 사전에 정의된 세척 순서</li>
+        <li><b>상황 인식(Situational awareness)</b>: 세탁이 필요한 상태</li>
+      </ul>
+      <p>즉 세탁기는 "빨래가 필요하다"는 상태를 인식하고(상황 인식), 미리 정해진 세척 순서(의사 결정)에 따라 옷을 세탁하는 작업을 수행하는 단순한 자동화 에이전트다.</p>
+    </div>
+
+    <div class="card">
+      <h3>AI 에이전트? <span class="tag">공식 정의</span></h3>
+      <div class="formula">AI 에이전트 = <span class="kw">AI</span>를 사용하여 <span class="kw">사용자를 대신해</span> 목표를 추구하고 작업을 수행하는 소프트웨어 시스템</div>
+      <p>일반 "에이전트" 개념(030~033p)을 AI 영역으로 좁혀 정식화한 정의. "AI를 사용하여"와 "사용자를 대신해"가 핵심 수식어로 강조된다.</p>
+    </div>
+
+    <div class="card full">
+      <h3>같은 세탁기, AI가 들어가면? <span class="tag">대조 예시</span></h3>
+      <table class="compare">
+        <tr><th>구분</th><th>일반 세탁기 (자동화 기기)</th><th>AI가 들어간 세탁기 (AI 에이전트)</th></tr>
+        <tr><td class="k">작업</td><td>옷을 세탁하기</td><td>옷을 세탁하기</td></tr>
+        <tr><td class="k">의사 결정</td><td>사전에 정의된 세척 순서를 그대로 따름</td><td><b>AI가 세탁 방식을 결정</b> — 상황에 맞춰 세척 방식 자체를 판단</td></tr>
+        <tr><td class="k">상황 인식</td><td>세탁이 필요한 상태(단순 감지)</td><td>세탁이 필요한 상태를 인식하고 그에 맞는 결정까지 수행</td></tr>
+      </table>
+      <p>차이는 "의사 결정"을 사람이 미리 정해둔 규칙이 하느냐, AI가 직접 판단하느냐에 있다. 이 대비가 "사전에 정의된 순서를 따르는 자동화 기기"와 "AI가 직접 결정하는 에이전트"를 구분하는 핵심 기준이 된다.</p>
+    </div>
+
+    <div class="card full">
+      <h3>AI vs AI 에이전트 <span class="tag">경계의 모호함</span></h3>
+      <p>우리는 실제로 AI와 AI 에이전트를 명확하게 구별하지 않는다. 특히 현대 대규모 언어모델(LLM) 관점에서 AI를 바라볼 때, 그 경계는 더욱 모호해진다 — 즉 "AI 에이전트"는 별개의 신기술이라기보다 기존 AI(특히 LLM)가 자율성·도구 사용 등 특정 특성을 갖추었을 때 붙는 관점에 가깝다는 점을 시사한다.</p>
+    </div>
+
+    <div class="card full">
+      <h3>AI 에이전트의 주요 특성 — 6대 요소 <span class="tag">허브 다이어그램</span></h3>
+      <p>중앙의 "AI 에이전트"를 중심으로 6개의 특성이 방사형으로 연결된 구조로 제시된다.</p>
+      <div class="pillrow">
+        <span class="pill">자율성 (Autonomy)</span>
+        <span class="pill">인식 (Perception)</span>
+        <span class="pill">기억 (Memory)</span>
+        <span class="pill">추론(계획) (Reasoning/Planning)</span>
+        <span class="pill">학습(적응) (Learning/Adaptation)</span>
+        <span class="pill">동작(도구) (Action/Tool use)</span>
+      </div>
+      <p>이 6가지 특성은 하나의 이어지는 예시(AIDAS 연구실 인턴십 지원 이메일 작성)를 통해 차례로 시연된다.</p>
+    </div>
+
+    <div class="card full">
+      <h3>실습 예시 — "AIDAS 연구실 인턴십 신청 이메일" <span class="tag">전체 흐름</span></h3>
+      <p>사용자가 "AIDAS 연구실 인턴십을 신청하기 위한 이메일을 보내줘"라고 요청한다. 먼저 <b>일반 AI(비-에이전트)</b>는 "AIDAS 인턴십 신청" 제목의 형식적인 이메일 초안만 내놓고 "..."에서 멈추며 ✕ 표시로 부적절함이 지적된다 — <b>"AI는 사람에 의해 사전에 설정된 의사결정 과정 없이는 이러한 작업을 수행할 수 없음"</b>이라는 한계가 강조된다. 이후 같은 요청에 대해 <b>AI 에이전트</b>가 6가지 특성을 하나씩 발휘하며 작업을 끝까지 완수하는 과정이 이어진다.</p>
+    </div>
+
+    <div class="card">
+      <h3>① 자율성 (Autonomy)</h3>
+      <p>"인턴십 신청서와 같은 정식 이메일에는 정중함과 전문성이 필요합니다. 그에 맞는 어조에 맞춰 작성해드리겠습니다."</p>
+      <div class="note tip"><b>AI 에이전트</b>는 인간의 개입 없이 계획하고, 실행하고, 결정하여 문제를 자율적으로 해결할 수 있음.</div>
+    </div>
+
+    <div class="card">
+      <h3>② 인식 (Perception)</h3>
+      <p>"AIDAS 인턴십 마감일은 3일 후이고, 당신의 이력서는 지난 6월 이후로 업데이트되지 않았습니다."</p>
+      <div class="note tip"><b>AI 에이전트</b>는 행동하기 전에 외부 데이터를 감지하여 환경을 인식하고 해석할 수 있음.</div>
+    </div>
+
+    <div class="card">
+      <h3>③ 기억 (Memory)</h3>
+      <p>"이전 대화를 바탕으로 이력서의 '관심 연구분야' 항목을 업데이트하겠습니다."</p>
+      <div class="note tip"><b>AI 에이전트</b>는 기억에 따라 상황을 처리하고 점점 더 정교한 도움을 제공할 수 있음.</div>
+    </div>
+
+    <div class="card">
+      <h3>④ 추론(계획) (Reasoning/Planning)</h3>
+      <p>"이메일 작성을 단계별로 계획해보겠습니다. 먼저 AIDAS 인턴십 공고를 검토하겠습니다. 그 다음 이전 지원서들로부터 관련 경험을 정리하고, 최종적으로 그에 맞춰 이메일 초안을 작성하겠습니다."</p>
+      <div class="note tip"><b>AI 에이전트</b>는 목표를 여러 개의 작은 작업들로 나누고, 실행하기 전에 합리적인 행동 계획을 구축할 수 있음.</div>
+    </div>
+
+    <div class="card">
+      <h3>⑤ 학습(적응) (Learning/Adaptation)</h3>
+      <p>"교수님께, 인턴십에 지원하고자 연락드립니다..." → "잠깐, 이건 너무 일반적이네요. 더 전문적인 것을 원하신다고 하셨죠? 다시 수정해보겠습니다: 'AI 정책에 대한 강한 관심과 최근 서울대학교에서의 연구 경험을 바탕으로...'"</p>
+      <div class="note tip"><b>AI 에이전트</b>는 시간이 지남에 따라 피드백 및 출력을 학습하여 성능을 향상시키고 개인화함.</div>
+    </div>
+
+    <div class="card">
+      <h3>⑥ 동작(도구) (Action/Tool use)</h3>
+      <p>"지원 이메일이 준비되었습니다! 이제 Gmail 계정을 통해 이메일을 발송하겠습니다. Gmail API 연결 중 ... ✓ 오전 10시 51분에 이메일이 성공적으로 발송되었습니다!" — 사용자는 "고마워! 😊"로 응답.</p>
+      <div class="note tip"><b>AI 에이전트</b>는 기능 호출(function calling)을 통해 외부 도구를 사용하여 작업을 처음부터 끝까지 완료할 수 있음.</div>
+    </div>
+
+    <div class="card full">
+      <h3>참고 — Agentic Clinician AI (의료진 에이전트형 LLM) <span class="tag">원본 4단원 슬라이드 · 참고 삽입</span></h3>
+      <div class="note hard">이 카드는 원본 슬라이드 순서상 "4. 최고의 의사를 ChatGPT가 대신할 수 있을까? (3/3)"라는 다른 단원(4단원) 제목을 달고 1단원 내용 사이에 잘못 끼어 있던 페이지(31p)다. 편집 시 페이지 번호 불일치가 확인되어, AI 에이전트가 "자율성·인식·기억" 등을 갖추었을 때 실무에 어떤 의미를 갖는지 보여주는 참고 사례로 이번 절에 함께 정리한다.</div>
+      <ul>
+        <li>같은 병이라도 의료진마다 진단·치료 방식은 다름</li>
+        <li>환자 상황, 병원 환경, 의료진의 임상 경험, 언어 습관까지 → '의료진 개인'의 판단 맥락을 반영할 수 있어야 함</li>
+        <li>의료진 에이전트 AI는 단순 지식 제공을 넘어 의료진의 사고 흐름과 의사결정 과정을 능동적으로 재현 → 의료진 본인의 <b>'디지털 트윈'</b>처럼 동작</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>Challenges in AI Agent <span class="tag">남은 과제</span></h3>
+      <table class="compare">
+        <tr><th>학술 연구 영역</th><th>실무 응용 영역</th></tr>
+        <tr><td>다중 에이전트 협업 시스템</td><td>보안 및 개인정보 문제</td></tr>
+        <tr><td>메모리와 컨텍스트 관리</td><td>자율성의 고위험 요소</td></tr>
+        <tr><td>작업 관리</td><td>추론 비용과 실시간 협업</td></tr>
+        <tr><td>확장성과 성능</td><td>윤리적 문제와 편향성에 대한 우려</td></tr>
+      </table>
+      <p>이 표가 1단원(AI Agent)을 마무리하며, 다음 단원인 "2. Multi-Agent System"으로 넘어가는 다리 역할을 한다.</p>
+    </div>
+
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>Perception AI → Generative AI → Agentic AI → Physical AI로 이어지는 4단계 진화에서, 각 단계는 이전 단계의 어떤 한계를 보완하며 등장했다고 볼 수 있을까? 다음 단계(Physical AI 이후)는 어떤 방향으로 이어질 수 있을까?</li>
+          <li>세탁기 비유에서 "사전에 정의된 세척 순서를 따르는 세탁기"와 "AI가 세탁 방식을 결정하는 세탁기"의 차이는 결국 "누가 의사 결정을 내리는가"였다. 그렇다면 단순히 LLM을 한 번 호출해 답을 받는 것과, AIDAS 이메일 예시처럼 자율성·인식·기억·추론·학습·도구 사용을 갖춘 "에이전트"의 차이는 어디에서 갈릴까? 6가지 특성 중 어느 것이 없으면 "에이전트"라 부르기 어려울까?</li>
+          <li>AI 에이전트가 실무에서 "의료진의 디지털 트윈"처럼 개인의 판단 맥락까지 반영하게 된다면, 이는 어떤 새로운 윤리적·신뢰 문제를 낳을 수 있을까? 슬라이드가 마지막에 제시한 "자율성의 고위험 요소", "윤리적 문제와 편향성"과 연결지어 생각해 보자.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section" id="ch2" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>Multi-Agent System</h2><p class="desc">왜 다중 에이전트가 필요한가부터 협업 유형·전략·커뮤니케이션 구조까지 — Tran et al.(2025), AgentVerse, MDAgents, LLMArena, MetaGPT 사례 포함.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>왜 다중 에이전트 시스템이 필요한가? <span class="tag">동기</span></h3>
+      <p><b>개별 LLM의 최신 성과</b>: 창의적 글쓰기, 논리적 사고, 판단 능력에서 인간 수준에 필적하는 성능을 보임.</p>
+      <div class="note">⚠ 그러나 개별 LLM의 본질적 한계
+      <ul>
+        <li><b>환각 현상(Hallucination)</b> — 부정확하거나 조작된 정보 생성</li>
+        <li><b>자기회귀적 성격(Autoregressive nature)</b> — 천천히 생각하거나 신중한 추론을 할 수 없음</li>
+        <li><b>스케일링 법칙(Scaling law)</b> — 모델 크기 증가에 따른 성능 향상이 둔화됨</li>
+      </ul></div>
+      <p><b>해법 = 집단 지성(Collective intelligence)</b>: 지능형 에이전트들이 팀을 이루어 협력·지식을 나누고 함께 문제를 해결하는 능력에 초점(수평적 확장). 인간 사회가 일상 업무부터 과학 연구까지 팀워크와 역할 분담을 통해 공통 목표를 달성하듯, 다중 에이전트 시스템도 AI 에이전트들이 서로의 장점과 시각을 결합해 효율적으로 협업하게 함 → <b>개별 에이전트 능력의 총합을 뛰어넘는 진정한 집단 지성 실현</b>이 목표.</p>
+    </div>
+
+    <div class="card full">
+      <h3>질의응답 다중 에이전트 협업 예시 [그림2-1] <span class="tag">Tran et al. 2025</span></h3>
+      <p><b>구성</b>: User(질문자) — Support Agent — Oppose Agent — Research Agent 1, 2, …로 이어지는 "Question-answering Multi-Agent System" 전체가 하나의 둥근 박스로 묶여 있음.</p>
+      <div class="formula">User: "Why is crypto currency more sustainable than fiat currency?"
+  → Support Agent: "Cryptocurrency is always more sustainable, because: ... What do you think?"
+  →[적색] Oppose Agent: "I disagree, but I need more information."
+  →[녹색] Enquiry on Environmental Impact → Research Agent 1
+  →[녹색] Enquiry on Stability            → Research Agent 2
+  →[녹색] ...                              → (추가 Research Agent 가능)
+  ← Research Agent들이 조사 결과를 Oppose Agent에게 회신
+  Oppose Agent →Final Response→ User</div>
+      <p><b>범례</b>: 빨간 선 = <b>경쟁적(Competitive), 규칙 기반(Rule-based), 탈중앙화 채널(Decentralized Channel)</b> — Support↔Oppose 간 대립 구간. 초록 선 = <b>협력적(Cooperative), 역할 기반(Role-based), 중앙집중 채널(Centralized Channel)</b> — Oppose Agent가 Research Agent들을 조율하는 구간.</p>
+      <p><b>2단계 애니메이션 강조</b>: ① 첫 번째 협업 경로 — User → Support Agent → Oppose Agent → Research Agent들 → 다시 Oppose Agent로 돌아오는 전체 흐름. ② 두 번째 협업 경로 — Oppose Agent와 Research Agent 1·2 사이의 질의(Enquiry)·회신 상호작용만을 별도로 강조. 즉 하나의 다이어그램 안에 <b>경쟁 채널(빨강)과 협력 채널(초록)이 동시에 존재</b>함을 보여줌.</p>
+      <p class="src">출처: Tran et al. (2025) — Multi-Agent Collaboration Mechanisms: A Survey of LLMs</p>
+    </div>
+
+    <div class="card full">
+      <h3>다중 에이전트 시스템의 주요 구성 요소 <span class="tag">핵심 개념</span></h3>
+      <table class="compare">
+        <tr><th>구성 요소</th><th>정의</th></tr>
+        <tr><td class="k">에이전트 (Agent)</td><td>역할, 능력, 행동, 지식 모델을 가진 핵심 행위자</td></tr>
+        <tr><td class="k">환경 (Environment)</td><td>에이전트가 존재하며 인식하고 행동할 수 있는 외부 세계</td></tr>
+        <tr><td class="k">상호작용 (Interaction)</td><td>표준화된 프로토콜을 사용한 에이전트 간 소통</td></tr>
+        <tr><td class="k">조직 (Organization)</td><td>에이전트들이 계층 구조로 관리되거나 자발적 행동으로 조직됨</td></tr>
+      </table>
+      <div class="note tip">💡 이 네 요소(에이전트·환경·상호작용·조직)가 이후 다룰 협업 유형·전략·커뮤니케이션 구조의 뼈대가 됨.</div>
+    </div>
+
+    <div class="card full">
+      <h3>협업 유형 개관 [그림2-2] <span class="tag">Cooperation · Competition · Coopetition</span></h3>
+      <table class="compare">
+        <tr><th>유형</th><th>특징</th><th>예시 시스템</th></tr>
+        <tr><td class="k">협력 (Cooperation)</td><td>협업, 역할 분담, 문서 품질 향상</td><td>학술 글쓰기 지원: Editor·Researcher·Translator·Verifier가 handshake로 협업</td></tr>
+        <tr><td class="k">경쟁 (Competition)</td><td>경쟁, 대립, 논증</td><td>법정 시뮬레이션: Defendant vs Prosecutor가 대립 구도로 논쟁</td></tr>
+        <tr><td class="k">코피티션 (Coopetition)</td><td>협력+경쟁, 균형 잡힌 판단</td><td>정책 결정 시스템: Policy Maker가 상단에서 조율, For(찬성)·Against(반대) 에이전트가 handshake로 협상</td></tr>
+      </table>
+      <p class="src">출처: Tran et al. (2025) — Multi-Agent Collaboration Mechanisms: A Survey of LLMs</p>
+    </div>
+
+    <div class="card">
+      <h3>협력 (Cooperation) <span class="tag">유형 1</span></h3>
+      <ul>
+        <li>에이전트들이 각자의 개별 목표를 공동의 집단 목표와 일치시켜 상호 이익이 되는 결과를 달성</li>
+        <li>각자의 전문 분야 내에서 특정 세부 작업에 집중하도록 활용 가능</li>
+      </ul>
+      <div class="note">⚠ 한계 — 빈번한 통신과 다중 협업 채널은 계산 비용·복잡성 증가를 초래. 개별 에이전트의 신뢰성·성능에 크게 좌우되어 한 에이전트의 오류가 전체 시스템에 부정적 영향을 줄 수 있음(예: 무한 대화 루프, 환각 증폭).</div>
+    </div>
+
+    <div class="card">
+      <h3>경쟁 (Competition) <span class="tag">유형 2</span></h3>
+      <ul>
+        <li>에이전트들이 각자의 개별 목표를 우선시하며 다른 에이전트 목표와 충돌·대립하는 경쟁 요소 도입</li>
+        <li>고도의 추론 능력과 더 창의적인 문제해결 방법 개발을 촉진</li>
+        <li>각 에이전트 능력의 한계를 시험함으로써 시스템 적응성 강화</li>
+      </ul>
+      <div class="note">⚠ 한계 — 경쟁적 협업 경로는 강력한 프롬프트를 가진 단일 에이전트에 의해 따라잡힐 수 있음. <b>끝나지 않는 논쟁(endless debate)</b>의 위험.</div>
+    </div>
+
+    <div class="card full">
+      <h3>협력 예시: AgentVerse 반복 의사결정 과정 [그림2-3] <span class="tag">Weize Chen et al. 2024</span></h3>
+      <p>"× N rounds" 반복 루프로 진행되는 협업적 의사결정·실행 사이클:</p>
+      <div class="formula">Goal(Build)
+  → Expert Recruitment → Group(에이전트 팀 구성)
+  → Collaborative Decision-Making(× M turns, 회의)
+  → Action Execution(Agents가 도구로 행동 실행) → New State
+  → Evaluation(Goal == New State ?) → Outcome
+                                     ↳ Reward Feedback → Expert Recruitment(다음 라운드로)</div>
+      <p><b>3라운드 집 짓기 예시</b>: Round1 — Architect·Designer·Engineer → 스케치 단계 New State / Round2 — Logger·Worker·Engineer → 뼈대 완성 New State / Round3 — Designer·Worker·Engineer → 완공된 집 New State.</p>
+      <p class="src">출처: Weize Chen et al. 2024. AgentVerse: Facilitating Multi-Agent Collaboration and Exploring Emergent Behaviors.</p>
+    </div>
+
+    <div class="card full">
+      <h3>협업 예시: MDAgents 의학 영상 판독 <span class="tag">Kim et al., NeurIPS 2024</span></h3>
+      <p>5단계 프로세스(Gross Sectioned Myelolipoma 병리 이미지 판독 사례):</p>
+      <ol>
+        <li><b>난이도 판단(Complexity Check)</b> — 문제 난이도를 Low/Moderate/High로 평가(본 사례는 Moderate로 판정: fibrosis·hemorrhage 등 소견 구분이 미묘하여 전문가 간에도 해석이 갈릴 수 있음)</li>
+        <li><b>전문가 모집(Expert Recruitment)</b> — GP Moderator가 Pathologist, Radiologist, Endocrinologist, Surgeon, Oncologist 등 전문의 에이전트를 소집</li>
+        <li><b>초기 진단 의견 제시(Initial Assessment)</b> — 5명의 전문가 에이전트가 각각 답변: (A) fibrosis 3표, (C) hemorrhage 2표로 의견이 분산</li>
+        <li><b>협업 토론(Collaborative Discussion)</b> — Round r ∈ {1,2,...,R} 내에서 Turn 1 → Turn 2 → ... → Turn T로 turn-based 소통, 종료 조건(if terminate) 충족 시 논의 종결</li>
+        <li><b>최종 판단 및 결론(Review and Final Decision)</b> — GP Moderator가 논의 이력을 종합, Pathologist(1)·Radiologist(2)·Endocrinologist(5)의 fibrosis 의견보다 Surgeon(3)·Oncologist(4)이 제시한 hemorrhage 근거(외상성 대형 출혈은 myelolipoma의 잘 알려진 합병증)가 더 타당하다고 판단하여 <b>최종 결론을 hemorrhage(C)로 확정</b></li>
+      </ol>
+      <div class="note tip">💡 다수결이 아니라 <b>모더레이터가 각 전문가의 논증 근거를 평가해 최종 결정</b>하는 구조 — 협력(전문가 소집·토론)과 경쟁(상반된 진단 주장)이 공존.</div>
+      <p class="src">출처: MDAgents: An Adaptive Collaboration of LLMs for Medical Decision-Making, Kim et al., NeurIPS, 2024</p>
+    </div>
+
+    <div class="card full">
+      <h3>경쟁 예시: LLMArena 게임 기반 다중 에이전트 아레나 [그림2-4] <span class="tag">Chen et al. 2024</span></h3>
+      <p>LLM Arena 오케스트레이터가 각 Player 에이전트에게 System Prompt / Observation Prompt / Action Prompt를 전달하며 경쟁시키는 8종의 게임 환경으로 LLM 에이전트의 역량을 평가:</p>
+      <div class="pillrow">
+        <span class="pill">TicTacToe</span><span class="pill">Connect Four</span><span class="pill">Texas Hold'em</span>
+        <span class="pill">Bid (경매)</span><span class="pill">Bargain (협상)</span><span class="pill">Undercover</span>
+        <span class="pill">Hanabi</span>
+      </div>
+      <p>중앙 랭킹 패널은 <b>TrueSkill 레이팅</b> 방식으로 게임 결과 후 에이전트 순위를 갱신(예: "Qwen-1.5B Wins!"로 레이팅 상승, "GPT-3.5-Turbo Loses!"로 레이팅 하락). 각 게임은 보드/카드 상태를 Observation Prompt로 제공하고, 정해진 행동 형식(좌표, 베팅액, 분배안, 클루 등)을 Action Prompt로 요구 — 경쟁을 통해 추론·전략 능력을 정량 비교.</p>
+      <p class="src">출처: LLMARENA: Assessing Capabilities of Large Language Models in Dynamic Multi-Agent Environments (Chen et al., 2024)</p>
+    </div>
+
+    <div class="card full">
+      <h3>협력과 경쟁의 조합 (Coopetition) <span class="tag">유형 3</span></h3>
+      <ul>
+        <li><b>전략적 조합</b>: 에이전트들이 공동 목표 달성을 위해 특정 작업에서는 협력하면서 동시에 다른 작업에서는 경쟁할 수 있도록 함</li>
+        <li><b>전문가 혼합 모델(Mixture-of-Experts)</b>: 다양한 전문가 모델들이 최종 결과물에 기여하려고 경쟁하고, 게이트 시스템이 각 입력에 맞는 최적의 전문가를 선택. 전문가 간 협력·경쟁 관계는 <b>모델 학습 과정에서 먼저 형성</b>되며, 이때 각자가 데이터의 서로 다른 측면에 전문화하도록 훈련됨</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>규칙 기반 프로토콜 (Rule-based) <span class="tag">협업 전략 1</span></h3>
+      <ul>
+        <li><b>사전에 정의된 규칙</b>으로 에이전트 간 상호작용을 엄격히 통제</li>
+        <li>동료 검토(peer-review)에서 영감을 받은 메커니즘 — 사전 정의된 규칙으로 서로의 출력을 비판·수정·개선</li>
+        <li>시스템 동작과 특정 규칙을 쉽게 연결할 수 있어 <b>구현과 디버깅이 용이</b></li>
+        <li>합의 도출, 경로 찾기처럼 <b>절차가 명확하고 변동성이 적은 작업</b>에 특히 효율적</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>역할 기반 프로토콜 (Role-based) <span class="tag">협업 전략 2</span></h3>
+      <ul>
+        <li><b>사전에 정의된 역할</b> — 세분화된 목표 하에서 각 에이전트가 고유한 역할 분담·업무 분할로 작동</li>
+        <li>주로 도메인 지식에 기반 — 특정 책임 할당으로 인간과 유사한 협업을 시뮬레이션, 역할 준수로 일치성 강화</li>
+        <li>각 에이전트 역할이 전문가 수준 지식으로 정의되어, 서로의 결과를 검증하는 전문가 역할 수행 가능</li>
+        <li><b>개별 모듈의 재활용 가능성</b></li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>역할 기반 전략 예시: MetaGPT [그림2-5] <span class="tag">Sirui Hong et al. 2024</span></h3>
+      <p>"MetaGPT Agents Collaboration with Developing SOP" — 인간의 소프트웨어 개발 SOP(Standard Operating Procedure)를 역할 기반으로 다중 에이전트에 매핑:</p>
+      <table class="compare">
+        <tr><th>단계</th><th>역할(Role)</th><th>산출물</th></tr>
+        <tr><td class="k">1/5 Define</td><td>Product Manager</td><td>Requirement document (요구사항 문서)</td></tr>
+        <tr><td class="k">2/5 Design</td><td>Architect</td><td>System design (시스템 설계도)</td></tr>
+        <tr><td class="k">3/5 Plan&amp;Code</td><td>Project Manager</td><td>Tasks (작업 목록)</td></tr>
+        <tr><td class="k">4/5 Test</td><td>Engineer</td><td>Code (Coding → Testing)</td></tr>
+        <tr><td class="k">5/5</td><td>QA Engineer</td><td>Acceptance Check</td></tr>
+      </table>
+      <p>Planning → Requirement Analysis → Architectural Design → System Design → Coding → Testing으로 이어지는 "Human Developing SOP"를 따라가며, 우측에는 인간과의 상호작용(Human interaction) 예시가 배치됨: 사람이 "Write a classic and simple Flappy Bird game."라는 한 줄 요구사항만 주면, 최종적으로 "Boss makes acceptance check and payment" — 사람이 "Pretty good! I can directly use the interface and keyboard to play Flappy Bird."라고 승인.</p>
+      <div class="note tip">💡 MetaGPT는 <b>역할 기반 프로토콜(Role-based)</b>의 대표 사례 — 각 에이전트가 실제 SW 개발 조직의 직무(PM, Architect, PjM, Engineer, QA)를 그대로 전문화하여 맡음.</div>
+      <p class="src">출처: Sirui Hong et al. 2024. MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework.</p>
+    </div>
+
+    <div class="card">
+      <h3>중앙집중형 구조 (Centralized) <span class="tag">커뮤니케이션 구조 1</span></h3>
+      <p><b>참여자–서비스 제공자 구조</b>: 서비스 에이전트가 시스템 내 참여자들 간 소통·협력을 관리·제어·조율.</p>
+      <ul>
+        <li><b>LLM-Blender</b> — 한 라운드에서 서로 다른 LLM들을 호출하고 두 개씩 비교하여 순위를 책정한 후, 최상위 응답들을 결합</li>
+        <li><b>판사 에이전트(토론)</b>, <b>의사(MDT 프로세스)</b> — 최종 의사결정을 위한 중앙 조율자 역할</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>탈중앙화 구조 (Decentralized) <span class="tag">커뮤니케이션 구조 2</span></h3>
+      <ul>
+        <li>에이전트에 대한 통제·의사결정이 분산됨 — 각 에이전트는 제한적 통신과 일부 정보만으로 작동하므로 정교한 상호작용·의사결정 알고리즘 필요</li>
+        <li>에이전트들이 분산형으로 서로 직접 소통</li>
+        <li><b>일부 에이전트가 실패해도 시스템이 계속 기능</b>할 수 있음</li>
+        <li><b>높은 확장성</b> 제공 — 에이전트들이 자율적으로 작동하고 시스템 변화에 적응 가능</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>커뮤니케이션 구조 비교 및 남은 과제 <span class="tag">종합</span></h3>
+      <table class="compare">
+        <tr><th>구분</th><th>중앙집중형</th><th>탈중앙화</th></tr>
+        <tr><td class="k">제어 방식</td><td>중앙 서비스/판사/모더레이터 에이전트가 조율</td><td>에이전트 간 직접·분산 소통</td></tr>
+        <tr><td class="k">장애 내성</td><td>중앙 노드 실패 시 취약</td><td>일부 에이전트 실패해도 지속 기능</td></tr>
+        <tr><td class="k">확장성</td><td>참여자 증가 시 병목 우려</td><td>높은 확장성, 자율 적응</td></tr>
+        <tr><td class="k">예시</td><td>LLM-Blender, 판사 에이전트, MDT 의사</td><td>분산형 직접 통신 다중 에이전트</td></tr>
+      </table>
+      <div class="note exam">★ 다중 에이전트 시스템에 대한 우려의 시사점
+      <ul>
+        <li><b>확장성 고려사항</b> — 성능 저하 없이 더 큰 에이전트 네트워크를 처리하려면 확장 가능한 아키텍처·알고리즘 구현이 필수</li>
+        <li><b>최적 협업 전략</b> — 효과적 협업을 위해 작업 요구사항에 맞는 최적의 협업 전략 선택이 핵심</li>
+        <li><b>적응 가능한 역할 및 협업 경로 할당</b> — 변화하는 환경과 목표에 효과적으로 대응하려면 적응 가능성이 필요</li>
+      </ul></div>
+    </div>
+
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+      <ul>
+        <li>중앙집중형 구조(판사·모더레이터 조율)와 탈중앙화 구조(자율적 직접 통신) 중 어느 쪽이 더 나은지는 "무엇을" 다중 에이전트 시스템에 맡기느냐에 따라 달라질 것이다. 의료 진단처럼 최종 책임 소재가 명확해야 하는 과업과, 대규모 브레인스토밍처럼 다양성이 중요한 과업에서 각각 어떤 구조를 택해야 할까? 그 이유는?</li>
+        <li>MDAgents 사례에서 5명의 전문가 에이전트 의견이 3:2로 갈렸을 때 모더레이터가 소수 의견(Surgeon·Oncologist)의 손을 들어주었다. 다수결이 아닌 "논증의 질" 기반 의사결정이 협력형 시스템에서 갖는 장점과, 반대로 모더레이터의 판단이 편향되었을 때 발생할 수 있는 위험은 무엇일까?</li>
+        <li>경쟁(Competition) 기반 협업은 "끝나지 않는 논쟁"에 빠질 위험이 있다고 했다. LLMArena의 게임 환경처럼 명확한 승패 기준(TrueSkill 레이팅)을 두는 것 외에, 실제 업무용 다중 에이전트 시스템에서 경쟁적 토론을 적절한 시점에 종료시키려면 어떤 규칙 기반 장치(rule-based protocol)를 설계할 수 있을까?</li>
+      </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section" id="ch3" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>Memory &amp; Tool in Multi Agent System</h2><p class="desc">LLM에서 에이전트로의 패러다임 전환, RAG·에이전트형 RAG, 도구사용 학습법(Toolformer·Gorilla·ReTool·Search-R1), MCP·A2A 프로토콜.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>패러다임의 전환: 언어 모델에서 에이전트 시스템으로 <span class="tag">Overview</span></h3>
+      <p>AI는 전통적인 대규모 언어 모델(LLM)에서, 독립적 사고와 행동을 할 수 있는 자율적인 "AI 에이전트"의 새로운 패러다임으로 발전하고 있음. 고정된 매개변수 메모리에 제한받는 수동적인 LLM과 달리, AI 에이전트는 실시간 정보에 접근하고, 외부 도구를 활용하며, 물리적·디지털 세계와 상호작용하고, 정적인 훈련 데이터를 넘어서 적응할 수 있음. 즉 에이전트는 환경을 인지하고, 계획을 수립하며, 목표 달성을 위해 구체적인 행동을 실행하는 능동적 개체.</p>
+      <div class="formula">
+LLM → (훈련, 정렬…) → Smarter LLM  &nbsp;⇒&nbsp;  "혼자 모든 작업을 처리할 수 있을까?"<br>
+개선된 답: Smarter LLM = LLM + <b>DB + RAG + Tool + Search</b>
+      </div>
+      <div class="note tip">💡 아인슈타인 비유 — "I am smart!"라고 말하는 아인슈타인 사진(순수 지능/지식)만으로는 충분하지 않음. [아인슈타인] + [노트/도구/메모(빈 상자로 표현)] = 실제 정교한 결과물(손글씨 물리 방정식 원고). 즉 <b>똑똑함(파라미터 지식) 그 자체가 아니라, 외부 도구·메모리와 결합될 때</b> 진짜 결과물이 나온다는 것이 패러다임 전환의 핵심 예시.</div>
+      <table class="compare">
+        <tr><th>능력 그룹</th><th>설명</th><th>핵심 질문</th></tr>
+        <tr><td class="k">기억/지식</td><td>학습 데이터 범위를 넘어서는 광범위하고 변화하는 외부 정보를 활용·분석</td><td>에이전트가 최신 정보를 어떻게 습득하는가? (RAG, 메모리)</td></tr>
+        <tr><td class="k">행동/능동성</td><td>외부 환경과 소통하고 변화를 일으키는 능력</td><td>구체적인 업무를 어떻게 완수하는가? (도구 호출)</td></tr>
+        <tr><td class="k">학습/적응</td><td>축적된 경험을 바탕으로 기억·행동 방식을 발전</td><td>공동 작업 시 어떻게 지능을 향상시키는가? (멀티 에이전트 학습)</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>LLM 매개변수 메모리의 한계</h3>
+      <ul>
+        <li><b>낡은 지식</b> — 학습 시점에 지식이 고정되어 최신 정보 반영 불가</li>
+        <li><b>환각 현상</b> — 그럴듯하지만 잘못된 내용 생성</li>
+        <li><b>사적 정보 접근 불가</b> — 기업 내부·개인화 정보 검색 불가</li>
+      </ul>
+      <div class="note exam">★ 이런 제약들로 인해 실제 핵심 업무에서 LLM을 믿고 사용하기 어려움 → RAG·에이전트 필요성의 출발점.</div>
+    </div>
+
+    <div class="card">
+      <h3>검색 증강 생성(RAG) 기본 개념</h3>
+      <p><b>핵심 아이디어</b> — LLM이 답변을 생성하기 전, 신뢰할 수 있는 외부 소스(DB, 최신 웹 문서 등)에서 관련 정보를 검색하고 그 정보를 바탕으로 응답을 구성.</p>
+      <p><b>장점</b> — LLM의 자연스러운 표현력과 외부 지식의 정확성·시의성·검증 가능성을 결합해 더 신뢰할 수 있고 근거가 확실한 답변 생성.</p>
+    </div>
+
+    <div class="card full">
+      <h3>[그림3-1] RAG 기본 파이프라인</h3>
+      <div class="formula">
+① Retrieval: Query + Chunks(문서 분할) → Embedding model → Vector Database<br>
+② Augmented: Vector DB 출력(Context) + Query → Prompt template<br>
+③ Generation: Prompt template → LLM → Response (→ 다시 Query 루프로)
+      </div>
+      <p>Documents → Chunks로 분할 → 임베딩되어 Vector DB에 저장. 질의 시 유사도 검색으로 관련 Context를 찾아 프롬프트에 삽입 후 LLM이 응답을 생성하는 3단계(검색·증강·생성) 구조.</p>
+      <p class="src">출처: https://weaviate.io/blog/what-is-agentic-rag</p>
+    </div>
+
+    <div class="card full">
+      <h3>일반적 RAG의 한계 → 에이전트형 RAG</h3>
+      <ul>
+        <li>단순 RAG는 외부 지식 소스를 하나만 사용하지만, 때로는 2개 이상의 지식 소스나 웹 검색·API 같은 외부 툴이 필요</li>
+        <li>일회성(one-shot) 방식으로 정보를 한 번만 가져오기 때문에, 가져온 정보의 품질을 검토·확인하는 과정이 없음</li>
+        <li>선형 RAG는 간단한 질의응답엔 효과적이지만, 상태 정보를 저장하지 않아 다단계 추론·복합 탐구에는 한계</li>
+        <li>"기억하지 못하는 검색 엔진"처럼 맥락을 유지하거나 제대로 된 조사 작업을 수행할 수 없음</li>
+      </ul>
+      <div class="note tip">💡 <b>RAG + 에이전트 = 에이전트형 RAG(Agentic RAG)</b> — 검색 파이프라인 자체를 에이전트가 조율하도록 만들어 위 한계를 극복.</div>
+    </div>
+
+    <div class="card">
+      <h3>에이전트형 RAG(Agentic RAG)란?</h3>
+      <p>AI 에이전트가 RAG 파이프라인을 향상시켜, 각 단계를 조율하고 단순 검색/생성을 넘어서는 역할을 수행. 주로 벡터 검색, 웹 검색, 계산기, API 등의 도구를 사용해 정보 검색에 적용.</p>
+      <p><b>에이전트가 할 수 있는 일</b>: 검색 여부 결정 · 도구 선택 · 쿼리 생성 · 결과 평가/재검색.</p>
+    </div>
+
+    <div class="card">
+      <h3>AI 에이전트의 주요 구성 요소</h3>
+      <ul>
+        <li><b>LLM</b> — 특정 역할과 작업을 담당</li>
+        <li><b>메모리</b> — 단기 기억 및 장기 기억</li>
+        <li><b>계획(Planning)</b> — 자기 성찰, 자기 비판, 쿼리 분배 등</li>
+        <li><b>도구(Tools)</b> — 계산기, 웹 검색 등</li>
+      </ul>
+      <div class="note">[그림3-2] 중앙 Agent(Task/Role) ↔ Memory(단기/장기) · Planning(Reflection/Self-critics…) · Tools(벡터검색엔진·계산기·웹검색·Gmail·Slack) · Collection(벡터DB, 검색엔진과 연결)이 양방향으로 연결된 구조. 출처: weaviate.io/blog/what-is-agentic-rag</div>
+    </div>
+
+    <div class="card full">
+      <h3>단일 에이전트형 RAG(Router) vs 멀티 에이전트형 RAG</h3>
+      <table class="compare">
+        <tr><th>구분</th><th>단일 에이전트 RAG (Router) [그림3-3]</th><th>멀티 에이전트 RAG [그림3-4]</th></tr>
+        <tr><td class="k">구조</td><td>Query → 하나의 Retrieval Agent가 모든 도구(벡터검색A/B, 계산기, 웹검색)를 직접 라우팅</td><td>Query → 중앙 Retrieval Agent → 하위 Retrieval Agent A/B/C로 분기, 각자 다른 도구 전담</td></tr>
+        <tr><td class="k">도구 배치</td><td>단일 에이전트가 Collection A/B, Calculator, Web search를 전부 사용</td><td>A=벡터검색(Collection A/B), B=Web search, C=Slack/Gmail 로 역할 분산</td></tr>
+        <tr><td class="k">출력</td><td>Retrieval Agent → LLM → Response (Query로 루프)</td><td>중앙 Agent → LLM → Response (Query로 루프)</td></tr>
+      </table>
+      <p class="src">출처: https://weaviate.io/blog/what-is-agentic-rag</p>
+      <div class="note exam">★ 멀티 에이전트 훈련의 핵심 질문 — "여러 모듈 중 어느 것이 가장 영향력이 큰가?"(Retrieval Agent 영역 강조) / "어떻게 하면 LLM 에이전트가 적절한 시간에 적절한 행동을 하도록 할 수 있을까?"</div>
+    </div>
+
+    <div class="card">
+      <h3>멀티 에이전트 훈련의 딜레마: 언제·무엇을·어떻게</h3>
+      <ul>
+        <li><b>언제(When)</b> — 매개변수 지식으로 답할지 도구를 호출할지 결정 (비용/지연시간 vs 정확성 트레이드오프)</li>
+        <li><b>무엇을(What)</b> — 적절한 도구 선택 (계산기, 웹 검색, DB 쿼리 등)</li>
+        <li><b>어떻게(How)</b> — 선택한 도구의 API에 올바른 인수 전달</li>
+        <li><b>해석(Interpretation)</b> — 반환된 결과·오류를 분석하고 다음 행동 결정</li>
+      </ul>
+      <div class="note tip">💡 이 의사결정 단계들이 모여 에이전트의 <b>행동 정책(Policy)</b>을 형성하며, 강화학습(RL)을 통해 효과적으로 학습될 수 있음.</div>
+    </div>
+
+    <div class="card full">
+      <h3>Toolformer — 언어모델이 스스로 도구 사용법을 학습 <span class="tag">Self-supervised</span></h3>
+      <p><b>목표</b>: 생성 과정에서 언어모델이 언제·어떻게 외부 도구(계산기, 검색 엔진, 번역 API 등)를 사용할지 스스로 결정하도록 함.</p>
+      <p><b>핵심 아이디어</b>: 자기 지도 학습 — 인간 주석 없이, 모델이 스스로 생성한 API 호출 예시로부터 학습.</p>
+      <div class="formula">
+① 소규모 API 호출 데모 세트로 시작<br>
+② LM이 새로운 맥락에 후보 API 호출 삽입 (Sample API Calls)<br>
+③ 호출 실행 · 응답 검색 · 손실 감소 기준으로 유용성 필터링 (Execute/Filter API Calls)<br>
+④ 필터링된 예시로 LM 미세조정 (LM finetuned with API Calls)
+      </div>
+      <p>예시: "Out of 1400 participants, 400 (or [Calculator(400/1400) → 0.29] 29%) passed the test." 처럼 텍스트 중간에 [API명(인자) → 결과]가 삽입되고, 이 결과가 이후 토큰 예측 손실을 줄이는 경우에만 학습에 채택됨.</p>
+      <p class="src">출처: Toolformer: Language Models Can Teach Themselves to Use Tools (Schick et al., 2023)</p>
+    </div>
+
+    <div class="card full">
+      <h3>Gorilla — LLM을 대규모 API와 연결 <span class="tag">RAFT</span></h3>
+      <p><b>목표</b>: LLM이 대규모 실제 API 세트를 안정적으로 호출·사용하도록 하여 정확도·근거·기능을 향상.</p>
+      <ul>
+        <li>APIBench 데이터셋(API 문서 대규모 세트 + 사용법 예제 + 도구 호출 패턴)으로 LLAMA, GPT류 모델을 미세조정</li>
+        <li>API 호출 생성 전 관련 API 문서를 검색해오는 <b>검색 증강 미세조정(RAFT)</b> 사용</li>
+        <li>수십만 개의 API를 정확한 서식으로 처리 가능</li>
+        <li>문서 검색 + 지도 미세조정(SFT)을 통해 "환각" API 호출 감소</li>
+      </ul>
+      <div class="note">[그림3-6] 데이터셋 구축: Torch Hub(94%) + TensorFlow Hub v2(626개) + HuggingFace(도메인별 Top20, 925개) → self-instruct로 16,450개의 (instruction, API) 쌍 생성 → Gorilla-7B 훈련. 추론 시: 사용자 질의 → Information Retriever가 API DB에서 관련 문서 검색 → Gorilla가 정확한 API 호출문(예: <code>StableDiffusionPipeline.from_pretrained(...)</code>) 생성 → 실행 결과 반환.</div>
+      <p class="src">출처: Gorilla: Large Language Model Connected with Massive APIs (Patil et al.)</p>
+    </div>
+
+    <div class="card full">
+      <h3>ReTool — 전략적 도구 사용을 위한 강화학습 <span class="tag">PPO</span></h3>
+      <p><b>목표</b>: 코드 인터프리터 등 외부 도구를 언제·무엇을·어떻게 사용할지 학습시켜, 복잡하고 계산 집약적인 작업에서 LLM 추론 능력을 향상.</p>
+      <p><b>2단계 훈련</b>: ① 선별된 코드-증강 추론 흔적을 활용한 콜드스타트 SFT → ② PPO 기반 강화학습 + 실시간 코드 실행/피드백.</p>
+      <p>결과 기반 보상을 통해 도구 호출 타이밍, 도구 선택, 코드 개선, 자기 수정을 학습.</p>
+      <div class="note">[그림3-7] (a) 텍스트 기반 RL: Question → Rollout → Policy LLM → Reward/Advantage. (b) ReTool RL: Question → "코드 실행이 교차된 Rollout" — Policy LLM ↔ Code Sandbox를 반복하며 Text/Code/Interpreter Feedback/Final Result를 교대 생성 → Reward → Advantage.</div>
+      <p class="src">출처: ReTool: Reinforcement Learning for Strategic Tool Use in LLMs (Feng et al., 2025)</p>
+    </div>
+
+    <div class="card full">
+      <h3>Search-R1 — 웹 검색을 위한 강화학습 <span class="tag">GRPO</span></h3>
+      <p><b>목표</b>: LLM 에이전트가 자율적으로 다단계 웹 검색을 수행해 답변의 정확성·관련도를 개선.</p>
+      <ul>
+        <li>검색 증강 LLM 에이전트를 훈련시켜 언제·어떻게 검색할지 결정, 질의 구성, 관련 결과 선택, 최종 답변 통합까지 수행</li>
+        <li>선호(preference) 피드백을 활용한 온라인 RL로 검색 전략 개선</li>
+        <li>도구 사용(검색 vs 미검색), 질의 구성, 반복 개선에 대한 정책(policy)을 학습</li>
+      </ul>
+      <div class="formula">GRPO(Group Relative Policy Optimization) — PPO에서 발전된 방법. 하나의 입력에 대해 여러 실행(rollout) 결과를 서로 비교하여, 더 나은 검색 기반 결과에 상대적으로 큰 보상 부여</div>
+      <div class="note">[그림3-8] PPO w. Search Engine: q → Rollout(검색엔진) → o → Reward Model → r, Reference Model·Value Model → v → GAE → A. / GRPO w. Search Engine: q → Policy Model이 o1,o2,o3 생성 → 각각 Reward(r1,r2,r3)+Reference(KL) 계산 → Group Computation → A1,A2,A3 (그룹 내 상대 비교로 어드밴티지 산출).</div>
+      <p class="src">출처: Search-R1: Training LLMs to Leverage Search Engines with Reinforcement Learning (Jin et al., 2025)</p>
+    </div>
+
+    <div class="card">
+      <h3>모델 컨텍스트 프로토콜(MCP) <span class="tag">USB-C for AI</span></h3>
+      <p><b>정의</b>: AI 모델이 외부 도구·리소스·환경과 원활하게 상호작용할 수 있도록 하는 표준화된 인터페이스 — "AI 기능의 USB-C" 역할.</p>
+      <div class="note exam">★ 왜 중요한가 — MCP가 없으면 M개의 AI 앱을 N개의 도구에 연결하려면 <b>M×N</b>개의 개별 통합이 필요. MCP는 이를 <b>M+N</b>개로 단순화(예: 3모델×3도구 = 직접연결 9개 vs MCP허브 경유 6개).</div>
+      <table class="compare">
+        <tr><th>구성요소</th><th>역할</th></tr>
+        <tr><td class="k">호스트(Host)</td><td>AI 애플리케이션 환경 (예: 채팅 앱, IDE)</td></tr>
+        <tr><td class="k">클라이언트(Client)</td><td>호스트와 MCP 서버 간 통신 처리</td></tr>
+        <tr><td class="k">서버(Server)</td><td>표준 형식으로 도구·리소스·프롬프트 제공</td></tr>
+      </table>
+      <p><b>핵심 기능</b>: 도구(Tools, 실행 가능한 작업 — 쿼리 실행, 날씨 조회 등) · 리소스(Resources, 읽기 전용 데이터 — 문서, DB) · 프롬프트(Prompts, AI 행동을 지도하는 사전정의 템플릿/워크플로우).</p>
+      <p>효과: 연결 작업의 복잡성 해소, 도구·자료의 재활용성 증대, 여러 도구를 활용하는 유연한 AI 에이전트 개발 촉진.</p>
+      <div class="note">구조 예: MCP 호스트(Claude Desktop / IDE(Cursor) / 기타 AI 앱) 각각이 자신의 MCP 클라이언트를 통해 MCP 프로토콜로 각자의 MCP 서버에 연결되고, 서버는 로컬 파일시스템·DB·웹 API 등 백엔드에 연결.</div>
+    </div>
+
+    <div class="card">
+      <h3>Agent2Agent 프로토콜(A2A) <span class="tag">에이전트 협업</span></h3>
+      <p><b>목표</b>: 여러 AI 에이전트가 내부 메모리·사고·도구를 직접 공유하지 않고, 맥락·작업 업데이트·지시사항·데이터만 교환하여 협업할 수 있도록 함.</p>
+      <table class="compare">
+        <tr><th>프로토콜</th><th>역할</th></tr>
+        <tr><td class="k">MCP</td><td>에이전트를 외부 도구에 연결</td></tr>
+        <tr><td class="k">A2A</td><td>에이전트 간 협업을 지원</td></tr>
+      </table>
+      <p><b>핵심 개념</b>: 에이전트 서버(Agent Server, 개별 에이전트 호스팅) · 클라이언트 에이전트(Client Agent, 여러 에이전트 서버로 연결) · 라우터(Router, 쿼리를 적절한 에이전트로 전달).</p>
+      <div class="note">구조: 사용자 → 클라이언트 에이전트 → A2A 프로토콜(라우팅) → 원격 에이전트 1 / 원격 에이전트 2로 분기.</div>
+    </div>
+
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>새로운 지식을 LLM에 반영해야 할 때, RAG로 외부 검색을 붙이는 것과 모델을 파인튜닝하는 것 중 어떤 기준으로 선택해야 할까? (지식의 갱신 주기, 비용, 환각 위험, 데이터 민감도 등을 함께 고려해보자.)</li>
+          <li>단일 에이전트형 RAG(Router)와 멀티 에이전트형 RAG는 각각 어떤 작업 규모·복잡도에서 유리할까? 에이전트를 세분화할수록 오히려 손해가 되는 지점은 어디일까?</li>
+          <li>MCP가 "에이전트-도구" 연결을 표준화한다면, A2A는 "에이전트-에이전트" 연결을 표준화한다. 두 프로토콜이 함께 보급될 때 에이전트 생태계의 상호운용성은 어떻게 달라질까, 그리고 어떤 새로운 보안·신뢰 문제가 생길 수 있을까?</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ===================== 4. Reasoning & Planning ===================== -->
+<section class="section" id="ch4" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>Reasoning & Planning in AI Agent</h2><p class="desc">LLM의 추론 능력(CoT·Self-consistency·Tree of Thoughts)부터 에이전트 Planning(ReAct·HuggingGPT·Plan-and-Act), 추론 시간 연산량 스케일링과 효율적 추론까지 (원본 슬라이드 109~135장 기반)</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>추론 능력이 있는 대규모 언어 모델</h3>
+      <p>대규모 언어 모델은 논리 퍼즐, 수학적 문제, 코딩과 같은 복잡한 작업을 해결할 수 있음. 대표 벤치마크 3종:</p>
+      <table class="compare">
+        <tr><th>벤치마크</th><th>내용</th></tr>
+        <tr><td class="k">ARC-AGI-2</td><td>컬러 그리드 기반 추상적 시각/논리 패턴 퍼즐(예시 그리드 → 빈 그리드 완성)</td></tr>
+        <tr><td class="k">AIME 2025</td><td>수학 문제. 예: "Find the sum of all positive integers n such that n+2 divides the product (n+3)(n²+9)."</td></tr>
+        <tr><td class="k">LiveCodeBench</td><td>코딩 문제. 세 정수열 A,B,C와 정수 K가 주어질 때 N³개의 (i,j,k) 조합 중 AᵢBⱼ+BⱼCₖ+CₖAᵢ의 K번째로 큰 값을 구하는 문제</td></tr>
+      </table>
+      <p>이러한 질문에 답하기 위해 LLM은 단계별 사고 과정, 즉 <b>"추론(Reasoning)"</b>을 수행할 수 있어야 함.</p>
+      <div class="note exam">★ 시험 단골 — 나탈리아 클립 문제 비교: "4월에 48명에게 판매, 5월엔 절반 판매 → 총 몇 개?"
+      <ul>
+        <li><b>추론 미사용</b>(파란 박스): "그녀는 72개의 클립을 팔았습니다." — 근거 없이 답만 제시</li>
+        <li><b>추론 사용</b>(주황 박스): "5월 = 48/2 = 24개. 4월+5월 = 48+24=72개. 따라서 총 72개." — 중간 단계를 명시적으로 노출한 뒤 같은 답에 도달</li>
+      </ul>
+      두 답의 최종 결과(72)는 같지만, 추론 과정을 노출하는 방식이 복잡한 문제에서 정답률을 크게 높임.</div>
+    </div>
+
+    <div class="card">
+      <h3>Few-shot / CoT Prompting <span class="tag">그림4-1</span></h3>
+      <p>프롬프트만으로도 추론 능력을 이끌어낼 수 있음. <b>Chain-of-Thought Prompting</b>: 예시 답변에 추론 과정을 포함시키는 Few-shot 기법.</p>
+      <div class="formula">Standard Prompting
+Q: Roger has 5 tennis balls...
+A: The answer is 11.
+Q: (cafeteria apples)
+A: The answer is 27. ✗ (오답)
+
+Chain-of-Thought Prompting
+Q: Roger has 5 tennis balls...
+A: Roger started with 5 balls. 2 cans of
+   3 tennis balls each is 6 tennis balls.
+   5 + 6 = 11. The answer is 11.
+Q: (cafeteria apples)
+A: The cafeteria had 23 apples originally.
+   They used 20 to make lunch, so 23-20=3.
+   They bought 6 more, so 3+6=9.
+   The answer is 9. ✓ (정답)</div>
+      <div class="note gap">예시 답변에 "왜 그렇게 계산했는지"의 추론 사슬을 포함시키면, 모델이 새 질문에도 같은 패턴으로 단계별 사고를 이어가며 정답률이 상승.</div>
+      <p class="src">Wei et al., "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models", NeurIPS 2022</p>
+    </div>
+
+    <div class="card">
+      <h3>Zero-shot Prompting <span class="tag">그림4-2</span></h3>
+      <p>예시 없이 "Let's think step by step" 한 문장만 추가해도 추론을 유도할 수 있음. 저글러 문제(공 16개, 절반이 골프공, 그 절반이 파란색)로 4가지 방식 비교:</p>
+      <table class="compare">
+        <tr><th>방식</th><th>프롬프트 구성</th><th>결과</th></tr>
+        <tr><td class="k">(a) Few-shot</td><td>예시 Q&A + 직답만</td><td>"The answer is 8." ✗</td></tr>
+        <tr><td class="k">(b) Few-shot-CoT</td><td>예시 답변에 추론 포함</td><td>16/2=8 golf, 8/2=4 blue → "4" ✓</td></tr>
+        <tr><td class="k">(c) Zero-shot</td><td>"A: The answer (arabic numerals) is"</td><td>"8" ✗</td></tr>
+        <tr><td class="k">(d) Zero-shot-CoT</td><td>"A: Let's think step by step." 추가</td><td>16→8 golf→4 blue ✓</td></tr>
+      </table>
+      <div class="note tip">💡 핵심 — 예시(Few-shot) 없이도 "단계별로 생각해보자"라는 지시 문구 하나로 CoT와 유사한 추론 능력을 이끌어낼 수 있다는 것이 Zero-shot-CoT의 발견.</div>
+      <p class="src">Kojima et al., "Large Language Models are Zero-Shot Reasoners", NeurIPS 2022</p>
+    </div>
+
+    <div class="card full">
+      <h3>Self-consistency <span class="tag">그림4-3</span></h3>
+      <p><b>자기 일관성</b>: 다양한 추론 과정을 생성하고 그 중 가장 일관성 있는(다수결) 답변을 고르는 디코딩 방식.</p>
+      <div class="formula">[CoT prompting — Greedy decode]
+Prompt → LM → 단일 추론 경로:
+ "3+4=7개 사용, 남은 것을 개당 $2에 판매
+  → 7*$2=$14" → Output: "The answer is $14."
+
+[Self-consistency — Sample diverse reasoning paths]
+Prompt → LM → 여러 추론 경로 샘플링:
+ ① "16-3-4=9개 남음 → 9*$2=$18"      → $18
+ ② "16-4-3=9 → $2*(16-4-3)=$26"       → $26
+ ③ "3개 아침 식사, 16-3=13 → 4개 머핀,
+    13-4=9 → 9*$2=$18"                → $18
+→ Marginalize(다수결) → 최종 Output: "The answer is $18."</div>
+      <p>동일 질문에 대해 여러 개의 서로 다른 추론 경로를 샘플링한 뒤, 그 결론들을 집계(marginalize)하여 가장 많이 나온 답을 최종 답으로 채택($18이 두 번, $26이 한 번 → $18 채택). 단일 그리디 디코딩보다 오류에 강건함.</p>
+      <p class="src">Wang et al., "Self-Consistency Improves Chain of Thought Reasoning in Language Models", ICLR 2023</p>
+    </div>
+
+    <div class="card full">
+      <h3>Tree of Thoughts (ToT) <span class="tag">그림4-4 · 4-5</span></h3>
+      <p><b>Tree of Thoughts</b>: 너비 우선 탐색(BFS) 또는 깊이 우선 탐색(DFS) 방식으로 다양한 생각(thought)을 생성하고 평가하며 트리 구조로 탐색.</p>
+      <div class="pillrow">
+        <span class="pill">(a) IO Prompting — Input → Output 단일 직선</span>
+        <span class="pill">(b) CoT — Input → 순차 체인 → Output</span>
+        <span class="pill">(c) CoT-SC — 3개 병렬 체인 → 다수결 → Output</span>
+        <span class="pill">(d) ToT — Input → 트리 전체 탐색 → Output</span>
+      </div>
+      <p>ToT 구조에서는 각 단계의 생각(thought)이 초록(유지)/분홍(폐기)/진초록(최종 선택)으로 구분되며, 여러 레벨을 거쳐 최적 경로로 수렴함.</p>
+      <div class="note exam">★ 시험 단골 — "24 게임" 예시(입력: 4 9 10 13, 목표: 사칙연산으로 24 만들기):
+      <ul>
+        <li>1단계: "10-4=6 (남은 수: 6 9 13)", "4+9=13 (남은 수: 10 13 13)" 등 후보 생성 → 유망한 가지(4+9=13)로 확장</li>
+        <li>2단계: "13-6=7 (7 9)", "13-9=4 (4 6)" 등 재귀적 확장</li>
+        <li>최종: "4+6=10 (10)" → "4*6=24 (24)"에 도달하는 경로가 정답으로 선택(빨간 강조)</li>
+      </ul>
+      이 과정은 두 종류의 프롬프트로 구현: <b>(a) Propose Prompt</b> — "Input: 4 9 10 13 Possible next steps:" → LM이 다음 후보 수식들("Thought Generation")을 제안. <b>(b) Value Prompt</b> — "Evaluate if given numbers can reach 24 (sure/likely/impossible)" → LM이 각 후보의 도달 가능성을 평가("Thought Evaluation", 예: "10 13 13 → impossible").</div>
+      <p class="src">Yao et al., "Tree of Thoughts: Deliberate Problem Solving with Large Language Models", NeurIPS 2023</p>
+    </div>
+
+    <div class="card full">
+      <h3>LLM 에이전트의 Planning</h3>
+      <p>LLM은 여러 사고 단계를 생성할 수 있음 — 즉 목표 달성을 위한 하위 목표들의 순서를 구성할 수 있음. 여기에 <b>행동(실행) 명령을 통합</b>하면 LLM이 결과를 되돌아보면서 도구를 사용하거나 행동할 수 있게 됨. 이는 "생각(추론)"과 "행동(도구·환경 조작)"을 결합해 실제 목표를 달성하는 에이전트 구조로 이어짐.</p>
+    </div>
+
+    <div class="card full">
+      <h3>ReAct — 생각과 행동의 결합 <span class="tag">그림4-6</span></h3>
+      <p><b>ReAct</b>: 추론만 하거나 행동만 하는 것이 아니라 '생각(Thought)'과 '행동(Action)'을 교대로 생성하는 방식. HotpotQA 질문 예시로 4가지 방식 비교: "Aside from the Apple Remote, what other device can program Apple Remote was originally designed to interact with?"</p>
+      <table class="compare">
+        <tr><th>방식</th><th>과정</th><th>결과</th></tr>
+        <tr><td class="k">Standard</td><td>바로 답변</td><td>"iPod" ✗</td></tr>
+        <tr><td class="k">CoT (Reason Only)</td><td>단계별 사고만: Apple TV → iPhone/iPad/iPod Touch</td><td>✗</td></tr>
+        <tr><td class="k">Act-Only</td><td>Search[Apple Remote]→Search[Front Row]→Search[Front Row (software)]→Finish[yes]</td><td>✗</td></tr>
+        <tr><td class="k">ReAct</td><td>Thought↔Act↔Obs 교대 반복: Apple Remote 검색→Front Row 발견 실패→"Front Row (software)"로 재검색→"키보드 기능 키로 제어됨" 확인</td><td>"keyboard function keys" ✓</td></tr>
+      </table>
+      <div class="note tip">💡 핵심 — ReAct는 매 스텝마다 Thought(다음에 뭘 할지 추론)→Act(도구 실행, 예: Search)→Obs(관찰 결과)를 반복하며, 이전 관찰이 실패해도 다음 Thought에서 검색어를 수정해 재시도하는 자기 수정(self-correction) 능력을 보여줌.</div>
+      <p class="src">Yao et al., "ReAct: Synergizing Reasoning and Acting in Language Models", ICLR 2023</p>
+    </div>
+
+    <div class="card full">
+      <h3>HuggingGPT — 계획-분배형 멀티모델 오케스트레이션 <span class="tag">그림4-7</span></h3>
+      <p><b>HuggingGPT</b>: 계획 수립을 담당하는 LLM이 복잡한 작업을 나누어 각각의 전문 모델들에게 분배하는 시스템. 예시 요청: "이미지 속 소녀가 책을 읽는 그림을 생성하되 example.jpg 속 소년과 같은 포즈로, 그 다음 새 이미지를 음성으로 설명해줘."</p>
+      <table class="compare">
+        <tr><th>단계</th><th>내용</th></tr>
+        <tr><td class="k">#1 Task Planning</td><td>요청을 {task, id, task_id, dep, args} 형식 작업 리스트로 파싱(엄격한 JSON). dep=-1이면 의존성 없음. 예: pose-detect → pose-to-image → image-to-text → text-to-speech</td></tr>
+        <tr><td class="k">#2 Model Selection</td><td>각 작업마다 HuggingFace Hub/GitHub/LangChain/Text-Davinci-003 등에서 적합한 모델을 in-context로 선택. 출력: {"id":모델id, "reason":선택 이유}</td></tr>
+        <tr><td class="k">#3 Task Execution</td><td>HuggingFace Endpoint + Local Endpoint를 혼합(Hybrid Endpoints)한 실제 실행 — pose-detect 결과 바운딩박스, 생성 이미지 등</td></tr>
+        <tr><td class="k">#4 Response Generation</td><td>모든 예측 결과를 종합해 사용자에게 1인칭으로 과정과 결과를 설명하는 최종 응답 생성. 파일 경로가 있으면 전체 경로 사용, 결과가 없으면 실패를 알림</td></tr>
+      </table>
+      <div class="formula">[Task Planning Prompt 요지]
+"...generate a list of tasks: [{'task':task,
+ 'id':task_id, 'dep':dependency_task_id,
+ 'args':{'text':text,'image':URL,...}}]
+ dep=-1 if no dependency. Strict JSON only."
+
+[Model Selection Prompt 요지]
+"Select the most suitable model id from
+ candidate models. Output: {'id':'id',
+ 'reason':'...'}"</div>
+      <p class="src">Shen et al., "HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging Face", NeurIPS 2023</p>
+    </div>
+
+    <div class="card full">
+      <h3>Plan-and-Act — 계획/실행 에이전트 분리 <span class="tag">그림4-9</span></h3>
+      <p><b>Plan-and-Act</b>: 계획 에이전트(Planner)는 거시적인 계획을 생성하고, 실행 에이전트(Executor)는 해당 계획에 따라 하위 단계를 실행. 실행 결과를 관찰(Observation)한 뒤 다시 계획을 갱신(Replan)하는 루프 구조.</p>
+      <div class="formula">User Query: "Follow the top contributor
+             of this GitHub project"
+
+Planner → Plan 1:
+  Step 1: Navigate to "Contributors" section
+  Step 2: Identify top contributor and follow
+
+Executor → Action 1:
+  do(action="Click", element="13")  # Contributors 링크 클릭
+     → Observation 1: "Top contributor: John Doe"
+
+        ↻ Replan (관찰 결과를 Planner로 피드백)
+
+Planner → Plan 2: "Step 1: Follow 'John Doe'"
+Executor → Action 2:
+  do(action="Click", element="2")   # John Doe 클릭
+     ⋮ (반복)</div>
+      <div class="note gap">↺ 구조 비교 — ReAct는 하나의 LLM이 Thought/Act를 매 스텝 함께 생성하는 단일 루프인 반면, Plan-and-Act는 <b>거시 계획(Planner)</b>과 <b>단위 실행(Executor)</b>을 분리해 장기(long-horizon) 작업에서 계획의 일관성과 실행의 정밀함을 동시에 확보하려는 구조.</div>
+      <p class="src">Shen et al., "Plan-and-Act: Improving Planning of Agents for Long-Horizon Tasks", ICML Poster 2025</p>
+    </div>
+
+    <div class="card full">
+      <h3>추론 시간(Test-time) 연산량 증대 <span class="tag">그림4-10 · 4-11</span></h3>
+      <p>추론 시에 컴퓨팅 자원을 더 많이 투입할수록 LLM의 성능이 향상됨. 이는 난이도가 낮은 작업에서는 <b>모델 파라미터를 늘리는 것보다 더 효과적</b>일 수 있음.</p>
+      <ul>
+        <li><b>Revisions 차트</b> — MATH 난이도별(1~5) 정확도 vs 추론 FLOPs(2⁰~2⁸). Test-time Compute(원/선)와 Pretraining Compute(별표) 비교. 컴퓨트 비율 구간을 R≫1(파란 점선)/R=1(주황 1점쇄선)/R≪1(초록 점선)로 구분.</li>
+        <li><b>PRM Search 차트</b> — Process Reward Model 기반 탐색형 test-time compute의 정확도 추이(동일 축 구조).</li>
+        <li><b>OpenAI o1 차트</b> — train-time compute(로그 스케일)와 test-time compute(로그 스케일) 모두에서 AIME pass@1 정확도가 매끄럽게 향상 — "o1 performance smoothly improves with both train-time and test-time compute."</li>
+      </ul>
+      <div class="note tip">💡 핵심 — 학습(pretraining) 스케일링뿐 아니라 <b>추론 시점의 연산 투입량 자체도 스케일링 법칙을 따른다</b>는 것이 test-time compute 연구의 핵심 발견.</div>
+      <p class="src">Snell et al., "Scaling LLM Test-Time Compute Optimally can be More Effective than Scaling Model Parameters", ICLR 2025 Oral · OpenAI, "Learning to reason with LLMs"</p>
+    </div>
+
+    <div class="card full">
+      <h3>추론 모델(Reasoning Models) 비교</h3>
+      <p>추론을 위한 추가 컴퓨팅 자원이 할당된 <b>추론 전용 모델</b>들이 등장하기 시작함. 각 모델군은 추론 과정을 노출/태깅하는 방식이 다름.</p>
+      <table class="compare">
+        <tr><th>모델</th><th>출시</th><th>추론 노출 방식</th></tr>
+        <tr><td class="k">o1</td><td>OpenAI, 2024.12</td><td>내부 추론(비공개), 최종 답만 노출</td></tr>
+        <tr><td class="k">DeepSeek-R1</td><td>DeepSeek-AI, 2025.01</td><td>&lt;think&gt;...&lt;/think&gt; 태그로 추론 과정 명시적 노출</td></tr>
+        <tr><td class="k">Gemini Series</td><td>Google</td><td>part.thought 플래그로 "Thoughts summary"와 "Answer" 구분 스트리밍</td></tr>
+        <tr><td class="k">GPT Series</td><td>OpenAI</td><td>type:"reasoning" 응답 객체의 summary_text로 추론 요약 제공</td></tr>
+        <tr><td class="k">Claude Series</td><td>Anthropic</td><td>ThinkingBlock(block.type=='thinking')으로 사고 과정 요약 제공</td></tr>
+        <tr><td class="k">오픈소스 모델</td><td>다양</td><td>&lt;think&gt;&lt;/think&gt; 컨벤션 채택, 요약 블록 파싱</td></tr>
+      </table>
+      <div class="note gap">↺ 공통점 — 모델마다 API 형식은 다르지만, 공통적으로 "최종 답변"과 "추론 과정(생각)"을 구조적으로 분리해 노출하거나 요약 제공하는 방향으로 수렴하고 있음.</div>
+    </div>
+
+    <div class="card full">
+      <h3>추론 모델 강화 — 보상 함수 기반 RL <span class="tag">그림4-12 · 4-13</span></h3>
+      <p>정확성과 올바른 형식에 대해서만 보상을 제공함으로써 LLM이 chain-of-thought을 사용하는 방법을 스스로 학습하게 함. 목표 출력 형식: <code>&lt;think&gt; reasoning process here &lt;/think&gt; &lt;answer&gt; answer here &lt;/answer&gt;</code></p>
+      <div class="formula">def format_reward(completions, **kwargs):
+    # <think>...</think><answer>...</answer>
+    # 형식을 지켰는지 정규식으로 검사
+    pattern = r"^&lt;think&gt;\n.*?\n&lt;/think&gt;\n&lt;answer&gt;\n.*?\n&lt;/answer&gt;$"
+    return [1.0 if match else 0.0 for match in matches]
+
+def reasoning_steps_reward(completions, **kwargs):
+    # "Step 1:", "1.", "- ", "* ", First/Second/Next/Finally
+    # 등 단계별 표현 개수를 세어 3개 이상이면 만점(부분 보상)
+    pattern = r"(Step \d+:|^\d+\.|\n-|\n\*|First|Second|Next|Finally,)"
+    return [min(1.0, count / 3) for count in matches]
+
+def accuracy_reward(completions, solution, **kwargs):
+    # LaTeX로 파싱한 정답과 모델 출력의 일치 여부로 채점</div>
+      <p>세 가지 보상: <b>형식 보상</b>(태그 준수) + <b>단계 보상</b>(단계적 서술 정도) + <b>정확도 보상</b>(정답 일치)을 조합해 GRPO 등 RL로 학습.</p>
+      <p>DeepSeek-R1-Zero 학습 곡선: 학습이 진행될수록 <b>응답 평균 길이가 지속적으로 증가</b>(수천 → 약 9,000~10,000 토큰)하며, 동시에 AIME 정확도(pass@1, cons@16)도 20%→70~86% 수준까지 상승 — o1-0912의 pass@1(~0.75), cons@64(~0.85) 기준선에 근접/추월.</p>
+      <div class="note exam">★ 시험 단골 — 보상은 정답 여부와 형식 준수만으로 설계되며, "어떻게 추론할지"에 대한 구체적 지도(supervision)는 주지 않음에도 모델이 스스로 더 길고 체계적인 사고 사슬을 생성하도록 학습되는 것이 R1-Zero의 핵심 관찰.</div>
+      <p class="src">https://github.com/huggingface/open-r1 · DeepSeek-AI, "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning", arXiv 2025</p>
+    </div>
+
+    <div class="card full">
+      <h3>효율적인 추론(Efficient Reasoning) — 과도한 사고 문제와 분류 <span class="tag">그림4-14</span></h3>
+      <p><b>과도한 사고(Overthinking) 현상</b>: 더 긴 CoT 추론 과정은 실제로 성능을 향상시키지만, 장황하고 중복되는 출력으로 인해 계산 부담이 크게 늘어나는 것은 여전히 문제. 이를 해결하려는 접근을 3가지로 분류:</p>
+      <table class="compare">
+        <tr><th>분류</th><th>핵심 아이디어</th><th>대표 기법</th></tr>
+        <tr><td class="k">(a) 모델 기반 접근</td><td>학습 단계에서 길이를 제어하도록 모델 자체를 훈련</td><td>Length Reward, Variable-Length CoT Reasoning Data</td></tr>
+        <tr><td class="k">(b) 추론 결과 기반 접근</td><td>추론 과정의 표현/실행 방식을 동적으로 조정</td><td>Latent Reasoning(잠재공간 추론), Dynamic Reasoning(분기형 추론 그래프)</td></tr>
+        <tr><td class="k">(c) 입력 프롬프트 기반 접근</td><td>프롬프트 지시나 난이도 판별로 연산량을 사전 조절</td><td>Length Prompts("10 토큰 이내로"), Routing by Difficulty(쉬움→Draft Model, 어려움→Strong Model)</td></tr>
+      </table>
+      <p class="src">Sui et al., "Stop Overthinking: A Survey on Efficient Reasoning for Large Language Models", TMLR 2025</p>
+    </div>
+
+    <div class="card">
+      <h3>DeGRPO — 모델 기반(가변 길이) <span class="tag">그림4-15</span></h3>
+      <p><b>DeGRPO(Decoupled GRPO)</b>: 첫 번째로 생성된 토큰(제어 토큰) <code>&lt;short&gt;</code> 또는 <code>&lt;think&gt;</code>로 추론 길이를 제어하는 방식. Non-Reasoning LLM을 웜업한 뒤, RL 데이터(Query/Answer)로 제어 토큰 분포를 학습.</p>
+      <p>4가지 조합에 대한 보상 설계: &lt;think&gt;+정답(길게 맞음, 보상 1-γ) / &lt;think&gt;+오답(-1) / &lt;short&gt;+정답(보상 1) / &lt;short&gt;+오답(-1).</p>
+      <div class="formula">J_DeGRPO(θ) =
+ E[ (1/G) Σᵢ ( α·L_i,0(θ)  ← Control Token 항
+            + (1/Tᵢ) Σₜ L_i,t(θ) )  ← Response Tokens 항
+    − β·D_KL[ πθ(·|x) ‖ π_ref(·|x) ] ]</div>
+      <div class="note gap">제어 토큰(길게 생각할지/짧게 답할지 결정)과 응답 토큰(실제 내용 생성)의 손실 항을 <b>분리(decouple)</b>해 각각 다른 가중치로 최적화 — "이 문제는 짧게 답해도 되는가"를 모델이 스스로 판단하도록 학습.</div>
+      <p class="src">Fang et al., "Thinkless: LLM Learns When to Think", CoRR 2025</p>
+    </div>
+
+    <div class="card">
+      <h3>InftyThink — 추론 결과 기반(동적 추론) <span class="tag">그림4-16</span></h3>
+      <p><b>InftyThink</b>: 일부 추론 과정을 만들어내고, 지금까지의 생각을 요약(Summary)한 뒤 다음 반복(iteration)에서 이어가는 방식.</p>
+      <div class="formula">[Long-context CoT (기존, 비교 대상)]
+Question → &lt;think&gt;...(끊김 없이 매우 긴 사고)...&lt;/think&gt; → Conclusion
+
+[InftyThink — 반복적 요약]
+Iter 1: Question → &lt;think&gt;...&lt;/think&gt; → Summary(1)
+Iter 2: Question + Summary(1) → &lt;think&gt;...&lt;/think&gt; → Summary(2)
+Iter 3: Question + Summary(2) → &lt;think&gt;...&lt;/think&gt; → Summary(3)
+  ⋮
+Iter n: Question + Summary(n-1) → &lt;think&gt;...&lt;/think&gt; → Conclusion</div>
+      <p>매 반복마다 이전까지의 사고를 요약해 컨텍스트에 넣고 이어감으로써, 기존 Long-context CoT처럼 컨텍스트 길이가 무한정 늘어나는 것을 방지하고 <b>길이를 제한(bounded)</b>된 채로 긴 추론을 지속할 수 있음.</p>
+      <p class="src">Fang et al., "InftyThink: Breaking the Length Limits of Long-Context Reasoning in Large Language Models", CoRR 2025</p>
+    </div>
+
+    <div class="card full">
+      <h3>입력 프롬프트 기반 접근 — 난이도별 라우팅(Routing)</h3>
+      <p>쉬운 질문에는 연산량을 적게, 복잡한 질문에는 연산량을 많이 배정하는 방식. 실제 상용 모델에 적용된 두 사례:</p>
+      <table class="compare">
+        <tr><th>모델</th><th>라우팅 방식</th></tr>
+        <tr><td class="k">Claude Sonnet 4 / Opus 4 (2025.05)</td><td>Hybrid 모델 — 근-즉시(near-instant) 응답 모드와 extended thinking(깊은 추론) 모드 두 가지를 제공</td></tr>
+        <tr><td class="k">GPT-5 (2025.08)</td><td>효율적인 일반 모델 + 심화 추론 모델(GPT-5 thinking) + 실시간 라우터(대화 유형·복잡도·도구 필요성·명시적 의도로 자동 선택, 사용자 전환/선호도/정답률로 지속 학습)</td></tr>
+      </table>
+      <div class="note tip">💡 정리 — 세 가지 효율적 추론 접근(모델 기반/결과 기반/프롬프트 기반)은 결국 "얼마나 생각할지"를 각각 <b>학습(RL)</b>, <b>실행 구조(요약·잠재추론)</b>, <b>입력 단계 판별(라우팅)</b>이라는 서로 다른 지점에서 제어하려는 시도로 요약할 수 있음.</div>
+    </div>
+
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>Tree of Thoughts는 CoT나 Self-consistency보다 훨씬 많은 연산(여러 가지 생성 + 평가 + 탐색)을 요구한다. 어떤 유형의 문제(예: 24 게임처럼 명확한 성공 기준이 있는 문제 vs. 개방형 서술형 문제)에서 ToT의 추가 비용이 정당화될 수 있고, 어떤 경우엔 오히려 CoT나 Self-consistency만으로 충분할까?</li>
+          <li>DeGRPO, InftyThink, 난이도 기반 라우팅은 모두 "얼마나 오래 생각할지"를 제어한다는 점에서 목표가 같지만 개입 지점(학습 시점 제어 토큰, 추론 중 요약, 입력 단계 사전 판별)이 다르다. 실제 서비스를 설계한다면 이 세 접근을 함께 쓸 때 발생할 수 있는 시너지나 충돌은 무엇일까?</li>
+          <li>추론 시간(test-time) 컴퓨팅을 늘리는 것이 모델 파라미터를 키우는 것보다 효율적이라는 결과는 "더 큰 모델을 학습시키는 것"과 "추론 시 더 많이 생각하게 하는 것" 사이의 자원 배분 전략에 어떤 시사점을 주는가? 비용·지연시간·정확도 측면에서 실제 서비스 설계 시 어떤 기준으로 선택해야 할까?</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section" id="ch5" style="--accent:var(--pink)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div>
+      <h2>Domain-Specific AI Agent: Deep Research</h2>
+      <div class="desc">웹 검색 → LLM 챗봇 → RAG → 에이전트 기반 심층 연구(Deep Research)로 이어지는 패러다임 전환과, 생각→검색→탐색→답변 사이클, 강화학습 기반 훈련·보상 설계, Test-Time Scaling, 인프라 확장 이슈까지</div>
+    </div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>패러다임의 전환 <span class="tag">[그림5-1] 검색 엔진 진화</span></h3>
+      <p>정보 탐색 패러다임은 네 단계로 누적·확장되며 진화했다(2022.11 ChatGPT → 2023.03 GPT w/ Search → 2025.01 DeepSeek-R1 → 2025.02 Deep Research).</p>
+      <table class="compare">
+        <thead><tr><th>단계</th><th>특징</th><th>한계 / 강점</th><th>대표 사례</th></tr></thead>
+        <tbody>
+          <tr><td class="k">① 웹 검색<br>(Keyword-driven Retrieval)</td><td>Crawl → Index → Rank, 페이지 중요도 판단, 지식 민주화</td><td>한계: 깊은 이해·종합(synthesis) 과제에 취약</td><td>Google, Bing, Naver류 검색엔진, Scholar 등</td></tr>
+          <tr><td class="k">② LLM 챗봇<br>(LLMs as Knowledge Source)</td><td>대규모 텍스트로 사전학습, Fine-Tuning·피드백으로 정제, 맥락 대화</td><td>한계: 지식이 outdated·부정확할 수 있음(환각)</td><td>GPT-3.5, Claude 1.x, Bard, Qwen-Chat, DeepSeek V2 등</td></tr>
+          <tr><td class="k">③ 검색 증강 생성<br>(RAG)</td><td>기본: Retrieve-then-Read, 고급 RAG로 관련성·품질 향상, 환각 감소·최신성 개선</td><td>한계: 깊고 반복적인 추론과 전략적 계획 부재</td><td>Self-RAG, HippoRAG, GraphRAG, LightRAG 등</td></tr>
+          <tr><td class="k">④ 에이전트 기반 심층 연구<br>(Agentic Deep Research)</td><td>Prompting/SFT/RL로 고도화된 훈련, 추론 주도 도구 검색·통합, 다중 홉 추론·전략적 계획</td><td>강점: 포괄적인 보고서 생성 &amp; 인지 부담 감소</td><td>Gemini Deep Research, Anthropic Research, Manus, GPT-Researcher 등</td></tr>
+        </tbody>
+      </table>
+      <div class="note tip">💡 정리 — 각 단계는 이전 단계를 대체하는 게 아니라 그 위에 쌓인다: 웹 검색(색인/랭킹) 위에 LLM의 생성 능력이 얹히고, 거기에 외부 지식 검색(RAG)이 결합되고, 마지막으로 "언제·무엇을 검색할지"까지 스스로 결정하는 능동적 추론 루프(Agentic)가 더해진 것.</div>
+      <div class="note">⚠ 예시 — LLM 챗봇 단계의 한계를 보여주는 사례: "세종대왕의 맥복프로 사건"처럼 실재하지 않는 역사적 일화를 그럴듯하게 지어내는 환각(hallucination) 응답이 관찰됨 → RAG·에이전트 단계로 나아가야 하는 이유.</div>
+      <div class="src">출처: https://github.com/DavidZWZ/Awesome-Deep-Research</div>
+    </div>
+
+    <div class="card">
+      <h3>Deep Research 핵심 개념 <span class="tag">정의</span></h3>
+      <ul>
+        <li>LLM이 다단계 <b>추론(reasoning)</b>과 <b>검색(retrieval)</b>을 결합</li>
+        <li><b>동적 피드백 루프</b> 형성: 검색 결과를 바탕으로 추론하고, 그 추론이 다시 이후 검색 과정을 조정</li>
+        <li>단순 응답 생성기가 아니라 <b>능동적인 정보 탐색 에이전트</b>로 동작</li>
+        <li>필요 시 문서를 읽고 쿼리를 반복적으로 생성·수정하며 <b>다른 도구·에이전트와 협력</b></li>
+      </ul>
+      <div class="note exam">★ 시험 단골 — "수동적 응답 생성기 vs 능동적 정보 탐색 에이전트"의 대비가 핵심. 정답 포인트는 항상 "검색 결과를 토대로 추론·재조정하는 능동형 구조".</div>
+    </div>
+
+    <div class="card">
+      <h3>역동적 환경의 어려움 ① <span class="tag">알고리즘 관점</span></h3>
+      <ul>
+        <li><b>검색-추론 결합의 어려움</b>: 기존 RAG는 검색→추론의 고정 순서 → 오류 축적. 에이전트 접근은 추론이 언제·무엇을 검색할지 결정 → 오류 전파 감소</li>
+        <li><b>적응력 한계</b>: 프롬프트·지도학습 의존은 새로운 환경에 유연한 전략을 만들기 어려움 → 시행착오로 최적 전략을 배우려면 강화학습 필요</li>
+        <li><b>효율적 리소스 할당</b>: 검색·추론 모두 토큰·시간 소비 → 작업 유형별로 검색/추론 비율을 동적으로 조절하는 기술 필요</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>강화학습 기반 훈련 및 보상 설계 <span class="tag">3가지 패러다임</span></h3>
+      <div class="pillrow">
+        <span class="pill">프롬프트: ReAct</span>
+        <span class="pill">지도학습: Toolformer</span>
+        <span class="pill">강화학습: R1-Searcher, DeepResearcher</span>
+      </div>
+      <ul>
+        <li><b>프롬프트</b> — 예: ReAct. 추론+행동 구조로 프로세스를 검색·추론 단계로 분할</li>
+        <li><b>지도학습</b> — 예: Toolformer. 훈련 데이터의 패턴을 기반으로 도구 사용법을 학습</li>
+        <li><b>강화학습</b> — 목표: 모델이 독립적으로 최적의 검색·추론 전략을 발견. 예: R1-Searcher, DeepResearcher — 복잡한 작업을 세분화, 쿼리 시퀀스 계획, 정보 검증, 전략 조정</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3>Test-Time Scaling (TTS) <span class="tag">[그림5-2] Hypothetical TTS Law</span></h3>
+      <p>정의: 추론/검색 단계 수를 늘리면 성능 향상으로 이어진다는 법칙(TTS 법칙).</p>
+      <table class="compare">
+        <thead><tr><th>유형</th><th>방법</th><th>효과</th><th>예시</th></tr></thead>
+        <tbody>
+          <tr><td class="k">추론 TTS</td><td>추가 추론 단계 도입 (CoT, Self-Refinement, Self-Consistency 등)</td><td>정확도 향상</td><td>수학적 증명</td></tr>
+          <tr><td class="k">검색 TTS</td><td>반복적·다단계 검색</td><td>정보 수집 범위 확장</td><td>문헌 리뷰, 지식 그래프 구축</td></tr>
+        </tbody>
+      </table>
+      <div class="note">⚠ Trade-off — 검색과 추론 둘 다 자원(토큰·시간)을 소모하므로, 작업 유형에 맞는 최적 비율 조정이 필수. [그림5-2]는 "추론 스케일링(2^13~2^21)"과 "검색 스케일링(2^1~5M)" 두 축에 대해 정규화된 성능이 3D 곡면으로 나타나며, 특정 조합 이상에서는 성능이 정체·역전(초록→회색/빨강 구간)되는 것을 보여준다 — 무한정 늘린다고 성능이 계속 오르지 않음.</div>
+      <div class="src">출처: https://arxiv.org/abs/2506.18959</div>
+    </div>
+
+    <div class="card full">
+      <h3>방법론 — 생각→검색→탐색→답변 사이클 <span class="tag">[그림5-3] 분산 클러스터 기반 병렬 처리</span></h3>
+      <p>에이전트는 <b>생각 → 도구 사용 → 생각 → ⋯ → 답변</b> 사이클을 반복(최대 N회)한다.</p>
+      <ul>
+        <li><b>〈생각(Think)〉</b> — 세부 목표를 세우고 무엇을 검색할지 결정</li>
+        <li><b>〈검색(Search)〉</b> — 검색 API로 상위 k개 결과(제목, 주소, 요약문) 획득</li>
+        <li><b>〈탐색(Browse/Explore)〉</b> — 웹페이지 내용을 읽고 유용한 정보를 단기 저장소(memory)에 축적. 읽는 과정에서 (a) 계속 읽을지/그만둘지, (b) 무엇을 저장할지 판단하며, 도움이 안 되면 빠르게 다른 URL로 이동</li>
+        <li><b>〈답변(Answer)〉</b> — 필요한 정보를 충분히 모으면 최종 결론 생성</li>
+      </ul>
+      <div class="formula">User → Question → Assistant → [Think] → [Search] → URLs/Snippets → [Think] → [Browse] → New Info → [Think] → ⋯ → [Answer] → &lt;|eos|&gt;
+(Repeat at most N Times · "Tokens with loss" vs "Tokens without loss" 구분)</div>
+      <p>아키텍처(그림5-3)는 두 패널로 구성: (1) <b>Distributed Cluster</b> — 256개 질문 배치 각각이 rollout 1~16개로 분기하여 여러 컴퓨트 노드에서 처리되고, 이 노드들이 "Real-World Environment"(Search Engine + Browsing Agent)와 양방향으로 통신. (2) <b>Browsing Agent</b> — 스크롤하며 웹페이지를 탐색, URL·질문을 Reading Agent에 입력 → 웹페이지 처리 → New Info를 Memory에 양방향 저장.</p>
+      <div class="src">출처: DeepResearcher: Scaling Deep Research via Reinforcement Learning in Real-world Environments (Zheng Y. et al., 2025)</div>
+    </div>
+
+    <div class="card">
+      <h3>역동적 환경의 어려움 ② <span class="tag">인프라·스케일 관점</span></h3>
+      <ul>
+        <li><b>많은 요청 동시 처리</b> — 한 번에 최대 4,096개 도구 호출 발생 가능 → 50개 노드의 분산 CPU 시스템으로 작업을 분산해 처리 지연 방지</li>
+        <li><b>웹 크롤링 및 API 제약</b> — 크롤링 방지 시스템·요청 제한으로 실패 가능 → 재시도 메커니즘과 캐시로 호출 빈도·비용 감소</li>
+        <li><b>정보 추출 효율성</b> — 웹페이지를 작은 단위로 나눠 순차 분석, 중요하지 않다고 판단되면 즉시 포기하고 핵심 페이지에 컴퓨팅 자원 집중</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>GRPO 강화학습 훈련·보상 설계 <span class="tag">Group Relative PPO</span></h3>
+      <ul>
+        <li><b>알고리즘</b>: 이전 정책(π_old)의 여러 그룹 실행 결과를 기준(baseline)으로 삼고, 새 정책이 이 결과들의 발생 확률을 높이는 정도에 따라 PPO 방식으로 업데이트</li>
+        <li><b>보상 설계</b>:
+          <ul>
+            <li>형식 오류 → −1 페널티</li>
+            <li>올바른 형식 → 단어 레벨 F1 점수(0~1) 부여</li>
+            <li>사실 정확도, 논리적 일관성 등을 포함한 복합 보상 도입 가능</li>
+          </ul>
+        </li>
+      </ul>
+      <div class="note hard">🧩 헷갈리기 쉬움 — GRPO는 별도의 가치 함수(critic) 없이 "그룹 내 상대 비교"로 이점을 추정하는 방식(제4장 추론모델 강화에서 다룬 <think>/<answer> 형식 보상과 유사한 원리가 여기서는 검색·탐색 행동에도 확장 적용됨).</div>
+    </div>
+
+    <div class="card full">
+      <h3>성능 분석 <span class="tag">[그림5-4] QA 벤치마크 비교</span></h3>
+      <p>In-domain(NQ, TQ, HotpotQA, 2Wiki) 및 Out-of-Domain(Musique, Bamboogle, PopQA) 벤치마크에서 강화학습 기반 DeepResearcher가 SOTA 달성. 특히 <b>Bamboogle</b>에서 이전 웹 검색 기반 모델을 크게 압도 → 실제 웹 환경에서의 학습 효과를 입증.</p>
+      <table class="compare">
+        <thead><tr><th>그룹</th><th>Method</th><th>추론 환경</th><th>Bamboogle F1/EM</th><th>PopQA F1/EM</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Prompt Based</td><td>CoT + RAG</td><td>Local RAG</td><td>25.4/27.2</td><td>46.9/48.8</td></tr>
+          <tr><td class="k">Prompt Based</td><td>Search-o1</td><td>Web Search</td><td>46.6/53.6</td><td>38.3/43.4</td></tr>
+          <tr><td class="k">Training Based</td><td>Search-r1-base</td><td>Local RAG</td><td>56.5/57.6</td><td>43.2/47.0</td></tr>
+          <tr><td class="k">Training Based</td><td>R1-Searcher</td><td>Web Search</td><td>64.8/65.6</td><td>42.7/43.4</td></tr>
+          <tr><td class="k">Training Based</td><td><b>DeepResearcher</b></td><td>Web Search</td><td><b>71.0/72.8</b></td><td><b>48.5/52.7</b></td></tr>
+        </tbody>
+      </table>
+      <div class="note">* SOTA(State of the Art) — 특정 작업에서 현재 사용 가능한 최고 성능의 모델을 의미.</div>
+      <div class="src">출처: DeepResearcher: Scaling Deep Research via Reinforcement Learning in Real-world Environments (Zheng Y. et al., 2025)</div>
+    </div>
+
+    <div class="card full">
+      <h3>창발적 행동 (Emergent Behavior) <span class="tag">[그림5-5~7] 실제 응답 사례</span></h3>
+      <p>end-to-end 강화학습만으로 사전 설계 없이도 다음과 같은 능력들이 자연스럽게(창발적으로) 나타남:</p>
+      <div class="pillrow">
+        <span class="pill">계획 능력</span>
+        <span class="pill">교차 검증</span>
+        <span class="pill">성찰적 재검색</span>
+        <span class="pill">솔직한 회피</span>
+      </div>
+      <ul>
+        <li><b>계획(Planning)</b> — "작곡가의 출생지 → 그 도시의 유명한 다리" 같은 다단계 질문에서, &lt;think&gt; 단계에서 스스로 Step 1/2/3 계획을 세우고 이후 &lt;search&gt;를 순차 실행</li>
+        <li><b>교차 검증(Cross Validation)</b> — 첫 검색 결과에만 의존하지 않고 더 구체적인 키워드로 재검색하여 결론을 확인</li>
+        <li><b>성찰적 재검색(Reflection)</b> — 검색 결과가 질문과 무관하거나 불만족스러우면 스스로 이를 인지하고 검색 방향을 조정(예: 엉뚱한 인물 정보가 나오면 검색어를 구체화)</li>
+        <li><b>솔직한 회피(Honesty)</b> — 여러 번 검색·탐색해도 정확한 수치를 못 찾으면 추측 대신 "정확한 수치를 알 수 없다"는 취지로 답변("significant portion" 등)</li>
+      </ul>
+      <div class="note tip">💡 정리 — 이 네 가지는 명시적으로 프롬프트에 지시되지 않았음에도, 정답 여부만을 보상으로 주는 RL 학습 과정에서 자발적으로 등장한 행동 패턴이라는 점이 핵심.</div>
+      <div class="src">출처: DeepResearcher: Scaling Deep Research via Reinforcement Learning in Real-world Environments (Zheng Y. et al., 2025)</div>
+    </div>
+
+    <div class="card">
+      <h3>한계점 및 고려사항 ① <span class="tag">비용·범용성</span></h3>
+      <ul>
+        <li><b>높은 비용(토큰)</b> — 단일 에이전트는 표준 질의응답 대비 4배, 멀티 에이전트는 15배 더 많은 토큰 사용 → 고부가가치 작업에서만 비용-효율적</li>
+        <li><b>범용성의 한계</b> — 병렬 작업으로 분할 가능한 과제에서만 효과적; 코딩·디버깅처럼 순차적 단일 컨텍스트 처리가 필요한 작업에는 부적합</li>
+        <li><b>에이전트 관리의 복잡성</b> — 과다한 에이전트 생성, 무한 루프, 에이전트 간 간섭 위험 → 명확한 정지 조건·프롬프트 가이드라인 등 보호 조치 필요</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>한계점 및 고려사항 ② <span class="tag">상태·평가</span></h3>
+      <ul>
+        <li><b>상태 관리 및 오류 전파</b> — 작은 오류가 프로세스 전체 방향을 왜곡시킬 수 있음 → 체크포인트 설정·복구 메커니즘 필요</li>
+        <li><b>평가 및 디버깅의 어려움</b> — 실행 경로와 답변이 매 실행마다 달라 공평한 평가가 어려움 → LLM 평가 점수(0~1 스케일)와 사람 평가를 함께 사용</li>
+      </ul>
+      <div class="note exam">★ 시험 단골 — "평가·디버깅이 어려운 이유"는 항상 "실행마다 경로·답변이 달라 일관된 평가 불가"로 귀결됨.</div>
+    </div>
+
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>기존 RAG의 "검색 후 추론"이라는 고정 순서 대신, Deep Research 에이전트는 추론이 검색 시점·내용을 동적으로 결정한다. 이 차이가 실제로 오류 전파를 줄이는 이유는 무엇이며, 반대로 새로운 위험(예: 잘못된 방향으로의 반복적 재검색)을 만들 가능성은 없을까?</li>
+          <li>Test-Time Scaling은 추론·검색 단계를 늘릴수록 성능이 향상되지만 토큰 비용도 함께 증가한다([그림5-2]의 성능 정체/역전 구간 참고). 실제 서비스에서 이 trade-off를 어떤 기준으로 관리해야 할까? (예: 질문 난이도별 라우팅, 예산 상한 등)</li>
+          <li>"창발적 행동"(계획, 교차 검증, 성찰적 재검색, 솔직한 회피)은 명시적으로 설계되지 않고 RL 보상만으로 나타났다. 이런 행동이 항상 신뢰할 수 있게 재현된다고 보장할 수 없다면, 고위험 도메인(의료·법률 등)에 Deep Research 에이전트를 적용하기 전에 어떤 안전장치가 필요할까?</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ===================== 4. 평가 및 발전 방향 (한계점·미해결 문제) ===================== -->
+<section class="section" id="ch6" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>한계점 및 발전 방향</h2><p class="desc">에이전트 기반 심층 연구의 실무적 한계(비용·범용성·관리·상태·평가)와 미해결 문제·향후 발전 방향 (p.157~160).</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>한계점 및 고려사항 개관</h3>
+      <p>딥리서치형 에이전트는 강력하지만, 모든 작업에 무분별하게 적용할 수 있는 만능 해법은 아니다. 아래는 실제 운영 단계에서 반복적으로 보고되는 다섯 가지 핵심 한계이며, 이어서 이를 해소하기 위한 세 가지 발전 방향을 정리한다.</p>
+      <div class="pillrow">
+        <span class="pill">높은 비용(토큰)</span>
+        <span class="pill">범용성의 한계</span>
+        <span class="pill">에이전트 관리 복잡성</span>
+        <span class="pill">상태 관리·오류 전파</span>
+        <span class="pill">평가·디버깅의 어려움</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>높은 비용(토큰) <span class="tag">한계①</span></h3>
+      <div class="note hard">⚠ 위험 — 단일 에이전트는 표준 질의응답 대비 <b>토큰을 4배</b> 더 사용하며, 멀티 에이전트는 <b>15배</b> 더 사용한다. 이 때문에 <b>고부가가치 작업에서만</b> 비용 대비 효율적이며, 단순 질의에 남용하면 비용 대비 효과가 낮다.</div>
+    </div>
+
+    <div class="card">
+      <h3>범용성의 한계 <span class="tag">한계②</span></h3>
+      <div class="note hard">⚠ 위험 — 병렬 작업들로 분할 가능한 작업에서만 효과적이다. <b>코딩, 디버깅</b> 등 순차적으로 단일 컨텍스트를 유지해야 하는 작업에는 적합하지 않다.</div>
+    </div>
+
+    <div class="card">
+      <h3>에이전트 관리의 복잡성 <span class="tag">한계③</span></h3>
+      <div class="note hard">⚠ 위험 — 너무 많은 수의 에이전트가 생성되거나, <b>무한 루프</b> 또는 <b>에이전트 간 간섭</b>이 발생할 위험이 있다. 명확한 <b>정지 조건</b> 및 <b>프롬프트 가이드라인</b>과 같은 보호 조치가 필요하다.</div>
+    </div>
+
+    <div class="card">
+      <h3>상태 관리 및 오류 전파 <span class="tag">한계④</span></h3>
+      <div class="note hard">⚠ 위험 — 작은 오류 하나가 프로세스 <b>전체 방향을 왜곡</b>시킬 수 있다(오류 전파, error propagation). 이를 완화하려면 <b>체크포인트(checkpoint) 설정 및 복구를 위한 메커니즘</b>이 필요하다.</div>
+    </div>
+
+    <div class="card">
+      <h3>평가 및 디버깅의 어려움 <span class="tag">한계⑤</span></h3>
+      <div class="note hard">⚠ 위험 — 실행 경로와 최종 답변이 <b>매 실행마다 달라져</b>(비결정적) 공평한 평가가 어렵다. 이를 보완하기 위해 <b>LLM 평가 점수(0~1 스케일)</b>와 <b>사람에 의한 평가(human evaluation)</b>를 함께 사용하여 평가한다.</div>
+    </div>
+
+    <div class="card full">
+      <h3>미해결 문제 및 발전 방향</h3>
+      <table class="compare">
+        <tr><th>방향</th><th>내용</th></tr>
+        <tr><td class="k">인간 중심의 상호 작용</td><td>AI를 자율적인 연구원이 아니라 <b>강력한 조력자</b>로 포지셔닝. 중간 사고 과정을 보여주고 설명하여 <b>투명성 보장 및 신뢰성 향상</b>. 사용자 피드백을 통해 <b>지속적인 개인화</b> 수행.</td></tr>
+        <tr><td class="k">전문 분야 에이전트</td><td>의학·법·생물학 등 분야별 지식과 추론 구조를 결합. <b>도메인별 데이터셋 및 평가 프레임워크</b> 개발. 범용 에이전트와 전문 에이전트의 <b>하이브리드</b> 운영.</td></tr>
+        <tr><td class="k">효율적인 TTS 구현(Test-Time Scaling)</td><td><b>더 효율적인 추론</b>: 중요한 부분에 대해서만 깊이 추론하고, 적절히 더 작은 모델을 사용. <b>더 효율적인 검색</b>: 인덱싱 최적화, 비생산적 검색의 조기 중단, 우선순위가 낮은 경로 제거.</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>🤔 생각해 볼 질문</h3>
+      <div class="note tip">
+        <ul>
+          <li>여러 단계를 거치는 긴 에이전트 체인에서 초반의 작은 오류가 최종 답변까지 전파되는 것을 막으려면, 체크포인트를 어느 시점에 두고 어떤 기준으로 롤백해야 할까?</li>
+          <li>실행할 때마다 경로와 답변이 달라지는 비결정적 에이전트를 "공정하게" 평가하려면, LLM 자동 평가와 사람 평가를 각각 어떤 비중·역할로 결합하는 것이 합리적일까?</li>
+          <li>토큰 비용이 표준 질의응답 대비 최대 15배에 달하는 멀티 에이전트 구조를, 어떤 기준으로 "고부가가치 작업"과 "단순 작업"을 구분해 선택적으로 적용할 수 있을까?</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<section class="section" id="ch7" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">7</div>
+    <div><h2>핵심 정리 & 확인 문제</h2><p class="desc">강의 요약(패러다임 전환·에이전트 구조·시스템 구성·TTS·한계)과 원본 확인문제 8선, 참고자료 목록.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3>오늘 공부한 내용 요약 및 정리</h3>
+      <div class="summary-box">
+        <h4>강의 정리 체크리스트</h4>
+        <ul>
+          <li><label><input type="checkbox">패러다임의 전환 — 웹검색 → LLM 챗봇 → 검색증강생성(RAG) → 에이전트 기반 심층연구(Deep Research)</label></li>
+          <li><label><input type="checkbox">에이전트의 역할 — 다단계 추론 + 검색 결합</label></li>
+          <li><label><input type="checkbox">에이전트의 역할 — 결과에 대한 동적 피드백 루프 형성</label></li>
+          <li><label><input type="checkbox">에이전트의 역할 — 필요한 경우 도구 호출 및 다른 에이전트와 협업 수행</label></li>
+          <li><label><input type="checkbox">에이전트 핵심 구조 — 사고(Think): 세부 목표 설정</label></li>
+          <li><label><input type="checkbox">에이전트 핵심 구조 — 검색(Search): API 호출해 정보 수집</label></li>
+          <li><label><input type="checkbox">에이전트 핵심 구조 — 탐색(Explore): 웹 콘텐츠 분석 및 유용 정보 저장</label></li>
+          <li><label><input type="checkbox">에이전트 핵심 구조 — 답변(Answer): 수집된 근거로 최종 결론 도출</label></li>
+          <li><label><input type="checkbox">에이전트 시스템 구성 — 리드 에이전트(Lead Agent): 사용자 질의 분석 및 연구 계획 수립</label></li>
+          <li><label><input type="checkbox">에이전트 시스템 구성 — 하위 에이전트(Sub Agents): 웹검색·분석·정리 등 세부 역할 수행</label></li>
+          <li><label><input type="checkbox">에이전트 시스템 구성 — 병렬 실행: 3~5개 하위 에이전트가 동시에 작동, 처리시간 최대 90% 절감</label></li>
+          <li><label><input type="checkbox">Test-Time Scaling(TTS) — 추론·검색 단계를 늘릴수록 성능이 향상되는 법칙</label></li>
+          <li><label><input type="checkbox">TTS — 추론 TTS: Chain-of-Thought, Self-Refinement, Self-Consistency</label></li>
+          <li><label><input type="checkbox">TTS — 검색 TTS: 반복 검색으로 정보 범위 확장</label></li>
+          <li><label><input type="checkbox">한계 및 고려사항 — 높은 토큰 비용</label></li>
+          <li><label><input type="checkbox">한계 및 고려사항 — 과도한 병렬성으로 인한 간섭 위험</label></li>
+          <li><label><input type="checkbox">한계 및 고려사항 — 명확한 정지조건 및 체크포인트 설계 필요</label></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card full">
+      <h3>확인 문제 (8문항) — 정답 및 해설</h3>
+
+      <div class="qa">
+        <div class="q">Q1. 다음 중 에이전트 기반 심층 연구의 핵심 특징으로 올바른 것은?<br>a) 단순히 데이터를 수집하는 수동형 모델 b) 검색 결과를 토대로 추론, 재조정하는 능동형 구조 c) 학습 데이터를 분류하는 지도학습 모델 d) 정적인 FAQ형 챗봇</div>
+        <div class="a">정답: b) 검색 결과를 토대로 추론, 재조정하는 능동형 구조</div>
+        <p>해설: 에이전트 기반 심층 연구는 단순 응답 생성기가 아닌 검색과 추론을 결합한 능동적 구조입니다. 검색 결과를 바탕으로 스스로 추론하고, 부족한 정보를 다시 검색하여 재조정합니다.</p>
+      </div>
+
+      <div class="qa">
+        <div class="q">Q2. 에이전트 기반 심층 연구에서 LLM이 수행하는 역할로 가장 적절한 것은?<br>a) 검색 결과의 단순 요약 및 번역 b) 훈련 데이터를 수집하는 수동적인 도구 c) 간단한 응답만을 생성하는 생성기 d) 능동적인 정보 탐색 에이전트 역할</div>
+        <div class="a">정답: d) 능동적인 정보 탐색 에이전트 역할</div>
+        <p>해설: LLM은 단순 텍스트 생성기가 아니라 스스로 탐색하며 정보를 보강하는 능동적 에이전트로 작동합니다. 즉, 필요 시 외부 정보를 찾고 활용해 더 정확한 결과를 냅니다.</p>
+      </div>
+
+      <div class="qa">
+        <div class="q">Q3. 기존 RAG(검색 증강 생성)와 비교했을 때, AI 에이전트가 '오류 전파'를 줄일 수 있는 핵심적인 이유는?<br>a) 추론을 먼저 수행한 후 검색을 한 번만 실행 b) 검색 단계에서 더 많은 문서를 한 번에 가져옴 c) 강화학습을 통해 항상 정답만 검색하도록 훈련 d) 추론 과정이 언제, 무엇을 검색할지 동적으로 결정</div>
+        <div class="a">정답: d) 추론 과정이 언제, 무엇을 검색할지 동적으로 결정</div>
+        <p>해설: 기존 RAG는 "검색 후 추론"의 고정 순서를 따르지만, AI 에이전트는 추론이 '언제, 무엇을 검색할지' 동적으로 결정합니다. 이로써 오류 전파를 줄이고 효율적인 검색이 가능해집니다.</p>
+      </div>
+
+      <div class="qa">
+        <div class="q">Q4. 에이전트의 문제 해결 사이클에서 &lt;탐색&gt; 단계의 주요 역할은?<br>a) 질의에 대한 답변을 최종적으로 생성한다. b) 모델의 세부 목표를 설정한다. c) 웹페이지의 내용을 읽고 유용한 정보를 단기 저장소에 모은다. d) 에이전트 모델의 정책을 업데이트한다.</div>
+        <div class="a">정답: c) 웹페이지의 내용을 읽고 유용한 정보를 단기 저장소에 모은다</div>
+        <p>해설: 에이전트의 &lt;탐색&gt; 단계는 웹페이지를 읽고, 유용한 정보를 단기 저장소(memory)에 모으는 역할을 합니다. 필요 없는 페이지는 빠르게 건너뛰어 효율을 높입니다.</p>
+      </div>
+
+      <div class="qa">
+        <div class="q">Q5. 멀티에이전트 시스템의 효율성을 높이기 위한 구조적 장치로 옳은 것은?<br>a) 한 번에 하나의 에이전트만 실행 b) 리드 에이전트가 하위 에이전트를 병렬로 실행하고 결과를 조율 c) 에이전트 간 통신을 차단하여 오류 감소 d) 사용자의 직접 명령에만 반응</div>
+        <div class="a">정답: b) 리드 에이전트가 하위 에이전트를 병렬로 실행하고 결과를 조율함</div>
+        <p>해설: 멀티에이전트 시스템은 리드 에이전트가 여러 하위 에이전트를 병렬로 실행해 시간을 절약하고(최대 90%) 결과를 종합합니다. 이는 협업 구조의 핵심 효율성 포인트입니다.</p>
+      </div>
+
+      <div class="qa">
+        <div class="q">Q6. 다중 에이전트 시스템의 한계로 제시된 '평가 및 디버깅의 어려움'의 주된 원인은?<br>a) LLM의 토큰 제한 때문 b) 매 실행마다 에이전트의 경로와 답변이 달라 일관된 평가가 어렵기 때문 c) 데이터셋이 부족하기 때문 d) 강화학습 알고리즘이 적용되지 않기 때문</div>
+        <div class="a">정답: b) 매 실행마다 에이전트의 경로와 답변이 달라 일관된 평가가 어렵기 때문</div>
+        <p>해설: 멀티에이전트의 평가가 어려운 이유는 실행할 때마다 경로와 답변이 달라 일관된 평가가 불가능하기 때문입니다. 같은 입력에도 매번 다른 대화 흐름이 생길 수 있습니다.</p>
+      </div>
+
+      <div class="qa">
+        <div class="q">Q7. 리드 에이전트가 수행하는 역할로 옳은 것을 모두 고르시오.<br>a) 사용자의 질문을 분석한다. b) 연구 계획을 수립한다. c) 하위 에이전트의 실행 순서를 무작위로 변경한다. d) 하위 에이전트의 결과를 종합하고 추가 조사를 지시한다.</div>
+        <div class="a">정답: a, b, d</div>
+        <p>해설: 리드 에이전트는 단순 명령 중개자가 아니라 ① 사용자의 질문을 분석하고 ② 연구 계획을 세우며 ③ 하위 에이전트의 결과를 종합·조율하는 핵심 역할을 합니다.</p>
+      </div>
+
+      <div class="qa">
+        <div class="q">Q8. Test-Time Scaling(TTS)의 적용 예시로 올바른 것은?<br>a) 모델의 크기를 줄여서 처리 속도를 높이는 방법 b) 추론 단계수를 늘려 정확도를 향상시키는 Self-Refinement 과정 c) 데이터셋을 나누어 병렬 처리하는 알고리즘 d) 모델이 자동으로 사용자 피드백을 수집하는 과정</div>
+        <div class="a">정답: b) 추론 단계수를 늘려 정확도를 향상시키는 Self-Refinement 과정</div>
+        <p>해설: Test-Time Scaling(TTS)은 추론 단계수를 늘려(Self-Refinement) 성능을 향상시키는 접근입니다. 즉, 더 많은 사고 단계를 거쳐 더 정교한 결과를 내는 방식입니다.</p>
+      </div>
+
+    </div>
+
+    <div class="card full">
+      <h3>참고 자료 목록</h3>
+      <table class="compare">
+        <tr><th>No.</th><th>차시</th><th>목차</th><th>내용</th></tr>
+        <tr><td class="k">1</td><td>1차시</td><td>1. AI Agent</td><td>다양한 AI Agent의 구조와 구성요소(Perception, Brain, Planning, Action 등) 그리고 에이전트 아키텍처의 동작 환경에 대한 참고 자료 (QR 코드로 제공)</td></tr>
+        <tr><td class="k">2</td><td>1차시</td><td>1. AI Agent</td><td>AI Agent의 주요 유형(Reflex, Goal-based, Utility-based, Learning Agent 등)과 유형별 특징에 대한 참고 자료 (QR 코드로 제공)</td></tr>
+        <tr><td class="k">3</td><td>2차시</td><td>1. Multi Agent System</td><td>Multi-Agent System(MAS)의 개념, 특징, 구조 및 응용 분야와 MAS를 통해 복잡한 문제를 해결하는 것에 대한 참고 자료 (QR 코드로 제공)</td></tr>
+        <tr><td class="k">4</td><td>2차시</td><td>1. Multi Agent System</td><td>Multi-Agent System에 대해 다양한 그림과 예시를 포함하고 있어 비교적 쉬운 입문을 돕기 위한 참고 자료 (QR 코드로 제공)</td></tr>
+        <tr><td class="k">5</td><td>3차시</td><td>1. Memory & Tool in Multi Agent System</td><td>AI Agent가 과거의 상호작용 정보를 기반으로 맥락을 유지하며 학습하고 적응하도록 하는 메모리 시스템의 구조와 활용 방식에 대한 참고 자료 (QR 코드로 제공)</td></tr>
+        <tr><td class="k">6</td><td>3차시</td><td>1. Memory & Tool in Multi Agent System</td><td>LLM 기반 AI Agent의 메모리 구조와 메모리 연구의 주요 접근 방식, 평가 방법, 한계와 향후 연구 방향에 대한 참고 자료 (QR 코드로 제공)</td></tr>
+        <tr><td class="k">7</td><td>4차시</td><td>1. 대규모 언어 모델(LLM)의 추론 능력(Reasoning)</td><td>LLM 기반 reasoning 모델의 발전 과정과 agent reasoning을 포함한 다양한 추론 방법과 연구 방향에 대한 참고 자료 (QR 코드로 제공)</td></tr>
+        <tr><td class="k">8</td><td>4차시</td><td>2. LLM 에이전트의 계획 수립 (Planning)</td><td>LLM 기반 AI Agent의 Planning 능력을 향상시키기 위한 다양한 방법과 구조에 대한 참고 자료 (QR 코드로 제공)</td></tr>
+      </table>
+      <div class="src">원본 URL 열은 QR 코드 이미지로만 제공되어 텍스트로 판독 불가 — "QR 코드로 제공"으로 표기함.</div>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<a href="#ch0" id="top-btn">↑</a>
+
+<footer>
+  AI Agent 개념정리 · SSAFY AI 4차시 강의자료 기반 · 전체 170페이지 원본 슬라이드 정리 · Hallmark 디자인 시스템 적용
+</footer>
+
+</body>
+</html>
