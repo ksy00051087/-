@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>추가범위 개념정리 — LLM 안전 정렬 · 개방형/폐쇄형 LLM · 오버피팅과 분포 변화 · 온디바이스 VLM · 참 함수와 측정오차</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+<style>
+/* Hallmark · per-file application of the locked design system (new_style2.css, unmodified).
+   추가범위: 기존 개념정리 문서(LLM_개념정리_hallmark.html 등)의 스타일 시트를 그대로 재사용.
+   No CSS rules altered from the locked stylesheet; only :root accent usage follows the existing rotation contract. */
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY · 추가범위 보충 개념정리</span>
+    <h1>추가범위 개념정리</h1>
+    <p class="sub">기존 개념정리 문서에서 다루지 않았던 5개 주제 — LLM 안전 정렬, 개방형과 폐쇄형 LLM, 오버피팅과 분포 변화, 온디바이스 VLM, 참 함수와 측정오차 — 를 같은 양식으로 보충 정리했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 5개 주제 보충 범위</span>
+      <span>🧮 KaTeX 수식 렌더링</span>
+      <span>🧪 핵심질문 5종</span>
+      <span>🗂️ 핵심 용어 정리 + 전체 한눈에 보기</span>
+    </div>
+    <div class="hero-note">
+      ⚠️ 기존 개념정리(거대 언어 모델 · 딥러닝 & 영상모델 등) 문서와 겹치지 않는 보충 범위만 다룹니다. 카드 그리드 배치와 색상 규칙은 기존 문서와 동일합니다.
+    </div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#s1">1. LLM 안전 정렬</a>
+    <a href="#s2">2. 개방형과 폐쇄형 LLM</a>
+    <a href="#s3">3. 오버피팅과 분포 변화</a>
+    <a href="#s4">4. 온디바이스 VLM</a>
+    <a href="#s5">5. 참 함수와 측정오차</a>
+  </nav>
+</div>
+
+<main>
+
+<!-- ===================== 1. LLM 안전 정렬 ===================== -->
+<section class="section" id="s1" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>LLM 안전 정렬 (Safety Alignment)</h2><p class="desc">HHH 원칙 · Red-teaming · Constitutional AI(RLAIF) · 안전-유용성 트레이드오프 · 안전 정렬 파이프라인</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">1-1</span>안전 정렬이란?</h3>
+      <p><b>정의</b> — LLM이 <b>유해하거나 위험한 요청을 거부</b>하고, <b>사회적으로 용인되는 가치와 규범</b>에 부합하는 응답을 생성하도록 만드는 정렬(Alignment) 학습의 한 축. 앞서 배운 정렬 학습이 "지시를 잘 따르는가(지시 학습)"와 "더 나은 응답을 고르는가(선호 학습)"를 다뤘다면, 안전 정렬은 그중에서도 <b>"해를 끼치지 않는가"</b>에 초점을 맞춘 부분입니다.</p>
+      <div class="subhead">HHH 원칙 (Anthropic)</div>
+      <ul>
+        <li><b>Helpful (유용함)</b> — 사용자의 목적을 실제로 도와야 한다.</li>
+        <li><b>Harmless (무해함)</b> — 신체적·심리적·사회적 피해로 이어질 수 있는 응답을 하지 않는다.</li>
+        <li><b>Honest (정직함)</b> — 모델이 알지 못하는 것을 아는 척하지 않고, 오해를 유발하는 응답을 하지 않는다.</li>
+      </ul>
+      <div class="note exam"><b>Remark.</b> 세 목표는 서로 <b>충돌</b>할 수 있습니다. 예를 들어 위험한 화학물질 제조법을 묻는 질문에 "유용하게" 답하면 "무해함"을 해칩니다. 안전 정렬 학습은 이 트레이드오프에서 <b>무해함을 우선시하는 균형점</b>을 찾는 과정입니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-2</span>Red-teaming (레드팀)</h3>
+      <p><b>정의</b> — 모델을 배포하기 전, <b>일부러 유해한 응답을 유도하는 적대적 프롬프트</b>를 시도해 취약점을 찾아내는 과정. 공격자의 관점에서 모델을 미리 "공격"해보고, 발견된 취약점을 다시 학습 데이터로 만들어 모델을 보강합니다.</p>
+      <ul>
+        <li>사람 red-teamer가 직접 탈옥(jailbreak) 프롬프트를 시도하는 <b>수동 방식</b></li>
+        <li>또 다른 LLM이 공격 프롬프트를 자동 생성하는 <b>자동화된(Automated) red-teaming</b></li>
+      </ul>
+      <p>Red-teaming에서 발견된 실패 사례는 <b>안전 관련 선호 데이터(더 안전한 응답 vs 덜 안전한 응답 쌍)</b>로 가공되어, 보상 모델(RM) 학습 데이터에 다시 포함됩니다 — 즉 안전 정렬은 <b>선호 학습(RLHF) 파이프라인 위에서 이뤄지는 하나의 적용</b>입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">1-3</span>Constitutional AI (RLAIF)</h3>
+      <p>사람이 일일이 "이 응답이 더 안전하다"고 라벨링하는 데는 <b>비용과 한계</b>가 있습니다. <b>Constitutional AI</b>는 사람이 만든 소수의 원칙("헌법", constitution)을 기준으로 <b>모델 스스로 자기 응답을 비판하고 수정</b>하게 한 뒤, 그 결과로 선호 데이터를 만드는 방법입니다.</p>
+      <div class="formula">1) 초기 응답 생성
+2) 모델이 "헌법" 기준으로 자기 비판(critique)
+3) 비판을 반영해 응답을 스스로 수정(revise)
+4) 수정 전/후 응답 쌍 → AI 피드백 기반 선호 데이터
+5) RLAIF(RL from AI Feedback)로 학습</div>
+      <p class="src">Bai et al., <i>Constitutional AI: Harmlessness from AI Feedback</i>, Anthropic 2022</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">1-4</span>안전-유용성 트레이드오프 (Over-refusal)</h3>
+      <p>안전 정렬을 지나치게 강하게 걸면, 모델이 <b>실제로는 무해한 질문까지 거절</b>하는 <b>과잉 거절(Over-refusal)</b> 문제가 생깁니다. 예: "총을 <b>쏘는</b> 방법"이 아니라 "사진을 <b>잘 찍는</b> 방법"인데 단어만 보고 거절하는 경우.</p>
+      <div class="note tip"><b>정리</b> — 안전 정렬의 목표는 "무조건 거절"이 아니라, <b>해로운 요청만 정확히 걸러내면서 정당한 요청은 최대한 돕는 것</b>입니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-5</span>안전 정렬 파이프라인 한눈에 보기</h3>
+      <div class="formula">사전학습된 LLM
+     │
+     ▼
+안전 관련 SFT 데이터로 지시 학습  (거절 예시 + 정상 응답 예시)
+     │
+     ▼
+Red-teaming으로 취약 프롬프트 수집 ──┐
+     │                              │
+     ▼                              ▼
+Constitutional AI(RLAIF) 또는 사람 피드백으로 안전 선호 데이터 생성
+     │
+     ▼
+보상 모델(RM) 재학습 (안전성 반영)
+     │
+     ▼
+PPO 등 RLHF 강화학습으로 정렬
+     │
+     ▼
+배포 후 지속적인 red-teaming ↔ 재학습 (반복)</div>
+      <div class="qa">
+        <div class="q">핵심 질문. 안전 정렬은 왜 "한 번 학습하면 끝"이 아니라 배포 이후에도 반복되는 과정일까?</div>
+        <div class="a">탈옥(jailbreaking) 기법은 계속 새로 발견되고, 모델이 배포된 이후에도 사용자들이 새로운 우회 방법을 찾아내기 때문입니다. 그래서 안전 정렬은 <b>Red-teaming → 재학습 → 재배포</b>를 반복하는 지속적인 사이클로 운영됩니다.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 2. 개방형과 폐쇄형 LLM ===================== -->
+<section class="section" id="s2" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>개방형(Open)과 폐쇄형(Closed) LLM</h2><p class="desc">정의와 구분 · 장단점 비교 · 접근 방법 · 선택 기준</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">2-1</span>정의와 대표 예시</h3>
+      <table class="compare">
+        <tr><th></th><th>폐쇄형 (Closed)</th><th>개방형 (Open-sourced / Open-weight)</th></tr>
+        <tr><td class="k">정의</td><td>모델 가중치·구조·학습 데이터가 비공개, API로만 접근 가능</td><td>모델 가중치가 공개되어 누구나 다운로드·수정·재배포 가능</td></tr>
+        <tr><td class="k">대표 예시</td><td>ChatGPT(OpenAI), Claude(Anthropic), Gemini(Google)</td><td>LLaMA(Meta), Gemma(Google), Qwen(Alibaba), DeepSeek, Mistral</td></tr>
+        <tr><td class="k">접근 방법</td><td>웹/앱, Playground, API 호출</td><td>Hugging Face 허브 등에서 직접 다운로드 후 로컬/서버 실행</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-2</span>폐쇄형의 장단점</h3>
+      <ul>
+        <li><b>장점</b> — 일반적으로 더 우수한 성능, 최신 기능을 가장 먼저 사용, 별도 인프라 없이 바로 사용 가능</li>
+        <li><b>단점</b> — API 호출마다 비용 발생, 모델 구조·학습 데이터·가중치가 비공개(블랙박스), 서비스 정책 변경에 종속됨</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-3</span>개방형의 장단점</h3>
+      <ul>
+        <li><b>장점</b> — 무료로 다운로드·사용 가능, 모델 구조·가중치 공개로 <b>파인튜닝·경량화·온디바이스 배포</b>에 자유로움, 데이터가 외부로 나가지 않아 <b>보안·프라이버시</b>에 유리</li>
+        <li><b>단점</b> — 충분한 계산 자원(GPU)이 필요, 상대적으로 최상위 폐쇄형 모델보다 성능이 낮은 편(단, 격차는 빠르게 줄어드는 추세)</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-4</span>어떤 상황에 어떤 선택이 맞을까?</h3>
+      <table class="compare">
+        <tr><th>고려 요소</th><th>폐쇄형이 유리한 경우</th><th>개방형이 유리한 경우</th></tr>
+        <tr><td class="k">초기 비용</td><td>인프라 구축 없이 바로 시작</td><td>초기엔 GPU 투자가 필요하지만 장기적으로 API 비용 절감</td></tr>
+        <tr><td class="k">데이터 민감도</td><td>클라우드 전송이 허용되는 경우</td><td>민감 데이터를 외부로 보낼 수 없는 경우(온프레미스)</td></tr>
+        <tr><td class="k">커스터마이징</td><td>제한적(프롬프트·파인튜닝 API 수준)</td><td>가중치 수준의 자유로운 파인튜닝·경량화 가능</td></tr>
+        <tr><td class="k">최신 성능</td><td>최상위 벤치마크 성능이 필요한 경우</td><td>온디바이스·저지연 등 배포 제약이 강한 경우</td></tr>
+      </table>
+      <div class="note tip"><b>정리</b> — 개방형/폐쇄형은 "어느 쪽이 절대적으로 더 낫다"의 문제가 아니라, <b>비용·데이터 민감도·커스터마이징 자유도·성능 요구 수준</b>이라는 네 가지 축의 트레이드오프입니다.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 3. 오버피팅과 분포 변화 ===================== -->
+<section class="section" id="s3" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>오버피팅과 분포 변화</h2><p class="desc">과적합의 정의와 방지 기법 · 분포 변화(Distribution Shift)의 세 유형 · 둘의 관계</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">3-1</span>오버피팅(과적합, Overfitting)</h3>
+      <p><b>정의</b> — 모델이 <b>학습 데이터의 패턴뿐 아니라 노이즈까지 과도하게 암기</b>하여, 학습 데이터에서는 성능이 매우 높지만 <b>새로운(테스트) 데이터에서는 성능이 크게 떨어지는</b> 현상.</p>
+      <table class="compare">
+        <tr><th></th><th>Underfitting(과소적합)</th><th>적절한 적합</th><th>Overfitting(과적합)</th></tr>
+        <tr><td class="k">학습 오차</td><td>높음</td><td>낮음</td><td>매우 낮음</td></tr>
+        <tr><td class="k">검증/테스트 오차</td><td>높음</td><td>낮음</td><td>높음(학습 오차와 격차 큼)</td></tr>
+        <tr><td class="k">원인</td><td>모델이 너무 단순함</td><td>-</td><td>모델이 너무 복잡하거나 데이터가 부족함</td></tr>
+      </table>
+      <div class="subhead">방지 기법</div>
+      <ul>
+        <li><b>정규화(Regularization)</b> — L1/L2 페널티로 가중치 크기를 제한</li>
+        <li><b>Dropout</b> — 학습 시 일부 뉴런을 무작위로 비활성화</li>
+        <li><b>Early Stopping</b> — 검증 손실이 더 이상 줄지 않으면 학습 조기 종료</li>
+        <li><b>데이터 증강(Data Augmentation)</b> — 학습 데이터의 다양성을 인위적으로 늘림</li>
+        <li><b>교차검증(Cross-validation)</b> — 데이터를 여러 번 나눠 일반화 성능을 안정적으로 추정</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-2</span>분포 변화 (Distribution Shift)</h3>
+      <p><b>정의</b> — 모델을 <b>학습시킨 데이터의 분포</b>와 <b>실제 배포 후 마주치는 데이터의 분포</b>가 달라지는 현상. 학습 당시에는 성능이 좋았던 모델도, 분포가 변하면 성능이 저하될 수 있습니다.</p>
+      <table class="compare">
+        <tr><th>유형</th><th>변하는 것</th><th>예시</th></tr>
+        <tr><td class="k">Covariate Shift<br>(입력 분포 변화)</td><td>입력 $P(X)$의 분포</td><td>낮에 찍은 사진으로 학습했는데, 배포 후 야간 사진이 많이 들어옴</td></tr>
+        <tr><td class="k">Label Shift<br>(레이블 분포 변화)</td><td>출력 $P(Y)$의 분포</td><td>학습 시엔 스팸 비율이 5%였는데, 실제 서비스에서는 스팸 비율이 30%로 증가</td></tr>
+        <tr><td class="k">Concept Shift<br>(관계 자체 변화)</td><td>입력-출력 관계 $P(Y\mid X)$</td><td>같은 리뷰 문장이라도 유행어의 의미가 바뀌어 감성 라벨링 기준이 달라짐</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-3</span>오버피팅과 분포 변화의 관계</h3>
+      <p>오버피팅된 모델은 <b>학습 데이터의 특정 분포에만 지나치게 최적화</b>되어 있기 때문에, 분포 변화가 일어났을 때 <b>더 크게 흔들립니다</b>. 즉 오버피팅이 심할수록 분포 변화에 대한 <b>강건성(robustness)</b>이 낮습니다.</p>
+      <div class="qa">
+        <div class="q">핵심 질문. 검증 데이터 성능이 좋은 모델이 실제 서비스에서는 왜 성능이 떨어질 수 있을까?</div>
+        <div class="a">검증 데이터가 학습 데이터와 <b>같은 분포</b>에서 뽑혔다면, 검증 성능은 "분포가 변하지 않는다"는 가정 아래의 성능일 뿐입니다. 실제 서비스 데이터의 분포가 학습/검증 분포와 다르면(분포 변화), 검증 성능이 좋아도 실제 성능은 떨어질 수 있습니다.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-4</span>대응 방법</h3>
+      <ul>
+        <li><b>지속적 모니터링</b> — 배포 후에도 입력·출력 분포를 지속적으로 관찰</li>
+        <li><b>주기적 재학습(Retraining)</b> — 최신 데이터를 반영해 모델을 다시 학습</li>
+        <li><b>도메인 적응(Domain Adaptation)</b> — 목표 분포에 맞춰 모델을 미세조정</li>
+      </ul>
+      <div class="note gap"><b>정리</b> — 오버피팅은 "학습 시점"의 일반화 실패, 분포 변화는 "배포 이후 시점"의 일반화 실패입니다. 둘 다 <b>"모델이 보지 못한 데이터에 얼마나 잘 대응하는가"</b>라는 같은 문제의식에서 출발합니다.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 4. 온디바이스 VLM ===================== -->
+<section class="section" id="s4" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>온디바이스 VLM (On-device Vision-Language Model)</h2><p class="desc">필요성 · VLM 기본 구조 · 경량화 기법(양자화·지식 증류·가지치기) · 트레이드오프</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">4-1</span>온디바이스 VLM이란?</h3>
+      <p><b>정의</b> — 클라우드 서버가 아니라 <b>스마트폰·태블릿 등 자원이 제한된 단말기(모바일 GPU/NPU)</b>에서 직접 실행되는, 이미지와 텍스트를 함께 이해하는 <b>경량 비전-언어 모델(VLM)</b>.</p>
+      <div class="subhead">필요한 이유</div>
+      <ul>
+        <li><b>프라이버시</b> — 사진·화면 등 민감한 데이터를 서버로 전송하지 않고 기기 안에서만 처리</li>
+        <li><b>지연시간(Latency)</b> — 네트워크 왕복 없이 즉시 응답 → 실시간 상호작용에 유리</li>
+        <li><b>오프라인 사용</b> — 인터넷 연결이 없는 환경에서도 동작</li>
+        <li><b>비용</b> — 서버 추론 비용(API 과금)이 들지 않음</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-2</span>VLM의 기본 구조</h3>
+      <div class="formula">이미지 → [ 이미지 인코더 ]  (예: CLIP ViT)
+                  │
+                  ▼
+        [ Projection Layer ]  (이미지 임베딩 → LLM 임베딩 공간으로 정렬)
+                  │
+                  ▼
+텍스트 프롬프트 + 이미지 임베딩 → [ LLM(Decoder) ] → 텍스트 응답</div>
+      <p>온디바이스 VLM도 큰 틀에서는 <b>이미지 인코더 + LLM</b> 구조를 따르되, 두 구성 요소를 모두 <b>모바일 환경에서 돌아갈 만큼 작게</b> 만든 버전입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-3</span>경량화 기법</h3>
+      <ul>
+        <li><b>양자화(Quantization)</b> — 32비트 부동소수점 가중치를 8비트·4비트 정수 등으로 낮춰 <b>모델 크기와 연산량을 줄임</b></li>
+        <li><b>지식 증류(Knowledge Distillation)</b> — 크고 성능 좋은 <b>teacher 모델</b>의 출력을 작은 <b>student 모델</b>이 모방하도록 학습시켜 성능은 최대한 유지하면서 크기를 줄임</li>
+        <li><b>가지치기(Pruning)</b> — 중요도가 낮은 가중치·뉴런·어텐션 헤드를 제거</li>
+        <li><b>효율적 아키텍처 설계</b> — MobileViT, 경량 CNN 백본 등 처음부터 적은 연산으로 동작하도록 설계된 구조 사용</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">4-4</span>트레이드오프와 사례</h3>
+      <table class="compare">
+        <tr><th>축</th><th>클라우드 VLM</th><th>온디바이스 VLM</th></tr>
+        <tr><td class="k">정확도</td><td>높음(대형 모델)</td><td>상대적으로 낮음(경량화로 인한 손실)</td></tr>
+        <tr><td class="k">지연시간</td><td>네트워크 왕복 필요</td><td>즉시 응답</td></tr>
+        <tr><td class="k">프라이버시</td><td>서버 전송 필요</td><td>기기 내 처리로 유리</td></tr>
+        <tr><td class="k">배터리/발열</td><td>기기 부담 없음</td><td>연산 부담이 기기로 이전</td></tr>
+      </table>
+      <p class="src">대표 사례: Google Gemini Nano(온디바이스), Apple Intelligence의 온디바이스 파운데이션 모델, Microsoft Phi-3 Vision 등 — 모두 "경량화 + 모바일 NPU 최적화"를 함께 적용한 사례입니다.</p>
+      <div class="note tip"><b>정리</b> — 온디바이스 VLM은 <b>"더 똑똑한 모델"이 아니라 "충분히 똑똑하면서 기기 안에서 돌아가는 모델"</b>을 만드는 문제입니다. 양자화·지식 증류·가지치기는 모두 성능 손실을 최소화하면서 이 목표를 달성하기 위한 도구입니다.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 5. 참 함수와 측정오차 ===================== -->
+<section class="section" id="s5" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>참 함수와 측정오차</h2><p class="desc">지도학습의 기본 가정 · 참 함수 f · 측정오차(비가역 오차) · 지도학습의 목적 · 오차의 분해</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">5-1</span>지도학습의 기본 가정</h3>
+      <p>지도학습은 데이터가 어떤 <b>알 수 없는 참 함수(true function)</b> $f$ 에 <b>측정오차(measurement error)</b> $\varepsilon$ 이 더해진 형태로 생성된다고 가정합니다.</p>
+      <div class="formula">$$Y = f(X) + \varepsilon$$</div>
+      <ul>
+        <li><b>참 함수 $f$</b> — 입력 $X$가 주어졌을 때 출력 $Y$가 결정되는 <b>실제(이상적인) 관계</b>. 우리는 이 함수를 <b>직접 알 수 없고</b>, 데이터로부터 추정할 뿐입니다.</li>
+        <li><b>측정오차 $\varepsilon$</b> — $X$만으로는 설명되지 않는 <b>무작위 잡음(random noise)</b>. 평균이 0인 확률변수로 가정하는 경우가 많습니다($E[\varepsilon]=0$).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">5-2</span>지도학습의 목적</h3>
+      <p>지도학습의 목적은 관측된 데이터 $(X_i, Y_i)$로부터, 참 함수 $f$를 최대한 잘 근사하는 <b>추정 함수(estimated function)</b> $\hat f$ 를 찾는 것입니다.</p>
+      <div class="formula">$$\hat Y = \hat f(X)$$</div>
+      <p>여기서 $\hat f$가 아무리 좋아도, $\varepsilon$에서 비롯된 오차는 <b>원리적으로 제거할 수 없습니다</b> — 모델을 개선하는 문제와 <b>무관한</b> 오차이기 때문입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">5-3</span>측정오차는 왜 "줄일 수 없는" 오차인가</h3>
+      <p>측정오차 $\varepsilon$은 $X$에 담기지 않은 정보(관측되지 않은 변수, 측정 장비의 한계, 본질적인 무작위성 등)에서 비롯됩니다. 그래서 이를 <b>비가역 오차(irreducible error)</b>라고도 부릅니다.</p>
+      <div class="note exam"><b>Remark.</b> "모델을 더 복잡하게 만들면 오차를 0으로 줄일 수 있다"는 생각은 <b>틀렸습니다</b>. $\hat f$를 아무리 $f$에 가깝게 만들어도, $\varepsilon$에서 비롯된 오차는 그대로 남습니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-4</span>기대 예측오차의 분해</h3>
+      <p>임의의 새로운 입력 $x_0$에서, 추정 함수 $\hat f$의 기대 예측오차(Expected Prediction Error)는 다음과 같이 세 항으로 분해됩니다.</p>
+      <div class="formula">$$E\left[(Y-\hat f(x_0))^2\right] \;=\; \underbrace{\left(\mathrm{Bias}[\hat f(x_0)]\right)^2}_{\text{편향}^2} \;+\; \underbrace{\mathrm{Var}[\hat f(x_0)]}_{\text{분산}} \;+\; \underbrace{\mathrm{Var}[\varepsilon]}_{\text{비가역 오차}}$$</div>
+      <table class="compare">
+        <tr><th>항</th><th>의미</th><th>줄이는 방법</th></tr>
+        <tr><td class="k">편향² (Bias²)</td><td>$\hat f$가 참 함수 $f$를 얼마나 잘못 근사하는가(모형이 너무 단순할 때 큼)</td><td>모델 복잡도를 높임(단, 분산 증가 위험)</td></tr>
+        <tr><td class="k">분산 (Variance)</td><td>학습 데이터가 바뀔 때마다 $\hat f$가 얼마나 크게 흔들리는가(모형이 너무 복잡할 때 큼)</td><td>정규화, 데이터 추가, 모델 단순화</td></tr>
+        <tr><td class="k">비가역 오차</td><td>측정오차 $\varepsilon$ 자체의 분산</td><td><b>줄일 수 없음</b> — 모델과 무관한 데이터 자체의 한계</td></tr>
+      </table>
+      <div class="qa">
+        <div class="q">핵심 질문. "편향-분산 트레이드오프"에서 아무리 최적의 모델을 골라도 예측오차가 0이 될 수 없는 이유는?</div>
+        <div class="a">편향²과 분산은 모델 선택으로 줄일 수 있지만, <b>비가역 오차(측정오차의 분산)</b>는 데이터 생성 과정 자체에 내재된 무작위성이라 모델을 아무리 개선해도 남습니다. 즉 예측오차의 하한선은 비가역 오차로 결정됩니다.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 핵심 용어 정리 + 전체 한눈에 보기 ===================== -->
+<section class="section" id="summary" style="--accent:var(--navy)">
+  <div class="section-head">
+    <div class="section-num">★</div>
+    <div><h2>핵심 용어 정리</h2><p class="desc">추가범위 5개 주제의 핵심 용어를 한 번에 정리했습니다.</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <table class="compare">
+        <tr><th>용어</th><th>정의</th><th>위치</th></tr>
+        <tr><td class="k">안전 정렬 (Safety Alignment)</td><td>모델이 유해 요청을 거부하고 가치에 부합하도록 만드는 정렬 학습</td><td>1-1</td></tr>
+        <tr><td class="k">HHH 원칙</td><td>Helpful · Harmless · Honest, Anthropic이 제시한 정렬 목표 3요소</td><td>1-1</td></tr>
+        <tr><td class="k">Red-teaming</td><td>배포 전 적대적 프롬프트로 취약점을 미리 찾는 과정</td><td>1-2</td></tr>
+        <tr><td class="k">Constitutional AI / RLAIF</td><td>사람 대신 원칙(헌법) 기반 AI 피드백으로 안전 선호 데이터를 생성</td><td>1-3</td></tr>
+        <tr><td class="k">Over-refusal</td><td>안전 정렬이 과해 무해한 요청까지 거절하는 현상</td><td>1-4</td></tr>
+        <tr><td class="k">폐쇄형 LLM</td><td>가중치·구조가 비공개, API로만 접근 가능한 모델(ChatGPT 등)</td><td>2-1</td></tr>
+        <tr><td class="k">개방형 LLM</td><td>가중치가 공개되어 다운로드·수정 가능한 모델(LLaMA 등)</td><td>2-1</td></tr>
+        <tr><td class="k">오버피팅 (과적합)</td><td>학습 데이터에 과도하게 맞춰져 일반화 성능이 떨어지는 현상</td><td>3-1</td></tr>
+        <tr><td class="k">분포 변화 (Distribution Shift)</td><td>학습 시점과 배포 시점의 데이터 분포가 달라지는 현상</td><td>3-2</td></tr>
+        <tr><td class="k">Covariate / Label / Concept Shift</td><td>각각 입력 분포, 출력 분포, 입출력 관계가 변하는 분포 변화 유형</td><td>3-2</td></tr>
+        <tr><td class="k">온디바이스 VLM</td><td>모바일 등 제한된 자원에서 실행되는 경량 비전-언어 모델</td><td>4-1</td></tr>
+        <tr><td class="k">양자화 (Quantization)</td><td>가중치의 비트 수를 낮춰 모델 크기·연산량을 줄이는 경량화 기법</td><td>4-3</td></tr>
+        <tr><td class="k">지식 증류 (Knowledge Distillation)</td><td>teacher 모델의 출력을 student 모델이 모방해 학습하는 경량화 기법</td><td>4-3</td></tr>
+        <tr><td class="k">참 함수 (True Function) $f$</td><td>$X$와 $Y$ 사이의 실제 관계. 데이터로부터 추정할 뿐 직접 알 수 없음</td><td>5-1</td></tr>
+        <tr><td class="k">측정오차 (비가역 오차) $\varepsilon$</td><td>$X$로 설명되지 않는 무작위 잡음. 모델 개선으로 줄일 수 없는 오차</td><td>5-3</td></tr>
+        <tr><td class="k">기대 예측오차의 분해</td><td>편향² + 분산 + 비가역 오차로 예측오차를 세 항으로 분해</td><td>5-4</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3>전체 한눈에 보기</h3>
+      <div class="formula">[ LLM 안전 정렬 ]   HHH 원칙 → Red-teaming → Constitutional AI(RLAIF) → RM 재학습 → RLHF → 반복
+                       │
+[ 개방형 vs 폐쇄형 ]  비용 · 데이터 민감도 · 커스터마이징 자유도 · 성능 요구 수준의 트레이드오프
+                       │
+[ 오버피팅 · 분포변화 ] 오버피팅(학습 시점 일반화 실패) → 분포변화(배포 이후 일반화 실패)
+                        Covariate / Label / Concept Shift
+                       │
+[ 온디바이스 VLM ]     이미지 인코더 + LLM 구조 → 양자화 · 지식 증류 · 가지치기로 경량화
+                       │
+[ 참 함수 · 측정오차 ]  Y = f(X) + ε  →  예측오차 = 편향² + 분산 + 비가역 오차(ε)</div>
+    </div>
+
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <p style="font-size:.85rem">다섯 주제는 각각 독립적이지만 하나의 흐름으로도 읽힙니다. LLM을 <b>안전하게(1)</b> 그리고 <b>어떤 형태로(2)</b> 쓸 것인가는 배포 단계의 질문이고, 모델이 <b>학습·배포 환경에서 얼마나 일반화되는가(3)</b>와 <b>얼마나 가벼운 환경에서도 동작하는가(4)</b>는 실무 적용의 질문이며, 그 모든 것의 밑바탕에는 <b>지도학습이 애초에 무엇을 추정하려는 것인가(5)</b>라는 통계적 기본기가 깔려 있습니다.</p>
+    </div>
+
+  </div>
+</section>
+
+</main>
+
+<footer>
+SSAFY 이론개념 「추가범위」 보충 개념정리 문서 — LLM 안전 정렬 · 개방형/폐쇄형 LLM · 오버피팅과 분포 변화 · 온디바이스 VLM · 참 함수와 측정오차.<br>
+주요 참고: Bai et al.(Anthropic, 2022, Constitutional AI) · Ouyang et al.(NeurIPS 2022, InstructGPT/RLHF) · James et al., <i>An Introduction to Statistical Learning</i>(편향-분산 분해)
+</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>
