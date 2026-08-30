@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SSAFY 실기 빈칸 연습 — 실습 3종 (EDA·합성데이터·RAG)</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/woff2/Pretendard-Regular.woff2') format('woff2');font-weight:400;}
+:root{
+  --navy:oklch(28% 0.075 258); --navy-light:oklch(35% 0.085 258);
+  --blue:oklch(55% 0.18 258); --indigo:oklch(50% 0.20 275);
+  --green:oklch(53% 0.14 145); --amber:oklch(50% 0.13 65); --red:oklch(53% 0.18 25);
+  --bg:#f5f6f9; --panel:#fff; --border:oklch(90% 0.010 258);
+  --text:oklch(24% 0.014 258); --sub:oklch(46% 0.018 258);
+  --accent:var(--blue); --accent-soft:oklch(93% 0.03 258);
+  --good:var(--green); --good-bg:oklch(94% 0.05 145);
+  --bad:var(--red); --bad-bg:oklch(94% 0.05 25);
+  --warn:var(--amber); --warn-bg:oklch(94% 0.05 65);
+  --code-bg:oklch(97% 0.006 258);
+  --radius:14px;
+  --shadow:0 1px 3px oklch(20% 0.03 258/.06), 0 8px 24px oklch(20% 0.03 258/.07);
+}
+html.dark{
+  --bg:oklch(20% 0.012 258); --panel:oklch(26% 0.014 258); --border:oklch(34% 0.016 258);
+  --text:oklch(93% 0.006 258); --sub:oklch(68% 0.014 258);
+  --accent:oklch(68% 0.16 258); --accent-soft:oklch(30% 0.06 258);
+  --good:oklch(68% 0.15 145); --good-bg:oklch(28% 0.06 150);
+  --bad:oklch(68% 0.16 25); --bad-bg:oklch(28% 0.07 25);
+  --warn:oklch(70% 0.12 70); --warn-bg:oklch(28% 0.06 70);
+  --code-bg:oklch(22% 0.014 258);
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',-apple-system,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 26px;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 65%,oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);position:sticky;top:0;z-index:30;box-shadow:0 2px 10px oklch(20% 0.03 258/.18);}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16.5px;}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--indigo));box-shadow:0 0 0 3px oklch(100% 0 0/.12);}
+.brand small{font-weight:500;font-size:12px;opacity:.75;margin-left:6px;}
+.themebtn{width:34px;height:34px;border-radius:50%;border:1px solid oklch(100% 0 0/.22);
+  background:oklch(100% 0 0/.08);cursor:pointer;font-size:15px;color:inherit;}
+.wrap{max-width:960px;margin:0 auto;padding:22px 18px 90px;}
+.intro{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;box-shadow:var(--shadow);margin-bottom:18px;}
+.intro h1{margin:0 0 8px;font-size:20px;}
+.intro p{margin:0;font-size:13.5px;color:var(--sub);line-height:1.65;}
+.toolbar{position:sticky;top:62px;z-index:20;background:var(--bg);padding:10px 0 12px;margin-bottom:6px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.chip{padding:8px 14px;border-radius:999px;border:1px solid var(--border);background:var(--panel);
+  font-size:13px;font-weight:700;cursor:pointer;color:var(--text);}
+.chip:hover{border-color:var(--accent);}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.btn{padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:var(--panel);
+  font-size:13px;font-weight:700;cursor:pointer;color:var(--text);}
+.btn:hover{border-color:var(--accent);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.score{margin-left:auto;font-size:13px;font-weight:800;color:var(--sub);}
+.score b{color:var(--accent);font-size:15px;}
+.bar{height:6px;border-radius:999px;background:var(--border);overflow:hidden;margin-top:10px;}
+.bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--indigo));width:0;transition:width .25s;}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 18px 14px;margin-bottom:14px;box-shadow:var(--shadow);}
+.card.ok{border-color:var(--good);}
+.card.no{border-color:var(--bad);}
+.chead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;}
+.badge{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent);}
+.badge.eda{background:oklch(93% 0.05 145);color:var(--green);}
+.badge.syn{background:oklch(94% 0.05 65);color:var(--amber);}
+.badge.rag{background:oklch(93% 0.04 275);color:var(--indigo);}
+html.dark .badge.eda{background:oklch(28% 0.06 150);}
+html.dark .badge.syn{background:oklch(28% 0.06 70);}
+html.dark .badge.rag{background:oklch(30% 0.06 275);}
+.qno{font-size:12px;font-weight:800;color:var(--sub);}
+.topic{font-size:13px;font-weight:700;}
+.desc{font-size:13.5px;line-height:1.7;color:var(--text);margin:0 0 10px;}
+.desc b{color:var(--accent);}
+pre.code{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;
+  padding:13px 14px;margin:0 0 10px;overflow-x:auto;font-size:13px;line-height:2.05;
+  font-family:'JetBrains Mono','D2Coding','Consolas','Menlo',monospace;white-space:pre;}
+pre.code input{font-family:inherit;font-size:12.5px;padding:2px 7px;border-radius:6px;
+  border:1.5px dashed var(--accent);background:var(--panel);color:var(--text);
+  outline:none;text-align:center;min-width:60px;}
+pre.code input:focus{border-style:solid;box-shadow:0 0 0 3px var(--accent-soft);}
+pre.code input.ok{border-color:var(--good);border-style:solid;background:var(--good-bg);color:var(--text);}
+pre.code input.no{border-color:var(--bad);border-style:solid;background:var(--bad-bg);}
+pre.code input.warn{border-color:var(--warn);border-style:solid;background:var(--warn-bg);}
+.cbtns{display:flex;gap:7px;flex-wrap:wrap;}
+.cbtns .btn{padding:6px 12px;font-size:12.5px;}
+.fb{margin-top:10px;font-size:13px;line-height:1.7;padding:10px 12px;border-radius:10px;display:none;}
+.fb.show{display:block;}
+.fb.good{background:var(--good-bg);border:1px solid var(--good);}
+.fb.bad{background:var(--bad-bg);border:1px solid var(--bad);}
+.fb .ansline{font-family:'Consolas','Menlo',monospace;font-size:12.5px;margin-top:4px;}
+.hint{margin-top:9px;font-size:12.5px;color:var(--sub);background:var(--accent-soft);
+  border-radius:9px;padding:9px 12px;display:none;line-height:1.65;}
+.hint.show{display:block;}
+.hint ul{margin:4px 0 0;padding-left:18px;}
+.empty{text-align:center;color:var(--sub);padding:40px;font-size:14px;}
+.footer{text-align:center;color:var(--sub);font-size:12px;margin-top:28px;line-height:1.7;}
+@media(max-width:640px){.wrap{padding:16px 12px 80px;}.toolbar{top:58px;}pre.code{font-size:12px;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand"><span class="dot"></span>SSAFY 실기 빈칸 연습<small>실습 TODO 핵심만</small></div>
+  <button class="themebtn" id="themebtn">🌙</button>
+</div>
+<div class="wrap">
+  <div class="intro">
+    <h1>코드 빈칸 채우기</h1>
+    <p><b>실습 노트북 3종의 TODO 코드</b>에서 시험에 나올 확률이 높은 것만 <b>31문항</b>으로 추렸습니다 &mdash;
+    실습정답 11(EDA·모델학습) · 22(합성 데이터) · 41(RAG). 빈칸에 직접 입력하고 <b>확인</b>을 누르면 채점됩니다.
+    작은따옴표·큰따옴표는 아무거나 써도 되고, 앞뒤 공백은 무시합니다. Enter를 누르면 바로 채점됩니다.</p>
+  </div>
+  <div class="toolbar">
+    <div class="chips" id="chips"></div>
+    <div class="actions">
+      <button class="btn primary" id="gradeAll">전체 채점</button>
+      <button class="btn" id="toggleWrong">틀린 문제만 보기</button>
+      <button class="btn" id="resetAll">초기화</button>
+      <span class="score" id="score">0 / 0 정답</span>
+    </div>
+    <div class="bar"><i id="barfill"></i></div>
+  </div>
+  <div id="list"></div>
+  <div class="footer">실습정답 노트북 3종의 TODO 기반 핵심 31문항 (전체 85문항판은 같은 폴더의 전체판 파일)<br>SSAFY 교육 자료 개인 학습용</div>
+</div>
+<script>
+const DATA = [
+/* ===== Part A: 11 데이터 EDA 및 모델 학습 ===== */
+{p:"eda",t:"상관관계",d:"전체 상관행렬을 만들고 alcohol과 가장 상관이 큰 특성을 찾습니다.",
+ c:`corr = df.@@0@@()
+corr_with_alcohol = corr["alcohol"].@@1@@("alcohol")
+top_corr = corr_with_alcohol.@@2@@().idxmax()`,
+ a:[["corr"],["drop"],["abs"]],
+ h:["상관행렬을 만드는 DataFrame 메소드","자기 자신(=1.0)을 빼야 함","음의 상관도 잡으려면 절댓값"],
+ e:"기본은 Pearson 상관계수이며 범위는 -1~1입니다. 음의 상관도 강한 관계이므로 abs()로 절댓값을 취한 뒤 비교합니다."},
+
+{p:"eda",t:"히트맵",d:"상관행렬을 heatmap으로 그립니다. 숫자 표시, 소수점 2자리, coolwarm 컬러맵 조건입니다.",
+ c:`sns.@@0@@(data=corr, annot=@@1@@, fmt="@@2@@", cmap="@@3@@", mask=mask)`,
+ a:[["heatmap"],["True"],[".2f"],["coolwarm"]],
+ h:["seaborn 히트맵 함수","셀 안에 숫자를 쓰려면","소수점 두 자리 포맷 문자열","가운데가 흰색인 발산형 컬러맵"],
+ e:"annot=True가 셀에 숫자를 찍고, fmt='.2f'가 소수점 두 자리로 포맷합니다. annot 없이 fmt만 주면 아무 효과가 없습니다."},
+
+{p:"eda",t:"분포 시각화",d:"클래스별 flavanoids 분포를 히스토그램 + KDE로 그립니다.",
+ c:`sns.@@0@@(data=df, x="flavanoids", @@1@@="quality", bins=20, @@2@@=True, ax=ax[1])`,
+ a:[["histplot"],["hue"],["kde"]],
+ h:["seaborn 히스토그램 함수","범주별 색상 구분 인자","커널 밀도 곡선을 겹쳐 그리는 인자"],
+ e:"hue는 범주형 컬럼으로 색을 나누고, kde=True는 커널 밀도 추정 곡선을 함께 그립니다."},
+
+{p:"eda",t:"산점도 / pairplot",d:"두 변수 관계를 산점도로, 여러 특성을 한 번에 pairplot으로 그립니다.",
+ c:`sns.@@0@@(data=df, x="flavanoids", y="total_phenols", hue="quality")
+sns.@@1@@(data=plot_df, hue="quality", @@2@@=True)   # 아래쪽 삼각형만`,
+ a:[["scatterplot"],["pairplot"],["corner"]],
+ h:["산점도 함수","여러 변수 쌍을 한 번에 그리는 함수","대각선 위쪽을 생략하는 인자"],
+ e:"pairplot은 대각선에 각 변수의 분포, 비대각선에 변수 쌍 산점도를 그립니다. corner=True면 위쪽 삼각형을 생략합니다."},
+
+{p:"eda",t:"결측치 대체",d:"결측치를 각 컬럼의 평균값으로 채웁니다.",
+ c:`df_filled = df_missing.@@0@@(df_missing.@@1@@(numeric_only=True))`,
+ a:[["fillna"],["mean"]],
+ h:["결측치를 채우는 메소드","평균값으로 대체"],
+ e:"fillna(값)으로 채우며, Series를 넘기면 컬럼별로 대응해서 채웁니다. 결측 행을 통째로 지우려면 dropna()를 씁니다."},
+
+{p:"eda",t:"IQR 이상치 경계",d:"IQR 기반 이상치 탐지의 표준 공식입니다. 숫자까지 정확히 외워야 합니다.",
+ c:`Q1 = data[column].quantile(@@0@@)
+Q3 = data[column].quantile(@@1@@)
+IQR = Q3 - Q1
+lower_bound = Q1 - @@2@@ * IQR
+upper_bound = Q3 + @@3@@ * IQR`,
+ a:[["0.25"],["0.75"],["1.5"],["1.5"]],
+ h:["1사분위수","3사분위수","경계 계수","경계 계수"],
+ e:"IQR = Q3 - Q1이며, Q1-1.5×IQR보다 작거나 Q3+1.5×IQR보다 큰 값을 이상치로 봅니다. 평균·표준편차 방식보다 극단값에 덜 민감합니다."},
+
+{p:"eda",t:"train/test 분할",d:"테스트 30%, 재현성 고정, 클래스 비율 유지 조건으로 분할합니다.",
+ c:`from sklearn.model_selection import @@0@@
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, @@1@@=0.3, @@2@@=42, @@3@@=y)`,
+ a:[["train_test_split"],["test_size"],["random_state"],["stratify"]],
+ h:["분할 함수명","테스트 비율 인자","난수 고정 인자","클래스 비율 유지 인자"],
+ e:"stratify=y를 주면 train/test의 클래스 비율이 원본과 같게 유지됩니다. random_state는 같은 분할을 재현하기 위한 시드입니다."},
+
+{p:"eda",t:"표준화 (데이터 누수 방지)",d:"가장 자주 나오는 함정입니다. train과 test에 쓰는 메소드가 다릅니다.",
+ c:`from sklearn.preprocessing import @@0@@
+scaler = StandardScaler()
+scaler.@@1@@(X_train)                  # train으로만 평균·표준편차 학습
+X_train_norm = scaler.@@2@@(X_train)
+X_test_norm  = scaler.@@2@@(X_test)    # test에는 fit 금지`,
+ a:[["StandardScaler"],["fit"],["transform"]],
+ h:["평균 0, 분산 1로 만드는 스케일러","통계량을 학습하는 메소드","학습된 통계량으로 변환만 하는 메소드"],
+ e:"test에 fit을 하면 테스트 정보가 전처리에 새어 들어가는 데이터 누수가 발생합니다. train의 평균·표준편차로만 test를 변환해야 합니다."},
+
+{p:"eda",t:"로지스틱 회귀 학습",d:"scikit-learn 모델의 표준 3단계 파이프라인입니다.",
+ c:`from sklearn.linear_model import @@0@@
+clf = LogisticRegression()
+clf.@@1@@(X_train, y_train)
+y_pred = clf.@@2@@(X_test)`,
+ a:[["LogisticRegression"],["fit"],["predict"]],
+ h:["분류용 선형 모델","학습 메소드","예측 메소드"],
+ e:"sklearn 공통 패턴은 인스턴스 선언 → fit() 학습 → predict()/transform() 적용입니다. 로지스틱 회귀는 이름과 달리 분류 모델입니다."},
+
+{p:"eda",t:"분류 평가 지표",d:"혼동 행렬과 정밀도·재현율·F1이 한 번에 나오는 리포트입니다.",
+ c:`from sklearn.metrics import @@0@@, @@1@@
+print(@@0@@(y_test, y_pred))
+print(@@1@@(y_test, y_pred))`,
+ a:[["confusion_matrix"],["classification_report"]],
+ h:["혼동 행렬 함수","precision/recall/f1을 표로 출력하는 함수"],
+ e:"confusion_matrix는 TP/FP/FN/TN 행렬을, classification_report는 클래스별 precision·recall·f1-score·support를 출력합니다."},
+
+{p:"eda",t:"ROC-AUC",d:"양성 클래스의 확률을 뽑아 ROC 곡선과 AUC를 계산합니다.",
+ c:`y_score = clf.@@0@@(X_test)[:, 1]        # 양성(1) 클래스 확률
+fpr, tpr, thresholds = @@1@@(y_test, y_score)
+auc = @@2@@(y_test, y_score)`,
+ a:[["predict_proba"],["roc_curve"],["roc_auc_score"]],
+ h:["클래스별 확률을 반환하는 메소드","FPR/TPR/임계값을 반환하는 함수","AUC 값을 바로 구하는 함수"],
+ e:"predict()는 0/1 라벨이라 ROC를 그릴 수 없고, predict_proba(X)[:, 1]로 양성 확률을 써야 합니다. 확률이 없는 모델은 decision_function을 씁니다."},
+
+{p:"eda",t:"교차검증",d:"5-fold 교차검증으로 F1 평균을 구합니다.",
+ c:`from sklearn.model_selection import @@0@@
+f1_scores = cross_val_score(estimator=clf, X=X_train, y=y_train, @@1@@=5, @@2@@="f1")
+print(f1_scores.@@3@@())`,
+ a:[["cross_val_score"],["cv"],["scoring"],["mean"]],
+ h:["교차검증 점수 함수","fold 개수 인자","평가지표 지정 인자","여러 fold 점수의 평균"],
+ e:"cross_val_score는 fold 개수만큼의 점수 배열을 반환하므로 mean()으로 평균을 냅니다. scoring에는 'f1', 'accuracy', 'roc_auc' 등이 들어갑니다."},
+
+{p:"eda",t:"PCA 차원 축소",d:"13차원 특성을 2차원으로 줄여 시각화합니다.",
+ c:`from sklearn.decomposition import @@0@@
+pca = PCA(@@1@@=2)
+X_pca = pca.@@2@@(X)     # (샘플수, 2)`,
+ a:[["PCA"],["n_components"],["fit_transform"]],
+ h:["주성분 분석 클래스","남길 성분 개수 인자","학습 + 변환을 한 번에"],
+ e:"n_components=2면 분산을 가장 많이 설명하는 두 축으로 사영합니다. pca.explained_variance_ratio_로 각 성분의 설명력을 확인할 수 있습니다."},
+
+{p:"eda",t:"K-Means 군집화",d:"PCA로 줄인 데이터를 2개 군집으로 나눕니다.",
+ c:`from sklearn.cluster import @@0@@
+kmeans = KMeans(@@1@@=2, random_state=42)
+y_cluster = kmeans.@@2@@(X_pca)`,
+ a:[["KMeans"],["n_clusters"],["fit_predict"]],
+ h:["K-평균 군집화 클래스","군집 개수 인자","학습과 라벨 예측을 한 번에"],
+ e:"K-Means는 군집 개수 K를 반드시 사전에 지정해야 하는 비지도학습입니다. fit_predict는 fit 후 labels_를 반환하는 것과 같습니다."},
+/* ===== Part B: 22 합성 데이터 · 프롬프팅 ===== */
+{p:"syn",t:"환경 변수 로드",d:".env 파일에 저장한 API 키를 안전하게 불러옵니다.",
+ c:`from os import getenv
+from dotenv import @@0@@
+
+@@0@@(".env")
+GMS_KEY = @@1@@("GMS_KEY")`,
+ a:[["load_dotenv"],["getenv","os.getenv"]],
+ h:["python-dotenv에서 .env를 읽는 함수","환경 변수를 읽는 os 함수"],
+ e:"API 키를 코드에 직접 쓰면 유출 위험이 있어 .env에 두고 환경 변수로 읽습니다. .env는 .gitignore에 넣어 커밋을 막습니다."},
+
+{p:"syn",t:"OpenAI 호환 클라이언트",d:"SSAFY GMS 엔드포인트로 OpenAI SDK를 붙입니다.",
+ c:`from openai import @@0@@
+
+client = OpenAI(
+    @@1@@=GMS_KEY,
+    @@2@@="https://gms.ssafy.io/gmsapi/api.openai.com/v1/"
+)`,
+ a:[["OpenAI"],["api_key"],["base_url"]],
+ h:["클라이언트 클래스명","키를 넘기는 인자","엔드포인트를 바꾸는 인자"],
+ e:"base_url만 바꾸면 같은 SDK 코드로 다른 제공업체 모델을 쓸 수 있습니다. 이것이 'OpenAI 호환 API'의 의미입니다."},
+
+{p:"syn",t:"Chat Completions 호출",d:"LLM을 호출하고 응답 텍스트만 꺼내는 기본 구조입니다.",
+ c:`response = client.@@0@@.@@1@@.create(
+    model=model,
+    messages=messages
+)
+return response.@@2@@[0].@@3@@.content`,
+ a:[["chat"],["completions"],["choices"],["message"]],
+ h:["client 다음 속성","chat 다음 속성","응답 후보 리스트","한 후보 안의 메시지 객체"],
+ e:"응답 경로는 response.choices[0].message.content 입니다. choices는 여러 후보를 담는 리스트라 [0]으로 첫 번째를 꺼냅니다."},
+
+{p:"syn",t:"messages 역할(role)",d:"시스템 메시지와 사용자 메시지의 role 값입니다.",
+ c:`messages = []
+if system_prompt:
+    messages.append({"role": "@@0@@", "content": system_prompt})
+messages.append({"role": "@@1@@", "content": prompt})
+# 모델이 이전에 한 답변을 넣을 때의 role → @@2@@`,
+ a:[["system"],["user"],["assistant"]],
+ h:["모델의 성격·제약을 정하는 역할","실제 질문을 넣는 역할","모델 자신의 이전 답변"],
+ e:"system은 모델의 동작 지침, user는 사용자 입력, assistant는 모델의 이전 응답입니다. 멀티턴 대화는 이 셋을 번갈아 쌓아 만듭니다."},
+
+{p:"syn",t:"temperature",d:"생성 다양성을 조절하는 파라미터입니다.",
+ c:`response = client.chat.completions.create(
+    model="gpt-5-mini",
+    messages=[...],
+    @@0@@=1.0        # 합성 데이터: 다양성을 높이려면 값을 @@1@@
+)
+# LLM as Judge 평가 시에는 일관성을 위해 @@0@@=@@2@@ 로 설정`,
+ a:[["temperature"],["높인다","크게","올린다","높게"],["0"]],
+ h:["무작위성 조절 인자","다양성을 원하면 값을 어떻게?","평가의 일관성을 위한 값"],
+ e:"temperature가 높으면 다양하지만 불안정하고, 0이면 거의 결정적으로 같은 답이 나옵니다. 평가자(Judge)는 일관성이 중요하므로 0으로 둡니다."},
+
+{p:"syn",t:"JSON 직렬화 / 역직렬화",d:"문자열 ↔ 파이썬 dict 변환입니다. 방향을 헷갈리면 안 됩니다.",
+ c:`import json
+data = json.@@0@@(output_text)                        # 문자열 → dict
+text = json.@@1@@(data, @@2@@=False)                  # dict → 문자열(한글 유지)`,
+ a:[["loads"],["dumps"],["ensure_ascii"]],
+ h:["문자열을 파싱하는 함수","객체를 문자열로 만드는 함수","한글이 \\uXXXX로 깨지지 않게 하는 인자"],
+ e:"loads/dumps는 문자열 대상, load/dump는 파일 대상입니다. ensure_ascii=False여야 한글이 그대로 출력됩니다."},
+
+{p:"syn",t:"프롬프팅 기법 이름",d:"세 가지 대표 기법을 영어로 쓰세요.",
+ c:`# 예시 없이 지시문만으로 요청           → @@0@@ Prompting
+# 입출력 예시를 2~3개 넣어 패턴 유도     → @@1@@ Prompting
+# 단계별 추론 과정을 명시적으로 유도      → @@2@@ (약어 3글자)`,
+ a:[["Zero-shot","zero-shot","Zero shot"],["Few-shot","few-shot","Few shot"],["CoT","cot"]],
+ h:["예시 0개","예시 몇 개","Chain-of-Thought의 약어"],
+ e:"Zero-shot은 간단하고 토큰이 적게 들지만 복잡한 작업에 약하고, Few-shot은 형식 일관성에 강하며, CoT는 다단계 추론에 효과적입니다."},
+
+{p:"syn",t:"LLM as a Judge 원칙",d:"평가자로 LLM을 쓸 때의 세 가지 원칙입니다.",
+ c:`# 1. 평가자 모델은 생성 모델과 @@0@@ 모델을 쓰면 호의적 편향이 생긴다
+# 2. 출력에는 점수(@@1@@)와 이유(@@2@@ 또는 reason)를 함께 생성시킨다
+# 3. 평가의 일관성을 위해 temperature를 @@3@@ 으로 설정한다`,
+ a:[["같은","동일한","same"],["score"],["comment"],["0"]],
+ h:["self-enhancement bias가 생기는 조건","점수 필드 이름","코멘트 필드 이름","일관성을 위한 온도"],
+ e:"같은 모델로 자기 출력을 평가하면 자기선호(self-enhancement) 편향이 생깁니다. 점수만 받는 것보다 이유를 함께 쓰게 하면 평가 품질이 올라갑니다."},
+/* ===== Part C: 41 RAG · LangChain · LangGraph ===== */
+{p:"rag",t:"LangChain 모델 초기화",d:"LLM과 임베딩 모델을 GMS 엔드포인트로 붙입니다.",
+ c:`from langchain_openai import @@0@@, @@1@@
+
+llm = @@0@@(model="gpt-5-mini", api_key=os.environ["GMS_KEY"],
+             base_url="https://gms.ssafy.io/gmsapi/api.openai.com/v1/")
+embeddings = @@1@@(model="@@2@@")`,
+ a:[["ChatOpenAI"],["OpenAIEmbeddings"],["text-embedding-3-small"]],
+ h:["채팅 LLM 래퍼 클래스","임베딩 모델 래퍼 클래스","실습에서 쓴 임베딩 모델명"],
+ e:"langchain_openai에서 ChatOpenAI(생성)와 OpenAIEmbeddings(벡터화)를 가져옵니다. text-embedding-3-small의 최대 입력은 약 8,191 토큰입니다."},
+
+{p:"rag",t:"LLM 단독 호출",d:"LangChain에서 메시지를 만들어 모델을 호출합니다.",
+ c:`from langchain_core.messages import @@0@@
+response = llm.@@1@@([@@0@@(content=question)])
+print(response.@@2@@)`,
+ a:[["HumanMessage"],["invoke"],["content"]],
+ h:["사용자 메시지 클래스","LangChain 표준 실행 메소드","응답 텍스트가 담긴 속성"],
+ e:"LangChain의 모든 Runnable은 invoke()로 실행합니다. 응답은 AIMessage 객체이므로 .content로 텍스트를 꺼냅니다."},
+
+{p:"rag",t:"PDF 문서 로드",d:"PDF를 Document 리스트로 읽어 들입니다.",
+ c:`from langchain_community.document_loaders import @@0@@
+loader = @@0@@(pdf_path)
+documents = loader.@@1@@()
+doc_content = "\\n".join([doc.@@2@@ for doc in documents])`,
+ a:[["PyMuPDFLoader"],["load"],["page_content"]],
+ h:["PyMuPDF 기반 로더 클래스","문서를 읽어오는 메소드","Document의 본문 속성"],
+ e:"Document 객체는 본문 page_content와 부가정보 metadata 두 부분으로 이루어집니다. loader.load()는 보통 페이지 단위 Document 리스트를 반환합니다."},
+
+{p:"rag",t:"프롬프트 템플릿",d:"검색된 자료를 넣을 자리를 만든 프롬프트 템플릿입니다.",
+ c:`from langchain_core.prompts import @@0@@
+prompt_template = @@0@@.@@1@@([
+    ("@@2@@", "다음 자료를 참고하여 답변하세요.\\n\\n[참고 자료]\\n{context}"),
+    ("@@3@@", "{question}")
+])
+messages = prompt_template.@@4@@(context=doc_content, question=question)`,
+ a:[["ChatPromptTemplate"],["from_messages"],["system"],["human"],["format_messages"]],
+ h:["채팅용 프롬프트 템플릿 클래스","(role, 문자열) 리스트로 만드는 생성자","지침을 담는 role","사용자 질문 role (user 아님)","자리표시자를 채워 메시지 리스트를 만드는 메소드"],
+ e:"LangChain의 ChatPromptTemplate에서는 사용자 역할을 'human', 모델 역할을 'ai'라고 씁니다. format_messages()가 실제 메시지 리스트를 만들어 줍니다."},
+
+{p:"rag",t:"Vector Store 생성",d:"문서를 임베딩해 ChromaDB에 저장합니다.",
+ c:`from langchain_community.vectorstores import @@0@@
+vectorstore = @@0@@.@@1@@(
+    documents=all_documents,
+    @@2@@=embeddings,
+    collection_name="yes24_docs_page"
+)
+print(vectorstore._collection.@@3@@())`,
+ a:[["Chroma"],["from_documents"],["embedding"],["count"]],
+ h:["실습에서 쓴 벡터 DB 클래스","Document 리스트로 바로 만드는 클래스 메소드","임베딩 모델을 넘기는 인자","저장된 개수를 세는 메소드"],
+ e:"Chroma.from_documents는 문서를 임베딩해 컬렉션에 저장하고 vectorstore를 돌려줍니다. FAISS, Pinecone도 같은 역할의 벡터 DB입니다."},
+
+{p:"rag",t:"Retriever 생성과 검색",d:"벡터 스토어에서 상위 k개를 가져오는 검색기를 만듭니다.",
+ c:`retriever = vectorstore.@@0@@(search_kwargs={"@@1@@": 3})
+results = retriever.@@2@@("빠른 배송")`,
+ a:[["as_retriever"],["k"],["invoke"]],
+ h:["벡터 스토어를 검색기로 바꾸는 메소드","반환 문서 개수 인자 (top_k)","LangChain 표준 실행 메소드"],
+ e:"k는 몇 개의 문서를 가져올지 정합니다. k가 작으면 정보 누락, 크면 관련 없는 내용이 섞여 답변이 산만해집니다."},
+
+{p:"rag",t:"청킹",d:"긴 문서를 검색에 알맞은 조각으로 나눕니다. 실습 권장 설정을 그대로 씁니다.",
+ c:`from langchain_text_splitters import @@0@@
+text_splitter = @@0@@(
+    @@1@@=300,
+    @@2@@=50,
+    length_function=len,
+    separators=["\\n\\n", "\\n", ".", " ", ""]
+)
+chunked_documents = text_splitter.@@3@@(all_documents)`,
+ a:[["RecursiveCharacterTextSplitter"],["chunk_size"],["chunk_overlap"],["split_documents"]],
+ h:["구분자를 순서대로 시도하는 분할기","청크 최대 길이 인자","청크 간 겹침 인자","Document 리스트를 나누는 메소드"],
+ e:"split_documents는 Document를, split_text는 문자열을 나눕니다. separators를 앞에서부터 시도해 가능한 한 문단·문장 경계에서 자릅니다."},
+
+{p:"rag",t:"LangGraph 그래프 구성",d:"노드를 추가하고 순서대로 연결한 뒤 컴파일합니다.",
+ c:`workflow = StateGraph(RAGState)
+workflow.@@0@@("retrieve", retrieve)
+workflow.@@0@@("generate", generate)
+workflow.@@1@@(START, "retrieve")
+workflow.@@1@@("retrieve", "@@2@@")
+workflow.@@1@@("generate", @@3@@)
+rag_graph = workflow.@@4@@()`,
+ a:[["add_node"],["add_edge"],["generate"],["END"],["compile"]],
+ h:["노드 추가 메소드","엣지(연결) 추가 메소드","retrieve 다음 노드","그래프의 끝 상수","실행 가능한 그래프로 만드는 메소드"],
+ e:"START → retrieve → generate → END 순서입니다. compile()을 해야 invoke로 실행할 수 있는 그래프가 됩니다."},
+
+{p:"rag",t:"LangGraph 실행",d:"컴파일된 그래프를 실행하고 답변을 꺼냅니다.",
+ c:`result = rag_graph.@@0@@({"@@1@@": question})
+print(result["@@2@@"])`,
+ a:[["invoke"],["question"],["answer"]],
+ h:["실행 메소드","입력으로 넣는 상태 키","최종 결과 상태 키"],
+ e:"입력은 상태의 일부만 넘겨도 되고, 결과에는 question·context·answer가 모두 채워진 상태가 담깁니다."},
+];
+
+const PARTS = {
+  eda: {label:"실습 11 · EDA & 모델학습", cls:"eda"},
+  syn: {label:"실습 22 · 합성데이터 & 프롬프팅", cls:"syn"},
+  rag: {label:"실습 41 · RAG & LangChain", cls:"rag"}
+};
+
+let filter = "all";
+let wrongOnly = false;
+const state = DATA.map(() => ({graded:false, solved:false}));
+
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function norm(s){
+  return String(s).trim().replace(/[‘’']/g,'"').replace(/\s+/g," ");
+}
+function inputWidth(aliases){
+  const n = Math.max(...aliases.map(a=>a.length));
+  return Math.min(Math.max(n + 3, 7), 30);
+}
+
+function buildCard(q, i){
+  const meta = PARTS[q.p];
+  let code = esc(q.c);
+  q.a.forEach((aliases, bi) => {
+    const w = inputWidth(aliases);
+    const inp = `<input data-q="${i}" data-b="${bi}" spellcheck="false" autocomplete="off" style="width:${w}ch">`;
+    code = code.split("@@" + bi + "@@").join(inp);
+  });
+  const hints = q.h && q.h.length
+    ? `<div class="hint" id="hint-${i}"><b>힌트</b><ul>${q.h.map((h,k)=>`<li>빈칸 ${k+1}: ${esc(h)}</li>`).join("")}</ul></div>`
+    : "";
+  return `<div class="card" id="card-${i}" data-part="${q.p}">
+    <div class="chead">
+      <span class="badge ${meta.cls}">${esc(meta.label)}</span>
+      <span class="qno">Q${i+1}</span>
+      <span class="topic">${esc(q.t)}</span>
+    </div>
+    <p class="desc">${q.d}</p>
+    <pre class="code">${code}</pre>
+    <div class="cbtns">
+      <button class="btn primary" data-act="check" data-i="${i}">확인</button>
+      <button class="btn" data-act="hint" data-i="${i}">힌트</button>
+      <button class="btn" data-act="reveal" data-i="${i}">정답 보기</button>
+    </div>
+    ${hints}
+    <div class="fb" id="fb-${i}"></div>
+  </div>`;
+}
+
+function render(){
+  const list = document.getElementById("list");
+  const items = DATA.map((q,i)=>({q,i}))
+    .filter(({q,i}) => (filter === "all" || q.p === filter) && (!wrongOnly || (state[i].graded && !state[i].solved)));
+  if(!items.length){
+    list.innerHTML = `<div class="empty">해당 조건에 맞는 문제가 없습니다.</div>`;
+    return;
+  }
+  list.innerHTML = items.map(({q,i}) => buildCard(q,i)).join("");
+  // 기존 입력값 복원
+  items.forEach(({i}) => {
+    const saved = answers[i] || [];
+    document.querySelectorAll(`input[data-q="${i}"]`).forEach(inp => {
+      const bi = +inp.dataset.b;
+      if(saved[bi] !== undefined) inp.value = saved[bi];
+    });
+    if(state[i].graded) grade(i, true);
+  });
+}
+
+const answers = DATA.map(q => q.a.map(()=>""));
+
+function grade(i, silent){
+  const q = DATA[i];
+  const inputs = Array.from(document.querySelectorAll(`input[data-q="${i}"]`));
+  if(!inputs.length) return;
+  let allOk = true;
+  const wrongIdx = [];
+  inputs.forEach(inp => {
+    const bi = +inp.dataset.b;
+    answers[i][bi] = inp.value;
+    const aliases = q.a[bi];
+    const v = norm(inp.value);
+    inp.classList.remove("ok","no","warn");
+    if(v === ""){ inp.classList.add("no"); allOk = false; wrongIdx.push(bi); return; }
+    if(aliases.some(a => norm(a) === v)){ inp.classList.add("ok"); return; }
+    if(aliases.some(a => norm(a).toLowerCase() === v.toLowerCase())){
+      inp.classList.add("warn"); allOk = false; wrongIdx.push(bi); return;
+    }
+    inp.classList.add("no"); allOk = false; wrongIdx.push(bi);
+  });
+  state[i] = {graded:true, solved:allOk};
+  const card = document.getElementById("card-"+i);
+  card.classList.toggle("ok", allOk);
+  card.classList.toggle("no", !allOk);
+  const fb = document.getElementById("fb-"+i);
+  const ansLine = q.a.map((al,k)=>`빈칸 ${k+1}: <b>${esc(al[0])}</b>`).join(" &nbsp;·&nbsp; ");
+  if(allOk){
+    fb.className = "fb good show";
+    fb.innerHTML = `✅ <b>정답입니다!</b><div class="ansline">${ansLine}</div><div style="margin-top:6px">${esc(q.e)}</div>`;
+  } else {
+    fb.className = "fb bad show";
+    const warned = inputs.some(x => x.classList.contains("warn"));
+    fb.innerHTML = `❌ <b>다시 확인해 보세요.</b>${warned ? " (주황색 칸은 <b>대소문자</b>만 다릅니다)" : ""}
+      <div class="ansline">정답 &nbsp; ${ansLine}</div>
+      <div style="margin-top:6px">${esc(q.e)}</div>`;
+  }
+  if(!silent) updateScore();
+  else updateScore();
+}
+
+function reveal(i){
+  const q = DATA[i];
+  document.querySelectorAll(`input[data-q="${i}"]`).forEach(inp => {
+    const bi = +inp.dataset.b;
+    inp.value = q.a[bi][0];
+    answers[i][bi] = inp.value;
+    inp.classList.remove("no","warn");
+    inp.classList.add("ok");
+  });
+  const fb = document.getElementById("fb-"+i);
+  fb.className = "fb good show";
+  fb.innerHTML = `💡 <b>정답</b><div style="margin-top:6px">${esc(q.e)}</div>`;
+  state[i] = {graded:true, solved:false};
+  document.getElementById("card-"+i).classList.remove("ok","no");
+  updateScore();
+}
+
+function updateScore(){
+  const solved = state.filter(s => s.solved).length;
+  const total = DATA.length;
+  document.getElementById("score").innerHTML = `<b>${solved}</b> / ${total} 정답`;
+  document.getElementById("barfill").style.width = (solved/total*100) + "%";
+}
+
+// ---- 이벤트 ----
+document.getElementById("list").addEventListener("click", e => {
+  const b = e.target.closest("button[data-act]");
+  if(!b) return;
+  const i = +b.dataset.i;
+  if(b.dataset.act === "check") grade(i);
+  else if(b.dataset.act === "reveal") reveal(i);
+  else document.getElementById("hint-"+i).classList.toggle("show");
+});
+document.getElementById("list").addEventListener("keydown", e => {
+  if(e.key === "Enter" && e.target.tagName === "INPUT"){
+    e.preventDefault();
+    grade(+e.target.dataset.q);
+  }
+});
+document.getElementById("gradeAll").addEventListener("click", () => {
+  DATA.forEach((q,i) => { if(document.getElementById("card-"+i)) grade(i, true); });
+  updateScore();
+});
+document.getElementById("toggleWrong").addEventListener("click", e => {
+  wrongOnly = !wrongOnly;
+  e.target.classList.toggle("primary", wrongOnly);
+  e.target.textContent = wrongOnly ? "전체 문제 보기" : "틀린 문제만 보기";
+  render();
+});
+document.getElementById("resetAll").addEventListener("click", () => {
+  DATA.forEach((q,i) => { answers[i] = q.a.map(()=>""); state[i] = {graded:false, solved:false}; });
+  wrongOnly = false;
+  const tw = document.getElementById("toggleWrong");
+  tw.classList.remove("primary"); tw.textContent = "틀린 문제만 보기";
+  render(); updateScore();
+});
+
+// ---- 필터 칩 ----
+const chipbox = document.getElementById("chips");
+const counts = {all: DATA.length};
+Object.keys(PARTS).forEach(k => counts[k] = DATA.filter(q => q.p === k).length);
+chipbox.innerHTML = `<button class="chip on" data-f="all">전체 ${counts.all}</button>` +
+  Object.entries(PARTS).map(([k,v]) => `<button class="chip" data-f="${k}">${v.label} ${counts[k]}</button>`).join("");
+chipbox.addEventListener("click", e => {
+  const c = e.target.closest(".chip");
+  if(!c) return;
+  chipbox.querySelectorAll(".chip").forEach(x => x.classList.remove("on"));
+  c.classList.add("on");
+  filter = c.dataset.f;
+  render();
+});
+
+// ---- 다크 모드 ----
+const tb = document.getElementById("themebtn");
+tb.addEventListener("click", () => {
+  document.documentElement.classList.toggle("dark");
+  tb.textContent = document.documentElement.classList.contains("dark") ? "☀️" : "🌙";
+});
+
+render();
+updateScore();
+</script>
+</body>
+</html>
