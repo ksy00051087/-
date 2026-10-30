@@ -1,0 +1,84 @@
+{% extends 'comments/base.html' %}
+
+{% block content %}
+<style>
+  .result-title { text-align: center; margin: 32px 0 16px; }
+  .message { text-align: center; padding: 16px; margin-top: 24px; border-radius: 10px; background: #fff4e5; color: #b26a00; }
+  .board { display: flex; align-items: stretch; gap: 8px; }
+  .column { flex: 1; min-width: 0; background: #fff; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .column h3 { margin: 0 0 12px; font-size: 16px; text-align: center; color: #3182f6; border-bottom: 1px solid #eef; padding-bottom: 10px; }
+  .column ol { margin: 0; padding-left: 22px; max-height: 480px; overflow-y: auto; font-size: 14px; line-height: 1.5; }
+  .column li { margin-bottom: 8px; white-space: pre-line; word-break: break-all; }
+  .empty { color: #aaa; text-align: center; font-size: 14px; }
+  .arrow { display: flex; align-items: center; color: #3182f6; font-size: 24px; }
+  .final h3 { color: #12b886; }
+  .notice { text-align: center; font-size: 14px; color: #b26a00; margin: 0 0 12px; }
+  .summary { margin-top: 24px; background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.06); border-left: 4px solid #3182f6; }
+  .summary h3 { margin: 0 0 12px; font-size: 16px; color: #3182f6; }
+  .summary p { margin: 0; line-height: 1.7; white-space: pre-line; }
+</style>
+
+{% if message %}
+  <div class="message">{{ message }}</div>
+{% else %}
+  <h2 class="result-title">
+    {{ stock_name|default:comname }} 댓글 분석 결과
+    {% if stock_name and stock_name != comname %}
+      <small style="color:#888; font-size:14px;">(검색어: {{ comname }})</small>
+    {% endif %}
+  </h2>
+
+  {# [F611] 수집은 됐지만 뒤 단계에서 결과가 비었을 때 안내 #}
+  {% if not cleaned_comments %}
+    <p class="notice">전처리 조건(길이 5~76, 의미 있는 문장)을 만족하는 댓글이 없어 증강을 건너뛰었습니다.</p>
+  {% elif not augmented_comments %}
+    <p class="notice">증강 결과를 받지 못했습니다. 잠시 후 다시 검색해 주세요.</p>
+  {% endif %}
+
+  <div class="board">
+    <div class="column">
+      <h3>원본 데이터 ({{ raw_comments|length }}개)</h3>
+      {% if raw_comments %}
+        <ol>{% for c in raw_comments %}<li>{{ c }}</li>{% endfor %}</ol>
+      {% else %}<p class="empty">아직 없음</p>{% endif %}
+    </div>
+
+    <div class="arrow">›</div>
+
+    <div class="column">
+      <h3>전처리 후 ({{ cleaned_comments|length }}개)</h3>
+      {% if cleaned_comments %}
+        <ol>{% for c in cleaned_comments %}<li>{{ c }}</li>{% endfor %}</ol>
+      {% else %}<p class="empty">아직 없음</p>{% endif %}
+    </div>
+
+    <div class="arrow">›</div>
+
+    <div class="column">
+      <h3>증강 데이터 ({{ augmented_comments|length }}개)</h3>
+      {% if augmented_comments %}
+        <ol>{% for c in augmented_comments %}<li>{{ c }}</li>{% endfor %}</ol>
+      {% else %}<p class="empty">아직 없음</p>{% endif %}
+    </div>
+
+    <div class="arrow">›</div>
+
+    <div class="column final">
+      <h3>최종 결과 ({{ final_comments|length }}개)</h3>
+      {% if final_comments %}
+        <ol>{% for c in final_comments %}<li>{{ c }}</li>{% endfor %}</ol>
+      {% else %}<p class="empty">아직 없음</p>{% endif %}
+    </div>
+  </div>
+
+  {# [F610] 댓글 요약 : 화면 하단에 텍스트로 출력 #}
+  <div class="summary">
+    <h3>📝 댓글 요약 (원본 {{ raw_comments|length }}개 기준)</h3>
+    {% if summary %}
+      <p>{{ summary }}</p>
+    {% else %}
+      <p class="empty">요약을 생성하지 못했습니다.</p>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}
