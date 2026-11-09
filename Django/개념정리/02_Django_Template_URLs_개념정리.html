@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django Template &amp; URLs 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · Django 02 · 10/13</span>
+    <h1>Django Template &amp; URLs 개념정리</h1>
+    <p class="sub">Django Template system과 DTL → 템플릿 상속 → HTML form과 요청 데이터 → URL dispatcher · Variable Routing · App URL · URL 이름과 이름 공간까지, 강의 슬라이드 119장을 개념 중심으로 재구성했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 5개 장 + 참고 + 확인문제</span>
+      <span>🧪 dinner · fake Naver · throw-catch · detail/greeting 실습 코드</span>
+      <span>❓ 확인문제 12개</span>
+      <span>🗂️ 활동 정리</span>
+    </div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·문법·코드·주의 박스를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 Django 공식 동작 기준으로 바로잡았습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#ch0">0. 학습 시작</a>
+    <a href="#ch1">1. Template System</a>
+    <a href="#ch2">2. 템플릿 상속 (Template inheritance)</a>
+    <a href="#ch3">3. 요청과 응답</a>
+    <a href="#ch4">4. Django URLs</a>
+    <a href="#ch5">5. URL 이름 지정과 이름 공간</a>
+    <a href="#ch6">6. 참고</a>
+    <a href="#quiz">확인문제 (원본 슬라이드 수록)</a>
+    <a href="#sum">활동 정리</a>
+  </nav>
+</div>
+
+<main>
+
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>학습 시작 — 웹 사이트에 더 많은 페이지를</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"웹 사이트에 더 많은 페이지를 추가하고 싶습니다."</h3>
+      <p>평소에 자주 사용하는 웹 서비스는 페이지가 여러 가지입니다. 대부분 스타일이 비슷하고, 같은 구조에 내용만 다른 페이지도 있습니다.</p>
+      <ol>
+        <li><b>Django Template Language</b>를 사용하면 같은 HTML 구조를 유지하고 내용만 변경할 수 있습니다.</li>
+        <li><b>템플릿 상속</b>을 활용하면 여러 템플릿에 걸쳐 필요한 공통 요소를 한곳에 작성할 수 있습니다.</li>
+        <li>Django의 <b>URL Dispatcher</b>는 많은 URL들을 관리하기 위한 다양한 기능을 갖추고 있습니다.</li>
+      </ol>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>Django Template system을 활용할 수 있다.</li>
+        <li>Django Template system을 활용하여 HTML의 내용을 데이터에 따라 바꿀 수 있다.</li>
+        <li>HTML form을 활용해 요청을 보낼 수 있다.</li>
+        <li>URL의 일부분을 변수로 활용할 수 있다.</li>
+        <li>다수의 앱의 URL을 효율적으로 관리할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>Template System</h2><p class="desc">Django Template system · DTL 4가지 문법 · DTL 예시</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">1-1</span>Django Template system</h3>
+      <p><b>파이썬 데이터(context)와 HTML 문서(Template)를 결합하여, 로직과 표현을 분리한 채 동적인 웹페이지를 생성하는 도구</b>입니다.</p>
+      <p>뉴스 사이트를 떠올려 보세요. 모든 기사는 헤더, 폰트, 광고 위치 등 동일한 <b>페이지 틀(Template)</b>을 사용합니다. 하지만 각 페이지에 들어가는 <b>데이터(context)</b>, 즉 기사 제목, 내용, 기자 이름은 모두 다릅니다.</p>
+      <div class="subhead">HTML의 콘텐츠를 변수 값에 따라 변경하기</div>
+<pre class="formula"># views.py
+def index(request):
+    context = {
+        'name': 'Jane',
+    }
+    return render(request, 'articles/index.html', context)</pre>
+<pre class="formula">&lt;!-- articles/index.html --&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello, {{ name }}!&lt;/h1&gt;     &lt;!-- 결과: Hello, Jane! --&gt;
+&lt;/body&gt;</pre>
+      <p><code>context['name']</code>이 변경되면 응답 받은 HTML의 출력도 변경됩니다. 템플릿 시스템의 목적은 <b>페이지 '틀'에 '데이터'를 동적으로 결합</b>하는 것입니다.</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-2</span>Django Template Language (DTL)</h3>
+      <p>Template에서 <b>조건, 반복, 변수 등의 프로그래밍적 기능을 제공</b>하는 시스템. 문법(DTL Syntax)은 4가지입니다.</p>
+      <table class="compare">
+        <tr><th>문법</th><th>형태</th><th>설명</th></tr>
+        <tr><td class="k">1. Variable</td><td><code>{{ variable }}</code><br><code>{{ variable.attribute }}</code></td><td>render 함수의 세 번째 인자로 <b>딕셔너리 타입</b>으로 전달됨. 해당 딕셔너리의 <b>key</b>에 해당하는 문자열이 template에서 사용 가능한 변수명이 됨. dot('.')을 사용하여 변수 속성에 접근</td></tr>
+        <tr><td class="k">2. Filters</td><td><code>{{ variable|filter }}</code><br><code>{{ name|truncatewords:30 }}</code></td><td>표시할 변수를 수정할 때 사용 (변수 + '|' + 필터). chained(연결)이 가능하며 일부 필터는 인자를 받기도 함. 약 60개의 built-in template filters 제공</td></tr>
+        <tr><td class="k">3. Tags</td><td><code>{% tag %}</code><br><code>{% if %} {% endif %}</code></td><td>반복 또는 논리를 수행하여 제어 흐름을 만듦. 일부 태그는 시작과 종료 태그가 필요. 약 24개의 built-in template tags 제공</td></tr>
+        <tr><td class="k">4. Comments</td><td><code>{# 한 줄 주석 #}</code><br><code>{% comment %} ... {% endcomment %}</code></td><td>DTL에서의 주석 (여러 줄은 comment 태그)</td></tr>
+      </table>
+<pre class="formula">{# context = {'login': False, 'nums': [1, 2, 3]} #}
+{% if login %}
+  &lt;p&gt;로그인 되었습니다.&lt;/p&gt;
+{% else %}
+  &lt;p&gt;로그인이 필요합니다.&lt;/p&gt;
+{% endif %}
+
+{% for num in nums %}
+  &lt;p&gt;{{ num }}&lt;/p&gt;
+{% endfor %}
+
+{% comment %}
+  여러 줄 주석
+{% endcomment %}</pre>
+      <p class="src">https://docs.djangoproject.com/en/5.2/ref/templates/builtins/</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-3</span>DTL 예시 — 오늘의 저녁 메뉴</h3>
+<pre class="formula"># urls.py
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('articles/', views.index),
+    path('dinner/', views.dinner),
+]
+
+# views.py
+import random
+
+def dinner(request):
+    foods = ['국밥', '국수', '카레', '탕수육']
+    picked = random.choice(foods)
+    context = {
+        'foods': foods,
+        'picked': picked,
+    }
+    return render(request, 'articles/dinner.html', context)</pre>
+<pre class="formula">&lt;!-- articles/dinner.html --&gt;
+&lt;h1&gt;{{ picked }} 메뉴는 {{ picked|length }}글자입니다.&lt;/h1&gt;
+&lt;h2&gt;메뉴판&lt;/h2&gt;
+&lt;ul&gt;
+  {% for food in foods %}
+    &lt;li&gt;{{ food }}&lt;/li&gt;
+  {% endfor %}
+&lt;/ul&gt;
+{% if foods|length == 0 %}
+  &lt;p&gt;메뉴가 소진 되었습니다.&lt;/p&gt;
+{% else %}
+  &lt;p&gt;아직 메뉴가 남았습니다.&lt;/p&gt;
+{% endif %}</pre>
+      <p class="src">예시 코드이며, 다르게 구현할 수도 있습니다.</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>템플릿 상속 (Template inheritance)</h2><p class="desc">기존 템플릿 구조의 한계 · skeleton 템플릿 · extends · block</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">2-1</span>기존 템플릿 구조의 한계</h3>
+      <p>만약 모든 템플릿에 Bootstrap을 적용하려면? → 모든 템플릿에 Bootstrap CDN을 작성해야 할까? 공통 요소를 매번 반복하는 대신 <b>템플릿 상속</b>을 사용합니다.</p>
+      <p><b>템플릿 상속</b> — 페이지의 공통 요소를 포함하고, 하위 템플릿이 <b>재정의할 수 있는 공간을 정의</b>하는 기본 'skeleton' 템플릿을 작성하여 상속 구조를 구축합니다.</p>
+      <p class="src">skeleton 코드 — 핵심 로직(구현부)은 비어 있고, 프로그램의 전반적인 파일 구조나 함수/클래스의 입출력 형태 등 기본적인 뼈대만 갖춘 코드</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-2</span>상속 구조 만들기 — 상위 템플릿</h3>
+      <ol>
+        <li>모든 템플릿이 공유했으면 좋겠는 공통 요소를 작성</li>
+        <li>템플릿 별로 재정의할 부분은 <b>block 태그</b>를 활용</li>
+      </ol>
+<pre class="formula">&lt;!-- articles/base.html --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  {% comment %} bootstrap CDN 생략 {% endcomment %}
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello, Django!&lt;/h1&gt;
+  {% block content %}
+  {% endblock content %}
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-3</span>상속 구조 만들기 — 하위 템플릿</h3>
+      <p>기존 하위 템플릿들이 상위 템플릿을 상속받도록 변경합니다. <b>extends 태그</b>로 상속받을 템플릿을 결정하고, 상위 템플릿과 <b>같은 이름</b>으로 작성된 block 태그의 내용을 대체합니다.</p>
+<pre class="formula">&lt;!-- articles/dinner.html --&gt;
+{% extends 'articles/base.html' %}
+
+{% block content %}
+  &lt;h1&gt;{{ picked }} 메뉴는 {{ picked|length }}글자입니다.&lt;/h1&gt;
+  &lt;ul&gt;
+    {% for food in foods %}&lt;li&gt;{{ food }}&lt;/li&gt;{% endfor %}
+  &lt;/ul&gt;
+{% endblock content %}</pre>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-4</span>'extends' tag · 'block' tag</h3>
+      <table class="compare">
+        <tr><th>태그</th><th>의미</th><th>규칙</th></tr>
+        <tr><td class="k"><code>{% extends 'articles/base.html' %}</code></td><td>자식(하위) 템플릿이 부모 템플릿을 확장한다는 것을 알림</td><td>반드시 자식 템플릿 <b>최상단</b>에 작성되어야 함. extends 태그는 <b>2개 이상 사용 불가</b></td></tr>
+        <tr><td class="k"><code>{% block content %}{% endblock content %}</code></td><td>하위 템플릿에서 재정의할 수 있는 블록을 정의</td><td>상위 템플릿에서 작성하며 하위 템플릿이 작성할 수 있는 공간을 지정. 하위 템플릿의 block이 상위 템플릿의 block 내용을 대체</td></tr>
+      </table>
+      <p>block 이름은 자유롭게 정할 수 있고(content는 관례), <code>endblock</code> 뒤의 이름은 생략 가능하지만 가독성을 위해 씁니다.</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>요청과 응답 — HTML form</h2><p class="desc">데이터를 보내고 가져오기 · action &amp; method · input · name · Query String · request 객체 · throw-catch</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">3-1</span>HTML form</h3>
+      <p><b>데이터를 보내고 가져오기(Sending and Retrieving form data)</b> — HTML 'form' element를 통해 사용자와 애플리케이션 간의 상호작용을 이해합니다.</p>
+      <ul>
+        <li>HTML form은 <b>HTTP 요청을 서버에 보내는 가장 편리한 방법</b>입니다. (클라이언트-서버 구조: 컴퓨터가 데이터를 주고받는 웹의 동작 방식 중 하나)</li>
+        <li>실제 웹 서비스 예: 네이버·구글의 로그인 화면과 검색창이 모두 HTML form 요소</li>
+        <li><b>'form' element</b> — 사용자로부터 할당된 데이터를 서버로 전송. 웹에서 사용자 정보를 입력하는 여러 방식(text, password, checkbox 등)을 제공</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-2</span>form 이용해 Naver로 요청 보내기 — "fake Naver"</h3>
+<pre class="formula"># urls.py
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('articles/', views.index),
+    path('dinner/', views.dinner),
+    path('search/', views.search),
+]
+
+# views.py
+def search(request):
+    return render(request, 'articles/search.html')</pre>
+<pre class="formula">&lt;!-- articles/search.html --&gt;
+{% extends 'articles/base.html' %}
+{% block content %}
+  &lt;form action="https://search.naver.com/search.naver" method="GET"&gt;
+    &lt;input type="text" name="query"&gt;
+    &lt;input type="submit" value="submit"&gt;
+  &lt;/form&gt;
+{% endblock content %}</pre>
+      <ol>
+        <li>action 없이 input에 hello를 입력하고 제출 → 브라우저 URL: <code>http://127.0.0.1:8000/search/?query=hello</code> (input에 입력한 데이터가 URL에 붙음)</li>
+        <li>실제 Naver에서 검색 후 URL 확인 → <code>https://search.naver.com/search.naver?query=hello</code> (목적지 URL + input의 name 속성 + 입력 데이터). 실제 URL은 더 길지만 위의 URL만 사용해도 정상적으로 검색이 됩니다.</li>
+        <li>action에 Naver 검색 URL을 넣고 테스트 → 우리 페이지에서 Naver로 검색 요청이 전송됨</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-3</span>form 핵심 속성: action &amp; method</h3>
+      <p>데이터를 <b>어디(action)</b>로 <b>어떤 방식(method)</b>으로 요청할지 결정합니다.</p>
+      <ul>
+        <li><b>action</b> — 입력 데이터가 전송될 URL을 지정 (목적지). action을 지정하지 않으면 데이터는 <b>현재 페이지의 URL</b>로 보내짐</li>
+        <li><b>method</b> — 데이터를 어떤 방식으로 보낼 것인지 정의. 데이터의 HTTP request method(GET, POST)를 지정</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-4</span>'input' element · 'name' attribute</h3>
+      <ul>
+        <li><b>input</b> — 사용자의 데이터를 입력 받을 수 있는 HTML 요소. type 속성 값에 따라 다양한 유형의 입력 데이터를 받음</li>
+        <li><b>name</b> — input의 핵심 속성. 사용자가 입력한 데이터에 붙이는 <b>이름(key)</b>. 데이터를 제출했을 때 서버는 name 속성에 설정된 값을 통해서만 사용자가 입력한 데이터에 접근할 수 있음</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-5</span>Query String Parameters</h3>
+      <p>사용자의 입력 데이터를 <b>URL 주소에 파라미터를 통해</b> 서버로 보내는 방법입니다.</p>
+      <ul>
+        <li>문자열은 앰퍼샌드('&amp;')로 연결된 key=value 쌍으로 구성되며, 기본 URL과는 물음표('?')로 구분됨</li>
+        <li>예: <code>http://host:port/path?key=value&amp;key=value</code></li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-6</span>HTML form 활용 — 사용자 입력 데이터를 받아 그대로 출력하는 서버 만들기</h3>
+      <p>view 함수는 몇 개가 필요할까? → <b>2개</b>: 입력 페이지를 주는 <b>throw</b>, 데이터를 받아 출력하는 <b>catch</b>.</p>
+<pre class="formula"># urls.py
+urlpatterns = [
+    path('throw/', views.throw),
+    path('catch/', views.catch),
+]
+
+# views.py
+def throw(request):
+    return render(request, 'articles/throw.html')
+
+def catch(request):
+    message = request.GET.get('message')
+    context = {
+        'message': message,
+    }
+    return render(request, 'articles/catch.html', context)</pre>
+<pre class="formula">&lt;!-- articles/throw.html --&gt;
+{% extends 'articles/base.html' %}
+{% block content %}
+  &lt;h1&gt;Throw&lt;/h1&gt;
+  &lt;form action="/catch/" method="GET"&gt;
+    &lt;input type="text" name="message"&gt;
+    &lt;input type="submit" value="submit"&gt;
+  &lt;/form&gt;
+{% endblock content %}
+
+&lt;!-- articles/catch.html --&gt;
+{% extends 'articles/base.html' %}
+{% block content %}
+  &lt;h1&gt;Catch&lt;/h1&gt;
+  &lt;h3&gt;{{ message }}를 받았어!!&lt;/h3&gt;
+{% endblock content %}</pre>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-7</span>HTTP request 객체</h3>
+      <p>form으로 전송한 데이터뿐만 아니라 <b>Django로 들어오는 모든 요청 관련 데이터</b>가 담겨 있습니다. (view 함수가 호출될 때 첫 번째 인자로 전달됨)</p>
+<pre class="formula">def catch(request):
+    print(request)                         # &lt;WSGIRequest: GET '/catch/?message=...'&gt;
+    print(type(request))
+    print(request.GET)                     # &lt;QueryDict: {'message': ['...']}&gt;
+    print(request.GET.get('message'))      # 딕셔너리의 get 메서드로 키의 값을 조회
+    return render(request, 'articles/catch.html')</pre>
+      <p class="src">dir(request) → 'COOKIES', 'FILES', 'GET', 'META', 'POST', ..., 'path', 'session', 'user' 등</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-8</span>throw - catch 간 요청과 응답 정리</h3>
+      <div class="subhead">브라우저에 /throw/ 입력 시</div>
+      <ol>
+        <li>throw/로 요청 (throw 페이지를 줘!)</li>
+        <li>'throw/' 문자열과 일치하는 urls.py의 path 함수 호출</li>
+        <li>throw view 함수 호출</li>
+        <li>throw view 함수가 응답 객체를 반환</li>
+      </ol>
+      <div class="subhead">throw 페이지에서 제출 시</div>
+      <ol>
+        <li>form 데이터 작성 후 제출 (form 요소의 action 속성 값으로 요청)</li>
+        <li>catch/로 요청 (+ 사용자 입력 데이터와 함께)</li>
+        <li>'catch/' 문자열과 일치하는 path 함수 호출</li>
+        <li>catch view 함수 호출</li>
+        <li>catch view 함수에서 사용자가 보낸 form 데이터 추출 후 응답 객체를 반환</li>
+        <li>응답 객체 전달 → 7. 응답 객체 해석 후 화면 출력</li>
+      </ol>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>Django URLs</h2><p class="desc">URL dispatcher · Variable Routing · App URL 정의(include) · URL 구조 변화</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">4-1</span>요청과 응답에서 Django URLs의 역할</h3>
+      <p>요청 URL에 따라 <b>실행될 view 함수가 달라집니다</b>.</p>
+      <p><b>URL dispatcher</b> (운항 관리자, 분배기) — URL 패턴을 정의하고 해당 패턴이 일치하는 요청을 처리할 view 함수를 연결(매핑)합니다.</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">4-2</span>Variable Routing</h3>
+      <p><b>현재 URL 관리의 문제점</b> — 템플릿의 많은 부분이 중복되고, URL의 일부만 변경되는 상황이라면 계속해서 비슷한 URL과 템플릿을 작성해 나가야 할까?</p>
+<pre class="formula">urlpatterns = [
+    path('articles/1/', ...),
+    path('articles/2/', ...),
+    path('articles/3/', ...),     # ... 글이 늘어날 때마다 계속 추가?
+]
+# ↓ Variable Routing
+urlpatterns = [
+    path('articles/&lt;int:num&gt;/', ...),
+]</pre>
+      <p><b>Variable Routing</b> — URL 일부에 변수를 포함시키는 것. 변수는 view 함수의 인자로 전달할 수 있습니다. 형태: <code>&lt;path_converter:variable_name&gt;</code></p>
+      <ul>
+        <li><b>Path Converter</b> — URL 변수의 타입을 지정. str, int 등 <b>5가지 타입</b> 지원 (str, int, slug, uuid, path)</li>
+        <li>요청 URL의 <code>&lt;int:num&gt;</code>, <code>&lt;str:name&gt;</code> 위치에 들어있는 값이 변수처럼 취급됨</li>
+        <li>정수 num 변수가 views.detail에, 문자열 name 변수가 views.greeting에 <b>키워드 인자</b>로 전달됨</li>
+        <li>예) 요청 URL이 <code>/articles/10/</code>이면 <code>views.detail(request, num=10)</code>의 형태로 호출</li>
+      </ul>
+      <p class="src">키워드 인자 — 함수 호출 시 인자의 순서를 무시하고 특정 매개변수에 값을 할당하는 인자</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-3</span>Variable Routing 실습 — detail</h3>
+<pre class="formula"># urls.py
+path('articles/&lt;int:num&gt;/', views.detail),
+
+# views.py
+def detail(request, num):
+    context = {
+        'num': num,
+    }
+    return render(request, 'articles/detail.html', context)</pre>
+<pre class="formula">&lt;!-- articles/detail.html --&gt;
+{% extends 'articles/base.html' %}
+{% block content %}
+  &lt;h3&gt;{{ num }}번 글입니다.&lt;/h3&gt;
+{% endblock content %}</pre>
+      <div class="note">Path Converter의 <b>변수명과 View 함수의 파라미터 이름은 같아야</b> 합니다.</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-4</span>Variable Routing 실습 — greeting</h3>
+<pre class="formula"># urls.py
+path('hello/&lt;str:name&gt;/', views.greeting),
+
+# views.py
+def greeting(request, name):
+    context = {
+        'name': name,
+    }
+    return render(request, 'articles/greeting.html', context)</pre>
+<pre class="formula">&lt;!-- articles/greeting.html --&gt;
+{% extends 'articles/base.html' %}
+{% block content %}
+  &lt;h3&gt;{{ name }}님 안녕하세요!&lt;/h3&gt;
+{% endblock content %}</pre>
+      <p>URL 변화에 따라 템플릿 출력이 바뀌는지 관찰: <code>/articles/1/</code>, <code>/hello/Alice/</code></p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">4-5</span>App URL mapping — App URL 정의</h3>
+      <p><b>App URL mapping</b> — 각 앱에 URL을 정의하는 것. 프로젝트와 각 앱이 URL을 나누어 관리를 편하게 하기 위함입니다. 지금은 앱이 하나밖에 없지만, 앞으로 앱이 늘어나면 서로 다른 앱의 URL들이 섞이지 않도록 나누어 관리합니다.</p>
+      <div class="subhead">2번째 앱 pages를 추가하면 생기는 문제</div>
+<pre class="formula"># urls.py  (권장되지 않으므로 작성하지 말 것)
+from articles import views as article_views
+from pages import views as page_views
+
+urlpatterns = [
+    path('pages/', page_views.index),
+    # 본래 views로 사용되던 모든 곳을 article_views로 바꿔야 함!
+]</pre>
+      <p>→ "URL을 각자 앱에서 관리하자". 기존에는 프로젝트 urls.py에 모든 URL이 담겨 있었다면, 변경된 구조에서는 <b>각 앱의 urls.py에서 각자의 URL을 관리</b>합니다.</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">4-6</span>include 함수</h3>
+      <p><b>include()</b> — 프로젝트 내부 앱들의 URL을 참조할 수 있도록 매핑하는 함수. <b>URL의 일치하는 부분까지 잘라내고, 남은 문자열 부분은 후속 처리를 위해 include된 URL로 전달</b>합니다.</p>
+<pre class="formula"># firstpjt/urls.py
+from django.urls import path, include
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('articles/', include('articles.urls')),
+    path('pages/', include('pages.urls')),
+]
+
+# articles/urls.py  (앱 폴더에 직접 생성)
+from django.urls import path
+from . import views          # '.' = 현재 디렉토리(앱)에서 views를 가져옴
+
+urlpatterns = [
+    path('', views.index),
+    path('dinner/', views.dinner),
+    path('search/', views.search),
+    path('throw/', views.throw),
+    path('catch/', views.catch),
+    path('&lt;int:num&gt;/', views.detail),
+    path('hello/&lt;str:name&gt;/', views.greeting),
+]
+
+# pages/urls.py
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.index),
+]</pre>
+      <p>요청 URL이 <code>http://127.0.0.1:8000/articles/index/</code>일 때: 프로젝트 urls.py에서 <code>articles/</code>까지 일치한 뒤 → articles/urls.py에서 나머지 <code>index/</code>를 일치시킵니다.</p>
+      <p><b>URL의 변화</b>: 템플릿의 링크도 <code>/dinner/</code> → <code>/articles/dinner/</code>처럼 바뀌어야 합니다.</p>
+<pre class="formula">&lt;a href="/articles/dinner/"&gt;dinner&lt;/a&gt;
+&lt;a href="/articles/search/"&gt;search&lt;/a&gt;
+&lt;a href="/articles/throw/"&gt;throw&lt;/a&gt;</pre>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>URL 이름 지정과 이름 공간</h2><p class="desc">Naming URL patterns · DTL url tag · app_name 속성</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">5-1</span>URL 구조 변경에 따른 문제점</h3>
+      <p>기존 주소 앞에 'articles/'가 붙으면서 해당 URL을 사용하는 <b>모든 위치를 찾아가 변경해야</b> 합니다. → "URL에 이름을 지어주면 이름만 기억하면 되지 않을까?"</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-2</span>Naming URL patterns</h3>
+      <p><b>URL에 이름을 지정하는 것</b>. path 함수에 <code>name</code> 인자를 키워드 인자로 정의해서 사용합니다.</p>
+<pre class="formula"># articles/urls.py
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('dinner/', views.dinner, name='dinner'),
+    path('search/', views.search, name='search'),
+    path('throw/', views.throw, name='throw'),
+    path('catch/', views.catch, name='catch'),
+    path('&lt;int:num&gt;/', views.detail, name='detail'),
+    path('hello/&lt;str:name&gt;/', views.greeting, name='greeting'),
+]
+
+# pages/urls.py
+urlpatterns = [
+    path('', views.index, name='index'),
+]</pre>
+<pre class="formula">&lt;!-- articles/base.html : url 태그로 링크 변경 --&gt;
+&lt;a href="{% url 'index' %}"&gt;index&lt;/a&gt;
+&lt;a href="{% url 'dinner' %}"&gt;dinner&lt;/a&gt;
+&lt;a href="{% url 'search' %}"&gt;search&lt;/a&gt;
+&lt;a href="{% url 'throw' %}"&gt;throw&lt;/a&gt;</pre>
+      <div class="note">a 태그의 href 속성 값뿐만 아니라 <b>form의 action 속성</b>처럼 URL을 작성하는 모든 위치에서 변경해 주어야 합니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-3</span>DTL URL tag</h3>
+<pre class="formula">{% url 'url_name' arg1 arg2 %}</pre>
+      <ul>
+        <li>주어진 URL 패턴의 이름과 일치하는 <b>절대 경로 주소를 반환</b> (브라우저에서 확인하면 <code>href="/articles/dinner/"</code>처럼 렌더링됨)</li>
+        <li>URL 패턴에 변수가 포함되어 있으면, 'url_name' 이후에 인자를 추가</li>
+        <li>태그 이름, URL 이름, 인자들은 <b>공백으로 구분</b>되며 쉼표(,)로 구분되지 않습니다</li>
+      </ul>
+<pre class="formula">&lt;!-- path('&lt;int:num&gt;/', views.detail, name='detail') --&gt;
+&lt;a href="{% url 'detail' 1 %}"&gt;Article 1&lt;/a&gt;
+&lt;a href="{% url 'detail' 2 %}"&gt;Article 2&lt;/a&gt;
+
+&lt;!-- DTL for 태그에서 사용: 변수 이름도 인자로 사용 가능 --&gt;
+{# views.index: context = {'nums': [1, 2, 3]} #}
+{% for num in nums %}
+  &lt;a href="{% url 'detail' num %}"&gt;Article {{ num }}&lt;/a&gt;
+{% endfor %}</pre>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-4</span>app_name 속성 — URL 이름 지정 후 남은 문제</h3>
+      <p>articles 앱의 url 이름과 pages 앱의 url 이름이 같은 상황(둘 다 <code>index</code>). 단순히 이름만으로는 완벽하게 분리할 수 없습니다. "누구의 index인지 어떻게 구분하는가?" → "이름에 성(key)을 붙이자"</p>
+<pre class="formula"># articles/urls.py
+app_name = 'articles'
+urlpatterns = [
+    path('', views.index, name='index'),
+    ...
+]
+
+# pages/urls.py
+app_name = 'pages'
+urlpatterns = [
+    path('', views.index, name='index'),
+]</pre>
+<pre class="formula">{% url 'app_name:path_name' arg1 arg2 %}
+
+&lt;a href="{% url 'articles:index' %}"&gt;index&lt;/a&gt;
+&lt;a href="{% url 'articles:dinner' %}"&gt;dinner&lt;/a&gt;
+&lt;a href="{% url 'articles:detail' num %}"&gt;Article {{ num }}&lt;/a&gt;
+&lt;a href="{% url 'pages:index' %}"&gt;pages&lt;/a&gt;</pre>
+      <ul>
+        <li>app_name이 추가 또는 수정되면 <b>url 태그에도 해당 내용이 반영</b>되어야 함 (반영하지 않으면 NoReverseMatch 에러)</li>
+        <li>HTML 반영 후 확인 — <b>최종 링크는 변하지 않음</b> (<code>/articles/</code>, <code>/articles/dinner/</code> ...)</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch6" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>참고</h2><p class="desc">추가 템플릿 경로 · BASE_DIR · DTL 주의사항 · Trailing Slashes</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">6-1</span>추가 템플릿 경로 지정</h3>
+      <p>앱 폴더 내부 templates 폴더(기본 경로) 외에 템플릿을 위치하고 싶을 때 — 예: 모든 앱이 함께 쓰는 <code>base.html</code>을 프로젝트 최상위 <code>templates/</code> 폴더에 둘 때.</p>
+<pre class="formula"># settings.py
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'],     # ← 추가 경로
+        'APP_DIRS': True,                     # 각 앱의 templates 폴더도 탐색
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]</pre>
+<pre class="formula">&lt;!-- 하위 템플릿에서 extends의 경로 수정 (프로젝트 최상위 templates/base.html) --&gt;
+{% extends 'base.html' %}</pre>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">6-2</span>BASE_DIR</h3>
+      <p>settings.py에서 <b>경로 지정을 편하게 하기 위해 최상단 지점을 지정해 둔 변수</b> (manage.py가 있는 프로젝트 폴더).</p>
+<pre class="formula"># settings.py
+BASE_DIR = Path(__file__).resolve().parent.parent</pre>
+      <p class="src">Python의 객체 지향 파일 시스템 경로: https://docs.python.org/ko/3.11/library/pathlib.html</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">6-3</span>DTL 주의사항</h3>
+      <ul>
+        <li>Python처럼 일부 프로그래밍 구조(if, for 등)를 사용할 수 있지만 명칭을 그렇게 설계했을 뿐, <b>Python 코드로 실행되는 것이 아니며 Python과는 관련 없음</b></li>
+        <li>프로그래밍적 로직이 아니라 <b>표현을 위한 것</b>임을 명심하기</li>
+        <li>프로그래밍적 로직은 되도록 <b>view 함수에서 작성 및 처리</b>할 것</li>
+        <li>공식 문서를 참고해 다양한 태그와 필터 사용해보기</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">6-4</span>URL의 Trailing Slashes</h3>
+      <ul>
+        <li>Django는 URL 끝에 '/'가 없다면 <b>자동으로 붙임</b></li>
+        <li>"기술적인 측면에서, foo.com/bar와 foo.com/bar/는 서로 다른 URL" — 검색 엔진 로봇이나 웹 트래픽 분석 도구에서는 이 두 주소를 서로 다른 페이지로 보기 때문</li>
+        <li>그래서 Django는 검색 엔진이 혼동하지 않게 하기 위해 <b>무조건 붙이는 것을 선택</b>한 것</li>
+        <li>그러나 모든 프레임워크가 이렇게 동작하는 것은 아니니 주의</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">Q</div>
+    <div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">문제를 먼저 풀고, 눌러서 정답과 해설을 확인하세요</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <div class="quiz-q"><div class="qq">1. Django에서 템플릿 시스템을 사용하는 주요 목적은?</div><ol class="opt" type="a"><li>데이터베이스를 관리하기 위해</li><li>HTML과 Python 코드를 분리하여 작성하기 위해</li><li>사용자 요청을 처리하기 위해</li><li>프로젝트 디렉토리를 만들기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b)</b> — Django 템플릿 시스템은 HTML과 Python 코드를 분리하여 보다 구조적인 웹 페이지를 작성할 수 있도록 도와줍니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">2. Django Template Language(DTL)에서 변수 출력 시 사용하는 문법은?</div><ol class="opt" type="a"><li>{{ 변수명 }}</li><li>{% 변수명 %}</li><li>(( 변수명 ))</li><li>[ 변수명 ]</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) {{ 변수명 }}</b> — 변수를 출력할 때는 {{ 변수명 }} 형태로 사용하며, 태그({% %})와는 구분됩니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">3. 템플릿 상속 시, 하위 템플릿이 상위 템플릿을 지정할 때 사용하는 태그는?</div><ol class="opt" type="a"><li>{% include %}</li><li>{% import %}</li><li>{% extends %}</li><li>{% template %}</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) {% extends %}</b> — 템플릿 상속 구조를 만들기 위해 {% extends 'base.html' %} 형태로 상위 템플릿을 지정합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">4. HTML form을 통해 데이터를 전송할 때 사용하는 HTTP 메서드가 아닌 것은?</div><ol class="opt" type="a"><li>GET</li><li>POST</li><li>DELETE</li><li>FETCH</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) FETCH</b> — HTML form에서는 기본적으로 GET과 POST 메서드를 사용하며, DELETE와 FETCH는 사용하지 않습니다. (FETCH는 HTTP 메서드가 아님)</div></details></div>
+      <div class="quiz-q"><div class="qq">5. form 태그에 action 속성이 없을 경우 기본으로 동작하는 경로는?</div><ol class="opt" type="a"><li>루트 경로(/)</li><li>이전 페이지</li><li>현재 페이지</li><li>에러 발생</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 현재 페이지</b> — action 속성이 없으면 현재 페이지로 데이터를 전송합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">6. 다음 중 URL 패턴에서 변수로 값을 전달하는 방법으로 올바른 것은?</div><ol class="opt" type="a"><li>path('user/&lt;int:id&gt;/', views.user_detail)</li><li>path('user/{id}/', views.user_detail)</li><li>url('user/&lt;int:id&gt;/', views.user_detail)</li><li>get('user/:id/', views.user_detail)</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a)</b> — Django에서는 path() 함수를 사용하며, 변수는 &lt;자료형:이름&gt; 형태로 지정합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">7. 앱의 URL을 프로젝트 URL에 연결하는 방법은?</div><ol class="opt" type="a"><li>urls.py에서 include() 사용</li><li>views.py에서 import</li><li>models.py 연결</li><li>settings.py에 form 작성</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a)</b> — 앱의 urls.py를 메인 urls.py에 include()로 포함시켜 앱별 URL 관리를 가능하게 합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">8. Django에서 URL에 이름을 지정해 사용하는 이유는?</div><ol class="opt" type="a"><li>URL을 암호화하기 위해</li><li>URL을 외부로 노출하지 않기 위해</li><li>템플릿에서 링크를 쉽게 연결하기 위해</li><li>URL을 길게 보이게 하기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — URL에 이름을 지정해두면 템플릿에서 {% url '이름' %} 문법으로 사용 가능하여 유지보수가 편리합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">9. 템플릿에서 URL 이름으로 링크를 만드는 올바른 문법은?</div><ol class="opt" type="a"><li>{{ url 'home' }}</li><li>[[ url 'home' ]]</li><li>{% url 'home' %}</li><li>&lt;% url 'home' %&gt;</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — URL 태그는 {% url '이름' %} 문법으로 사용하여 URL을 동적으로 생성할 수 있습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">10. Django URL 설정에서 app_name 속성을 사용하는 주요 목적은?</div><ol class="opt" type="a"><li>URL 경로를 암호화하기 위해</li><li>앱 이름으로 템플릿을 렌더링하기 위해</li><li>URL 이름이 중복되지 않도록 네임스페이스를 지정하기 위해</li><li>settings.py에 앱을 등록하기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — 여러 앱에서 동일한 URL 이름을 사용할 경우 app_name을 통해 네임스페이스를 지정하여 충돌을 방지합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">11. Django에서 템플릿 파일의 경로를 설정할 때 사용하는 설정 변수는?</div><ol class="opt" type="a"><li>STATICFILES_DIRS</li><li>MEDIA_ROOT</li><li>TEMPLATES</li><li>TEMPLATE_PATH</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) TEMPLATES</b> — 템플릿 경로는 settings.py의 TEMPLATES 설정 안의 'DIRS' 항목에 추가합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">12. Django Template Language 사용 시, 다음 중 올바르지 않은 변수 출력 방식은?</div><ol class="opt" type="a"><li>{{ title }}</li><li>{% title %}</li><li>{{ user.name }}</li><li>{{ 1|add:2 }}</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) {% title %}</b> — {% %}는 태그에 사용되고, 변수 출력에는 {{ }}를 사용해야 하므로 {% title %}은 잘못된 문법입니다.</div></details></div>
+    </div>
+    <div class="card full">
+      <h3>관련 실습 문제</h3>
+      <div class="pillrow"><span class="pill">3022. base template 만들기</span><span class="pill">3226·3227. 도서 조회 서비스 만들기</span><span class="pill">2648. form tag 실습 예제</span><span class="pill">3023. 페이지 간 데이터 주고 받기</span><span class="pill">2649. Django에서의 URL</span><span class="pill">3228. 도서 조회 서비스 - 코드 개선</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head">
+    <div class="section-num">★</div>
+    <div><h2>활동 정리 — 핵심 키워드</h2><p class="desc">이번 시간의 핵심 개념 한눈에 보기</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>키워드</th><th>정리</th><th>예</th></tr>
+        <tr><td class="k">Django Template system</td><td>데이터 표현을 제어하면서, 표현과 관련된 부분을 담당</td><td>—</td></tr>
+        <tr><td class="k">DTL 변수</td><td>render 함수에 전달한 데이터를 template에서 사용</td><td><code>{{ name }}</code>, <code>{{ data.name }}</code></td></tr>
+        <tr><td class="k">DTL 필터</td><td>변수를 특정 조건으로 수정해서 출력</td><td><code>{{ name|truncatewords:30 }}</code></td></tr>
+        <tr><td class="k">DTL 태그</td><td>반복 또는 논리를 수행하여 제어 흐름을 만듦</td><td><code>{% if %}</code>, <code>{% for %}</code></td></tr>
+        <tr><td class="k">템플릿 상속</td><td>공통 요소 + 재정의 공간(block)을 가진 상위 템플릿을 먼저 작성하고, 하위 템플릿이 상속받아 공통 부분을 다시 쓰지 않게 하는 기능</td><td><code>{% extends %}</code>, <code>{% block %}</code></td></tr>
+        <tr><td class="k">HTML form</td><td>HTML 상에서 HTTP 요청을 서버에 보내는 가장 편리한 방법. action으로 어디에, method로 어떤 방식으로 보낼지 결정. input은 text, password, checkbox 등 제공</td><td>—</td></tr>
+        <tr><td class="k">URL dispatcher</td><td>URL 패턴을 정의하고 일치하는 요청을 view 함수와 연결. 유지보수를 위해 앱마다 urls.py를 추가 작성 가능</td><td><code>include()</code></td></tr>
+        <tr><td class="k">Variable Routing</td><td>필요에 따라 URL의 일부를 변수로 취급. str, int 등 5가지 타입 지원</td><td><code>'articles/&lt;int:num&gt;/'</code>, <code>'hello/&lt;str:name&gt;/'</code></td></tr>
+        <tr><td class="k">Naming URL patterns</td><td>URL 주소가 바뀌는 상황에 대비해 URL에 이름을 붙임. path의 name 인자. app_name으로 앱별 이름 구분</td><td><code>{% url 'articles:index' %}</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>SSAFY 16기 「Django Template &amp; URLs」(2025-10-13) 강의 슬라이드 119장 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

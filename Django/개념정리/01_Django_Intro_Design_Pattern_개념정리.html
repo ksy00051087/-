@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django Intro &amp; Design Pattern 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · Django 01 · 10/12</span>
+    <h1>Django Intro &amp; Design Pattern 개념정리</h1>
+    <p class="sub">웹 애플리케이션과 클라이언트-서버 구조 → 가상 환경과 의존성 관리 → Django 프로젝트 생성 → 디자인 패턴(MVC/MTV) → 프로젝트와 앱 → 요청과 응답까지, 강의 슬라이드 123장을 개념 중심으로 재구성했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 6개 장 + 참고 + 확인문제</span>
+      <span>🧪 요청-응답 실습 코드 전체</span>
+      <span>❓ 확인문제 12개 (정답·해설 접기)</span>
+      <span>🗂️ 활동 정리 키워드</span>
+    </div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·명령어·코드·Tip·주의 박스를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 Django 공식 동작 기준으로 바로잡았습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#ch0">0. 학습 시작</a>
+    <a href="#ch1">1. Web Application</a>
+    <a href="#ch2">2. 가상 환경 (Virtual Environment)</a>
+    <a href="#ch3">3. Django 프로젝트 생성 및 서버 실행</a>
+    <a href="#ch4">4. Django Design Pattern</a>
+    <a href="#ch5">5. Django와 요청 &amp; 응답</a>
+    <a href="#ch6">6. 참고</a>
+    <a href="#quiz">확인문제 (원본 슬라이드 수록)</a>
+    <a href="#sum">활동 정리</a>
+  </nav>
+</div>
+
+<main>
+
+<!-- ===================== 0. 학습 시작 ===================== -->
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>학습 시작 — 이번 시간에 할 일</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"멋진 웹 페이지를 만들었습니다! 다른 사람들에게도 보여주고 싶다면?"</h3>
+      <ol>
+        <li>웹 브라우저는 <b>클라이언트</b>로서 인터넷 상의 컴퓨터에 <b>요청</b>을 보냅니다.</li>
+        <li>이 요청을 받은 <b>서버</b>는 요청에 따라 알맞은 <b>응답</b>을 보냅니다.</li>
+        <li>이러한 형태로 제공되는 서비스를 <b>웹 애플리케이션</b>이라고 하며, 이를 빠르게 개발할 수 있도록 도와주는 도구가 <b>웹 프레임워크</b>입니다.</li>
+      </ol>
+      <ul>
+        <li>자신이 만든 웹 페이지를 인터넷을 이용해 공유할 수 있습니다.</li>
+        <li>인터넷을 이용한 서비스가 어떤 형태로 동작하는지 이해할 수 있습니다.</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3>학습 목표</h3>
+      <ul>
+        <li>웹 애플리케이션이 무엇인지 이해한다.</li>
+        <li>클라이언트-서버 구조를 설명할 수 있다.</li>
+        <li>가상 환경을 통해 서로 다른 프로젝트의 패키지를 독립적으로 관리할 수 있다.</li>
+        <li>Django 프로젝트를 생성하고 시작할 수 있다.</li>
+        <li>Django를 활용해 사용자 브라우저에 페이지를 응답할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 1. Web Application ===================== -->
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>Web Application</h2><p class="desc">웹 애플리케이션 · 클라이언트와 서버 · 웹 페이지를 보게 되는 과정 · Frontend &amp; Backend</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">1-1</span>Web application (web service) 개발</h3>
+      <ul>
+        <li>인터넷을 통해 사용자에게 제공되는 <b>소프트웨어 프로그램을 구축하는 과정</b></li>
+        <li>다양한 디바이스(모바일, 태블릿, PC 등)에서 <b>웹 브라우저를 통해 접근하고 사용</b>할 수 있음</li>
+        <li>예: 네이버를 비롯한 포털, 인터넷 쇼핑몰부터 Google Docs 같은 업무 도구까지 모두 웹 애플리케이션</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">1-2</span>클라이언트-서버 구조</h3>
+      <p>인터넷에 연결된 서로 다른 두 컴퓨터가 데이터를 주고받는 웹의 동작 방식 중 하나입니다.</p>
+      <ul>
+        <li><b>Client</b> — 서비스를 <b>요청</b>하는 주체<br>(사용자의 웹 브라우저, 모바일 앱)</li>
+        <li><b>Server</b> — 클라이언트의 요청에 <b>응답</b>하는 주체<br>(웹 서버, 데이터베이스 서버)</li>
+      </ul>
+      <p>클라이언트가 요청을 보내면 서버는 요청에 알맞은 데이터 또는 파일을 응답합니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">1-3</span>우리가 웹 페이지를 보게 되는 과정</h3>
+      <ol>
+        <li>웹 브라우저(클라이언트)에서 <code>google.com</code>을 입력</li>
+        <li>브라우저는 인터넷에 연결된 전 세계 어딘가에 있는 구글 컴퓨터(서버)에게 <b>'메인 홈페이지.html' 파일을 달라고 요청</b></li>
+        <li>요청을 받은 구글 컴퓨터는 데이터베이스에서 '메인 홈페이지.html' 파일을 찾아 <b>응답</b></li>
+        <li>브라우저는 전달받은 '메인 홈페이지.html' 파일을 사람이 볼 수 있도록 <b>해석</b>해 주고, 사용자는 구글의 메인 페이지를 보게 됨</li>
+      </ol>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-4</span>웹 개발에서의 Frontend와 Backend</h3>
+      <table class="compare">
+        <tr><th>구분</th><th>역할</th><th>기술</th><th>대표 프레임워크</th></tr>
+        <tr><td class="k">Frontend (프론트엔드)</td><td>사용자 인터페이스(UI)를 구성하고, 사용자가 애플리케이션과 상호작용할 수 있도록 함</td><td>HTML(웹 페이지의 의미와 구조), CSS(디자인과 레이아웃), JavaScript, 프론트엔드 프레임워크 등</td><td>Vue.js</td></tr>
+        <tr><td class="k">Backend (백엔드)</td><td>서버 측에서 동작하며, 클라이언트의 요청에 대한 처리와 데이터베이스와의 상호작용 등을 담당</td><td>서버 언어(Python, Java 등), 백엔드 프레임워크, 데이터베이스, API, 보안 등</td><td>Django</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-5</span>Web Framework와 Django</h3>
+      <p><b>"웹 서비스 개발"에는 무엇이 필요할까?</b> 로그인/로그아웃, 회원관리, 데이터베이스, 보안 등 너무 많은 기술이 필요합니다. 모든 걸 직접 만드는 대신 <b>잘 만들어진 것을 가져와 좋은 환경에서 잘 쓰는 것</b>도 능력입니다.</p>
+      <p><b>Web Framework</b> — 웹 애플리케이션을 빠르게 개발할 수 있도록 도와주는 도구. 개발에 필요한 <b>기본 구조, 규칙, 라이브러리</b> 등을 제공합니다.</p>
+      <p><b>Django Framework</b> — Python 기반의 대표적인 웹 프레임워크. <b>클라이언트-서버 구조의 "서버"를 구현하는 것이 Django를 배우는 목적</b>입니다.</p>
+      <div class="subhead">Django를 사용해야 하는 이유</div>
+      <ul>
+        <li><b>다양성</b> — Python 기반으로 웹, 모바일 앱 백엔드, API 서버 및 빅데이터 관리 등 광범위한 서비스 개발에 적합</li>
+        <li><b>확장성</b> — 대량의 데이터에 대해 빠르고 유연하게 확장할 수 있는 기능을 제공</li>
+        <li><b>보안</b> — 취약점으로부터 보호하는 보안 기능이 기본적으로 내장되어 있음</li>
+        <li><b>커뮤니티 지원</b> — 개발자를 위한 지원, 문서 및 업데이트를 제공하는 활성화된 커뮤니티</li>
+      </ul>
+      <p><b>검증된 웹 프레임워크</b> — 대규모 트래픽 서비스에서도 안정적인 서비스 제공(Spotify, Instagram, Delivery Hero 등).</p>
+      <p>웹 개발 시장을 주도하는 백엔드 프레임워크(2024~2025, LinkedIn·GitHub Contributors·OSS Insight 자료 종합): ① Django(Python) ② Spring Boot(Java) ③ ASP.NET Core(C#) ④ Laravel(PHP) ⑤ Express.js(Node.js)</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 2. Virtual Environment ===================== -->
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>가상 환경 (Virtual Environment)</h2><p class="desc">가상 환경이 필요한 이유 · 생성/활성화/비활성화 · 의존성 패키지 · requirements.txt · 주의사항</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">2-1</span>가상 환경이란?</h3>
+      <p><b>Python 애플리케이션과 그에 따른 패키지들을 격리하여 관리할 수 있는 독립적인 실행 환경</b>입니다. 나의 컴퓨터 안에서 또 다른 독립된 파이썬 환경을 만들어, 프로젝트끼리 <b>서로 간섭하지 않게</b> 됩니다.</p>
+      <ul>
+        <li><b>Python global</b> — 컴퓨터 전체에서 사용되는 기본 Python 환경</li>
+        <li>가상 환경 A, 가상 환경 B는 Python global과 분리된 각자의 패키지 공간을 가짐</li>
+        <li><b>패키지</b> — 연관된 모듈들을 하나의 디렉토리에 모아놓은 것</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-2</span>필요한 시나리오 1 — 버전 충돌</h3>
+      <ol>
+        <li>한 개발자가 2개의 프로젝트(A와 B)를 진행해야 하는 상황</li>
+        <li>프로젝트 A는 requests 패키지 <b>버전 1</b>이 필요</li>
+        <li>프로젝트 B는 requests 패키지 <b>버전 2</b>가 필요</li>
+        <li>하지만 파이썬 환경에서 <b>패키지는 1개의 버전만 존재</b>할 수 있음</li>
+        <li>A와 B 프로젝트의 다른 패키지 버전 사용을 위한 독립적인 개발 환경이 필요</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-3</span>필요한 시나리오 2 — 패키지 충돌</h3>
+      <ol>
+        <li>한 개발자가 2개의 프로젝트(A와 B)를 진행해야 하는 상황</li>
+        <li>프로젝트 A는 water 패키지가 필요</li>
+        <li>프로젝트 B는 fire라는 패키지가 필요</li>
+        <li>하지만 파이썬 환경에서 water 패키지와 fire 패키지를 함께 사용하면 <b>충돌이 발생</b>하기 때문에 설치할 수 없음</li>
+        <li>A와 B 프로젝트의 패키지 충돌을 피하기 위해 각각 독립적인 개발 환경이 필요</li>
+      </ol>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-4</span>가상 환경 생성 · 활성화 · 비활성화</h3>
+<pre class="formula"># 1. 가상 환경 venv 생성 (venv 모듈로 'venv'라는 이름의 가상 환경을 만든다)
+$ python -m venv venv
+
+# 2. 가상 환경 활성화 (Windows / Git Bash)
+$ source venv/Scripts/activate
+# macOS / Linux
+$ source venv/bin/activate
+
+# 3. 비활성화 → 다시 Python Global 환경으로 돌아옴
+$ deactivate</pre>
+      <ul>
+        <li>venv 폴더 안에는 파이썬 실행 파일, 라이브러리 등을 담을 공간이 마련됨</li>
+        <li>가상 환경 이름은 임의로 지정 가능하나 <b>관례적으로 venv</b>를 사용</li>
+        <li>활성화 후 프롬프트 앞에 <code>(venv)</code>와 같이 표시된다면 성공</li>
+      </ul>
+      <div class="note"><b>OS별 명령어 차이</b> — 사용하고 있는 운영체제(Windows, macOS, Linux 등)에 따라 만들어진 venv 폴더의 구조가 다릅니다. 그렇기 때문에 가상 환경을 실행하는 명령어의 경로(<code>Scripts</code> vs <code>bin</code>)도 다릅니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-5</span>의존성 (Dependencies)</h3>
+      <p><b>의존성</b> — 하나의 소프트웨어가 동작하기 위해 필요로 하는 다른 소프트웨어나 라이브러리. (예: 게임이 잘 작동하기 위해서는 CPU, GPU, RAM 등이 필요 → 이들은 게임 입장에서 의존성)</p>
+      <p><b>의존성 패키지</b> — 프로젝트가 의존하는 "개별 라이브러리"들을 가리키는 말. 즉 "프로젝트가 실행되기 위해 꼭 필요한 각각의 패키지". (CPU, GPU, RAM 각각을 의존성 패키지라고 할 수 있음)</p>
+<pre class="formula">$ pip list            # 현재 가상 환경에 설치된 라이브러리 목록 확인
+Package    Version
+---------- -------
+pip        24.0
+setuptools 65.5.0     # 갓 생성된 가상 환경은 기본 환경 구성을 위한 pip, setuptools만 존재</pre>
+      <p><b>pip</b> — 파이썬의 패키지 관리 시스템.</p>
+      <div class="subhead">의존성 리스트 예시 — requests 설치 후 패키지 목록 변화</div>
+      <p><code>requests</code>(Python에서 HTTP 요청을 보낼 수 있게 해주는 패키지) 하나만 설치했는데 <b>1개만 설치되는 것이 아님</b>. requests가 필요로 하는 의존성들이 함께 설치되기 때문입니다.</p>
+      <table class="compare">
+        <tr><th>Package</th><th>certifi</th><th>charset-normalizer</th><th>idna</th><th>pip</th><th>requests</th><th>setuptools</th><th>urllib3</th></tr>
+        <tr><td class="k">Version</td><td>2025.6.15</td><td>3.4.2</td><td>3.10</td><td>24.0</td><td>2.32.4</td><td>65.5.0</td><td>2.5.0</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-6</span>의존성 기록과 설치 — requirements.txt</h3>
+<pre class="formula"># 1. 의존성 기록 (내보내기): 가상 환경에 설치된 모든 패키지를 버전과 함께 특정 형식으로 출력해 파일로 저장
+$ pip freeze &gt; requirements.txt
+
+# 2. 의존성 설치 (가져오기): requirements.txt에 명시된 라이브러리를 한 번에 설치
+$ pip install -r requirements.txt</pre>
+      <ul>
+        <li>다른 파일명으로도 가능하나 <b>관례적으로 requirements.txt</b>를 사용</li>
+        <li><code>&gt;</code>는 pip 명령어가 아닌 <b>CLI(Shell)의 Redirection operator</b>로, 이전 명령어의 결과를 파일로 저장(redirect)함. 이미 있는 파일에 쓰면 이전 내용은 <b>덮어써짐</b></li>
+        <li><code>-r</code>은 <code>--requirement</code>의 축약형. 패키지 이름을 하나씩 직접 입력하는 대신 "지정된 텍스트 파일을 읽어서 그 안에 적힌 모든 패키지를 설치해라"라고 지시하는 옵션</li>
+      </ul>
+      <div class="subhead">의존성 리스트 공유 시나리오</div>
+      <ol>
+        <li>2명(A와 B)의 개발자가 하나의 프로젝트를 함께 개발한다고 가정</li>
+        <li>개발자 A가 먼저 가상 환경을 생성 후 프로젝트를 설정하고 관련 패키지를 설치하고 개발하다가 협업을 위해 GitHub에 프로젝트를 push</li>
+        <li>개발자 B는 해당 프로젝트를 clone 받고 실행해보려 하지만 실행되지 않음</li>
+        <li>개발자 B는 A가 이 프로젝트를 위해 어떤 패키지를 설치했고, 어떤 버전을 설치했는지 A의 가상 환경 상황을 알 수 없음</li>
+        <li>가상 환경에 대한 정보, 즉 <b>패키지 목록이 공유되어야 함</b></li>
+      </ol>
+      <div class="note tip"><b>왜 버전까지 맞춰야 하나?</b> 패키지 버전이 다를 경우 함수명이나 동작이 달라질 수 있습니다. "내 컴퓨터에선 되는데 네 컴퓨터에선 안 돼" 문제를 해결하고, 프로젝트가 커질수록 늘어나는 패키지를 팀원 간 동일한 개발 환경으로 즉시 구축할 수 있습니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-7</span>가상 환경 주의사항 및 권장사항</h3>
+      <ol>
+        <li>가상 환경에 "들어가고 나오는" 것이 아니라 <b>사용할 Python 환경을 "On/Off"로 전환</b>하는 개념
+          <ul><li>가상 환경 활성화는 <b>현재 터미널 환경에만</b> 영향을 끼침</li><li>새 터미널 창을 열면 다시 활성화해야 함</li></ul></li>
+        <li><b>프로젝트마다 별도의 가상 환경</b>을 사용</li>
+        <li>일반적으로 가상 환경 폴더 venv는 관련된 프로젝트와 <b>동일한 경로</b>에 위치시킴</li>
+        <li>폴더 venv는 <code>.gitignore</code> 파일에 작성되어 <b>원격 저장소에 공유하지 않음</b>
+          <ul><li>저장소 크기를 줄여 효율적인 협업과 배포를 가능하게 함</li><li>OS별 차이점으로 인한 문제를 방지하기 위함</li><li>대신 <b>requirements.txt를 공유</b>하여 각자의 가상 환경을 만듦</li></ul></li>
+      </ol>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-8</span>가상 환경이 필요한 이유 · 사용 흐름 정리</h3>
+      <ol>
+        <li><b>프로젝트마다 다른 버전의 라이브러리 사용</b> — 한 프로젝트에서는 Django 4.2를, 다른 프로젝트에서는 Django 5.2를 사용해야 할 수도 있음. 가상 환경을 쓰면 서로 다른 버전을 동시에 설치해도 충돌 없이 각각 유지</li>
+        <li><b>의존성 충돌 방지</b> — 프로젝트별로 라이브러리를 독립적으로 관리. 여러 프로젝트가 동시에 같은 라이브러리를 쓰더라도 버전 충돌 문제를 예방</li>
+        <li><b>팀 협업 시 환경 통일</b> — 동일한 방식으로 가상 환경을 만들어 똑같은 버전의 라이브러리를 설치하면 에러 가능성을 줄일 수 있음</li>
+      </ol>
+      <div class="flow"><span>python -m venv venv</span><i>→</i><span>source venv/Scripts/activate</span><i>→</i><span>pip install</span><i>→</i><span>pip freeze &gt; requirements.txt</span><i>→</i><span>(팀원) pip install -r requirements.txt</span><i>→</i><span>deactivate</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 3. Django 프로젝트 생성 ===================== -->
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>Django 프로젝트 생성 및 서버 실행</h2><p class="desc">Django 설치 · startproject · runserver · 프로젝트 생성 전체 루틴</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">3-1</span>설치 → 프로젝트 생성 → 서버 실행</h3>
+<pre class="formula"># 1. Django 설치 (가상 환경에 Django 패키지를 설치)
+$ pip install django
+Downloading django-5.2.x-py3-none-any.whl (8.3 MB)
+
+# 2. 프로젝트 생성 ('firstpjt'라는 이름의 Django 프로젝트를 현재 위치(.)에 생성)
+$ django-admin startproject firstpjt .
+
+# 3. 서버 실행 (manage.py와 동일한 위치에서 명령어 진행)
+$ python manage.py runserver</pre>
+      <ul>
+        <li>Django 버전을 명시하지 않을 경우 Python 3.11 기준 <b>최신 버전인 5.2.x</b>가 설치됨 (Python 3.9 이하일 경우 Django 4 버전이 설치되니 주의)</li>
+        <li>프로젝트 생성 후 추가되는 파일 및 폴더: <code>firstpjt/</code>, <code>manage.py</code> (+ 기존 <code>venv/</code>, <code>requirements.txt</code>)</li>
+        <li>서버 확인: <code>http://127.0.0.1:8000/</code> 접속 → 로켓 화면 "The install worked successfully! Congratulations!" (DEBUG=True이고 URL을 아직 설정하지 않았기 때문에 보이는 페이지)</li>
+      </ul>
+<pre class="formula">Watching for file changes with StatReloader
+Performing system checks...
+System check identified no issues (0 silenced).
+You have 18 unapplied migration(s). Your project may not work properly until you
+apply the migrations for app(s): admin, auth, contenttypes, sessions.
+Run 'python manage.py migrate' to apply them.          ← 이 경고는 추후 해결
+Django version 5.2.4, using settings 'firstpjt.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+WARNING: This is a development server. Do not use it in a production setting. ...
+                                                        ← 개발 단계와는 무관한 경고로, 신경 쓰지 않아도 괜찮음</pre>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-2</span>Django 프로젝트 생성 루틴 정리 (+ git)</h3>
+<pre class="formula"># 1. 가상 환경(venv) 생성
+$ python -m venv venv
+# 2. 가상 환경 활성화
+$ source venv/Scripts/activate
+# 3. Django 설치
+$ pip install django
+# 4. 패키지 목록 파일 생성
+$ pip freeze &gt; requirements.txt
+# 5. .gitignore 파일 생성 (첫 add 전 진행, venv가 제외되도록 할 것)
+# 6. git 저장소 생성
+$ git init
+# 7. Django 프로젝트 생성
+$ django-admin startproject firstpjt .</pre>
+      <p>최종 폴더: <code>articles/</code>, <code>firstpjt/</code>, <code>venv/</code>, <code>.gitignore</code>, <code>db.sqlite3</code>, <code>manage.py</code>, <code>requirements.txt</code> — <code>db.sqlite3</code>도 git에 올리지 않습니다.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 4. Design Pattern ===================== -->
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>Django Design Pattern</h2><p class="desc">디자인 패턴 · MVC · MTV · 프로젝트와 앱 · 프로젝트 및 앱 구조</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">4-1</span>디자인 패턴 (Design Pattern)</h3>
+      <p>소프트웨어 설계에서 <b>반복적으로 발생하는 문제에 대한, 검증되고 재사용 가능한 일반적인 해결책</b>. "애플리케이션의 구조는 이렇게 구성하자"라는 모범 답안 또는 관행입니다. 대표적인 디자인 패턴이 MVC입니다.</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-2</span>MVC 디자인 패턴</h3>
+      <p>하나의 애플리케이션을 구조화하는 대표적인 구조적 디자인 패턴. 시각적 요소와 뒤에서 실행되는 로직을 서로 영향 없이, 쉽게 유지보수할 수 있는 애플리케이션을 만들기 위해 사용합니다.</p>
+      <ul>
+        <li><b>Model</b> — 데이터 및 비즈니스 로직을 처리</li>
+        <li><b>View</b> — 사용자에게 보이는 화면을 담당</li>
+        <li><b>Controller</b> — 사용자의 입력을 받아 Model과 View를 제어</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-3</span>MTV 디자인 패턴</h3>
+      <p>Django에서 애플리케이션을 구조화하는 디자인 패턴 (<b>Model, Template, View</b>).</p>
+      <table class="compare">
+        <tr><th>MVC</th><th>MTV</th></tr>
+        <tr><td>Model</td><td>Model</td></tr>
+        <tr><td>View</td><td><b>Template</b></td></tr>
+        <tr><td>Controller</td><td><b>View</b></td></tr>
+      </table>
+      <div class="note">기존 MVC 패턴과 동일하나 <b>단순히 명칭을 다르게 정의</b>한 것입니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">4-4</span>Django project &amp; Django application</h3>
+      <table class="compare">
+        <tr><th>구분</th><th>설명</th></tr>
+        <tr><td class="k">Django project</td><td><b>애플리케이션의 집합</b>. DB 설정, URL 연결, 전체 앱 설정 등을 처리</td></tr>
+        <tr><td class="k">Django application</td><td><b>독립적으로 작동하는 기능 단위 모듈</b>. 각자 특정한 기능을 담당하며 다른 앱들과 함께 하나의 프로젝트를 구성</td></tr>
+      </table>
+      <div class="subhead">만약 온라인 커뮤니티 카페를 만든다면?</div>
+      <ul>
+        <li>프로젝트: 카페 (전체 설정 담당)</li>
+        <li>앱: 게시글, 댓글, 회원 관리 등 (DB, 인증, 화면)</li>
+      </ul>
+      <div class="subhead">다양한 서비스에 대입해보면</div>
+      <ul>
+        <li>카페 프로젝트 → 게시글 앱, 댓글 앱, 회원 관리 앱</li>
+        <li>교육 관리 프로젝트 → 문제 관리 앱, 점수 관리 앱</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">4-5</span>앱 생성과 등록</h3>
+<pre class="formula">$ python manage.py startapp articles   # 'articles' 폴더와 내부에 여러 파일이 새로 생성됨</pre>
+<pre class="formula"># settings.py (33번째 라인)
+INSTALLED_APPS = [
+    'articles',                       # ← 직접 만든 앱 등록 (관례상 위쪽에)
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]</pre>
+      <div class="note">앱의 이름은 <b>'복수형'</b>으로 지정하는 것을 권장합니다. 반드시 앱을 <b>생성(1)한 후에 등록(2)</b>해야 합니다. 등록 먼저 하면 존재하지 않는 앱이라 에러가 납니다.</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-6</span>프로젝트 구조</h3>
+      <table class="compare">
+        <tr><th>파일</th><th>역할</th></tr>
+        <tr><td class="k">settings.py</td><td>프로젝트의 모든 설정을 관리</td></tr>
+        <tr><td class="k">urls.py</td><td>요청 들어오는 URL에 따라 이에 해당하는 적절한 views를 연결</td></tr>
+        <tr><td class="k">__init__.py</td><td>해당 폴더를 패키지로 인식하도록 설정하는 파일</td></tr>
+        <tr><td class="k">asgi.py</td><td>비동기식 웹 서버와의 연결 관련 설정</td></tr>
+        <tr><td class="k">wsgi.py</td><td>웹 서버와의 연결 관련 설정</td></tr>
+        <tr><td class="k">manage.py</td><td>Django 프로젝트와 다양한 방법으로 상호작용하는 커맨드라인 유틸리티</td></tr>
+      </table>
+      <p class="src">__init__.py · asgi.py · wsgi.py는 수업 과정에서 수정할 일 없음</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-7</span>앱 구조</h3>
+      <table class="compare">
+        <tr><th>파일</th><th>역할</th></tr>
+        <tr><td class="k">admin.py</td><td>관리자용 페이지 설정</td></tr>
+        <tr><td class="k">models.py</td><td>DB와 관련된 Model을 정의 — MTV 패턴의 <b>M</b></td></tr>
+        <tr><td class="k">views.py</td><td>HTTP 요청을 처리하고 해당 요청에 대한 응답을 반환 (url, model, template과 연계) — MTV 패턴의 <b>V</b></td></tr>
+        <tr><td class="k">apps.py</td><td>앱의 정보가 작성된 곳</td></tr>
+        <tr><td class="k">tests.py</td><td>프로젝트 테스트 코드를 작성하는 곳</td></tr>
+        <tr><td class="k">migrations/</td><td>DB 변경 이력(마이그레이션 파일) 폴더</td></tr>
+      </table>
+      <p class="src">apps.py · tests.py는 수업 과정에서 수정할 일 없음</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 5. 요청과 응답 ===================== -->
+<section class="section" id="ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>Django와 요청 &amp; 응답</h2><p class="desc">URLs → View → Template · 템플릿 경로 규칙 · 데이터 흐름에 따른 코드 작성</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">5-1</span>요청과 응답의 흐름</h3>
+      <p>사용자가 <code>http://127.0.0.1:8000/articles/</code>로 접속하면 다음 순서로 처리됩니다.</p>
+      <div class="flow"><span>브라우저 요청</span><i>→</i><span>urls.py</span><i>→</i><span>views.py</span><i>⇄</i><span>models.py</span><i>→</i><span>templates</span><i>→</i><span>HTTP 응답(HTML)</span></div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-2</span>1. URLs</h3>
+      <p><code>http://127.0.0.1:8000/articles/</code>로 요청이 왔을 때, request 객체를 views 모듈의 <b>index view 함수에 전달하며 호출</b>합니다.</p>
+<pre class="formula"># urls.py
+from django.contrib import admin
+from django.urls import path
+from articles import views      # articles 패키지에서 views 모듈을 가져오는 것
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('articles/', views.index),
+]</pre>
+      <div class="note">URL 문자열은 반드시 <b>'/'(slash)로 끝나야</b> 합니다.</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">5-3</span>2. View</h3>
+      <p>view 함수가 정의되는 곳. 특정 경로에 있는 <b>template과 request 객체를 결합해 응답 객체를 반환</b>합니다.</p>
+<pre class="formula"># views.py
+from django.shortcuts import render
+
+def index(request):
+    return render(request, 'articles/index.html')</pre>
+      <ul>
+        <li>모든 view 함수는 <b>첫 번째 인자로 요청 객체를 필수적으로</b> 받음</li>
+        <li>매개변수 이름이 request가 아니어도 되지만 <b>관례적으로 request</b>로 작성함</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">5-4</span>3. Template</h3>
+      <ol>
+        <li>articles 앱 폴더 안에 <code>templates</code> 폴더 생성 (폴더명은 <b>반드시 templates</b>여야 하며 개발자가 직접 생성해야 함)</li>
+        <li>templates 폴더 안에 <code>articles</code> 폴더 생성</li>
+        <li>articles 폴더 안에 템플릿 파일 생성</li>
+      </ol>
+<pre class="formula">&lt;!-- articles/templates/articles/index.html --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;&lt;title&gt;Document&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello, Django!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-5</span>Django에서 template을 인식하는 경로 규칙</h3>
+      <table class="compare">
+        <tr><th>실제 파일 위치</th><th>render에 쓰는 이름</th></tr>
+        <tr><td><code>app폴더/templates/articles/index.html</code></td><td><code>'articles/index.html'</code></td></tr>
+        <tr><td><code>app폴더/templates/example.html</code></td><td><code>'example.html'</code></td></tr>
+      </table>
+      <p>Django는 <b><code>app폴더/templates/</code> 이후의 경로</b>로 템플릿을 찾습니다. templates 안에 앱 이름 폴더를 한 번 더 만드는 이유는 다른 앱의 같은 이름 템플릿과 구분하기 위해서입니다.</p>
+      <p>결과: <code>localhost:8000/articles/</code> → "Hello, Django!" 페이지 응답.</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-6</span>데이터 흐름에 따른 코드 작성하기</h3>
+      <p>사용자의 요청에서부터 데이터의 흐름은 <b>URLs → View → Template</b> 순서입니다. 코드의 작성도 마찬가지로 데이터의 흐름 순서에 따라 작성합니다.</p>
+<pre class="formula">path('articles/', views.index)                         # 1. urls.py
+def index(request):                                    # 2. views.py
+    return render(request, 'articles/index.html')
+articles/templates/articles/index.html                 # 3. template</pre>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== 6. 참고 ===================== -->
+<section class="section" id="ch6" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>참고</h2><p class="desc">LTS · Full Stack? · 패키지 버전 지정 · render 함수 · MTV 정리 · Trailing Comma · Django의 규칙</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card">
+      <h3><span class="tag">6-1</span>LTS (Long-Term Support)</h3>
+      <p>프레임워크나 라이브러리 등의 소프트웨어에서 <b>장기간 지원되는 안정적인 버전</b>을 부를 때 사용합니다. 기업이나 대규모 프로젝트는 업그레이드에 많은 비용과 시간이 필요하기 때문에 안정적이고 장기간 지원되는 버전이 필요합니다.</p>
+      <table class="compare">
+        <tr><th>Django</th><th>지원 Python</th></tr>
+        <tr><td class="k">4.2 (LTS)</td><td>3.8 ~ 3.12</td></tr>
+        <tr><td class="k">5.1</td><td>3.10 ~ 3.13</td></tr>
+        <tr><td class="k">5.2 (LTS)</td><td>3.10 ~ 3.13</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">6-2</span>Django는 Full Stack framework인가요?</h3>
+      <p>Django는 Frontend 기능(템플릿)도 제공하기 때문에 Full Stack 영역에서 볼 수도 있습니다. 하지만 Django가 제공하는 Frontend 기능은 다른 전문적인 Frontend Framework들에 비해서는 매우 미흡합니다.</p>
+      <p>엄밀히 말하면 Full Stack 영역에서 <b>Backend에 속함</b>. 그래서 Full Stack 혹은 Backend Framework라고 부릅니다.</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">6-3</span>Python 패키지 설치 시 버전 지정 방법</h3>
+      <table class="compare">
+        <tr><th>명령어 예시</th><th>기호</th><th>의미</th></tr>
+        <tr><td><code>pip install SomePackage</code></td><td>없음</td><td>최신 버전 설치 (버전 지정 없음)</td></tr>
+        <tr><td><code>pip install SomePackage==1.0.5</code></td><td><code>==</code></td><td>특정 버전 정확히 설치</td></tr>
+        <tr><td><code>pip install SomePackage&gt;=1.0.4</code></td><td><code>&gt;=</code></td><td>최소 버전(1.0.4) 이상을 설치 (새 버전도 허용)</td></tr>
+        <tr><td><code>pip install SomePackage~=1.0.4</code></td><td><code>~=</code></td><td>호환 버전 이상(1.0.4 이상), 다음 마이너 버전 미만(예: &lt;1.1.0)으로 설치 (마이너 업데이트 허용, 메이저 업데이트는 제한)</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">6-4</span>render 함수</h3>
+      <p>주어진 템플릿을 주어진 컨텍스트 데이터와 결합하고 렌더링된 텍스트와 함께 <b>HttpResponse 응답 객체를 반환</b>하는 함수.</p>
+<pre class="formula">render(request, template_name, context)</pre>
+      <ul>
+        <li><code>request</code> — 응답을 생성하는 데 사용되는 요청 객체</li>
+        <li><code>template_name</code> — 템플릿 이름의 경로</li>
+        <li><code>context</code> — 템플릿에서 사용할 데이터 (생략 가능, <b>딕셔너리 타입</b>으로 작성, 다음 챕터에서 활용)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">6-5</span>MTV 디자인 패턴 정리</h3>
+      <ul>
+        <li><b>Model</b> — 데이터와 관련된 로직을 관리. 응용프로그램의 데이터 구조를 정의하고 데이터베이스의 기록을 관리</li>
+        <li><b>Template</b> — 레이아웃과 화면을 처리. 화면상의 사용자 인터페이스 구조와 레이아웃을 정의</li>
+        <li><b>View</b> — Model &amp; Template과 관련한 로직을 처리해서 응답을 반환. 클라이언트의 요청에 대해 처리를 분기하는 역할 (데이터가 필요하다면 Model에 접근해서 가져오고, 가져온 데이터를 Template으로 보내 화면을 구성하고, 구성된 화면을 응답으로 만들어 클라이언트에게 반환)</li>
+      </ul>
+      <div class="flow"><span>HTTP Request</span><i>→</i><span>URLs</span><i>→ forward to appropriate view →</i><span>View</span><i>⇄ read/write data</i><span>Model</span><i>/</i><span>Template</span><i>→</i><span>HTTP Response (HTML)</span></div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">6-6</span>왜 Django는 MVC가 아니라 MTV라고 부를까? (공식 FAQ 요약)</h3>
+      <p>Django의 해석에서 "뷰"는 <b>사용자에게 보여지는 데이터</b>를 설명합니다. 데이터가 <i>어떻게</i> 보이는지가 아니라 <i>어떤</i> 데이터를 보여주는지를 뜻합니다. 그래서 Django의 "뷰"는 특정 URL에 대한 파이썬 콜백 함수이며, 데이터가 어떻게 보일지는 템플릿에 위임합니다. "컨트롤러"는 URL 설정에 따라 요청을 적절한 뷰로 보내는 <b>프레임워크 자체</b>라고 볼 수 있습니다. 이름이 무엇이든 가장 논리적인 방식으로 작업을 끝내면 됩니다.</p>
+      <p class="src">https://docs.djangoproject.com/ko/5.2/faq/general/#faq-mtv</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">6-7</span>Trailing Comma (후행 쉼표)</h3>
+      <p><b>정의</b> — 컴마로 구분된 목록의 마지막 요소 뒤에 붙는 쉼표. 요소가 하나인 튜플을 만들 때도 사용합니다 (예: <code>('title',)</code>).</p>
+      <ul>
+        <li>새로운 요소를 추가하거나 순서를 변경할 때 편리</li>
+        <li>값의 목록, 인자, 또는 import 항목들이 시간이 지남에 따라 확장될 것으로 예상되는 경우에 주로 사용</li>
+        <li>여러 줄에 걸쳐 작성된 데이터 구조에서 유용하며, 코드의 가독성과 유지보수성을 향상시키는 데 도움</li>
+        <li>닫는 괄호/대괄호/중괄호는 <b>다음 줄에</b> 배치. 닫는 구분 기호와 같은 줄에 후행 쉼표를 두는 것은 권장하지 않음</li>
+      </ul>
+<pre class="formula"># Correct:
+FILES = [
+    'setup.cfg',
+    'tox.ini',
+]
+initialize(FILES,
+           error=True,
+)
+
+# Wrong:
+FILES = ['setup.cfg', 'tox.ini',]
+initialize(FILES, error=True,)</pre>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">6-8</span>지금까지 등장한 Django의 규칙</h3>
+      <ol>
+        <li>urls.py에서 각 url 문자열 경로는 <b>반드시 '/'로 끝남</b></li>
+        <li>views.py에서 모든 view 함수는 <b>첫 번째 인자로 요청 객체</b>를 받음 (매개변수 이름은 request로 지정하기)</li>
+        <li>Django는 특정 경로에 있는 template 파일만 읽어올 수 있음 (특정 경로: <code>app폴더/templates/</code>)</li>
+      </ol>
+      <p>프레임워크의 규칙에는 이유가 있습니다. Django의 설계 철학 문서를 찾아보세요! — <span class="src">https://docs.djangoproject.com/ko/5.2/misc/design-philosophies/</span></p>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===================== Q. 확인문제 ===================== -->
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">Q</div>
+    <div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">문제를 먼저 풀고, 눌러서 정답과 해설을 확인하세요</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <div class="quiz-q"><div class="qq">1. 웹 서비스에서 요청을 받아 처리하고 응답하는 역할을 하는 것은?</div><ol class="opt" type="a"><li>클라이언트</li><li>서버</li><li>브라우저</li><li>데이터베이스</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 서버</b> — 서버는 클라이언트로부터 요청을 받고 처리한 결과를 클라이언트로 전달하는 역할을 합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">2. 웹 프레임워크의 주요 목적은?</div><ol class="opt" type="a"><li>웹 서버를 구매한다</li><li>웹 개발에 필요한 코드를 줄이고 구조화를 돕는다</li><li>운영 체제를 만든다</li><li>하드웨어를 제어한다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b)</b> — 웹 프레임워크는 웹 애플리케이션 개발을 효율적으로 할 수 있도록 미리 정의된 구조와 기능을 제공합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">3. Django가 포함하는 구성요소 중 하나가 아닌 것은?</div><ol class="opt" type="a"><li>Models</li><li>Templates</li><li>Views</li><li>Compilers</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) Compilers</b> — Django는 MTV 패턴(Model, Template, View)을 기반으로 하며, Compiler는 포함되지 않습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">4. 가상 환경을 사용하는 이유는?</div><ol class="opt" type="a"><li>컴퓨터의 메모리를 늘리기 위해</li><li>특정 프로젝트마다 독립적인 파이썬 패키지를 관리하기 위해</li><li>웹 브라우저 속도를 높이기 위해</li><li>인터넷 속도를 빠르게 하기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b)</b> — 가상 환경은 프로젝트별로 필요한 파이썬 패키지를 격리하여 관리할 수 있도록 도와줍니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">5. venv 모듈을 이용해 가상환경을 생성하는 명령어는?</div><ol class="opt" type="a"><li>python install venv</li><li>python manage.py runserver</li><li>python -m venv myenv</li><li>pip install venv create</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) python -m venv myenv</b> — 'python -m venv 환경이름' 명령어로 가상 환경을 생성할 수 있습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">6. 다음 중 Django 프로젝트 생성 명령어로 올바른 것은?</div><ol class="opt" type="a"><li>django create project</li><li>python startproject djangoapp</li><li>django-admin startproject myproject</li><li>pip install project</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — Django 프로젝트는 'django-admin startproject 프로젝트이름' 명령어로 생성합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">7. 소프트웨어 설계 시 반복적으로 나타나는 문제를 해결하기 위한 일반적인 방법을 무엇이라 하는가?</div><ol class="opt" type="a"><li>알고리즘</li><li>프로토콜</li><li>디자인 패턴</li><li>컴파일러</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 디자인 패턴</b> — 디자인 패턴은 자주 마주치는 설계 문제를 해결하기 위한 표준화된 해결 방법입니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">8. Django 'App'의 역할로 적절한 것은?</div><ol class="opt" type="a"><li>웹 서버를 실행한다</li><li>프로젝트 전체 설정을 관리한다</li><li>하나의 기능 또는 모듈 단위를 구성한다</li><li>가상 환경을 생성한다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — Django App은 특정 기능을 담당하는 단위이며, 하나의 프로젝트 내에서 여러 개의 App을 생성할 수 있습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">9. 다음 중 Django의 주요 특징으로 올바르지 않은 것은?</div><ol class="opt" type="a"><li>MTV 디자인 패턴을 기반으로 한다</li><li>보안 기능이 내장되어 있다</li><li>고정된 HTML 템플릿만 사용 가능하다</li><li>ORM(Object Relational Mapping)을 제공한다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — Django는 템플릿에 데이터를 넣어 동적인 페이지를 만들 수 있습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">10. Django의 render() 함수의 주된 목적은?</div><ol class="opt" type="a"><li>URL을 등록한다</li><li>정적 파일을 저장한다</li><li>데이터를 템플릿에 전달하여 응답을 반환한다</li><li>데이터베이스를 초기화한다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — render() 함수는 요청, 템플릿 이름, 데이터를 받아 템플릿을 렌더링한 HTTP 응답을 반환합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">11. 새로 만든 Django 앱을 프로젝트에 등록하기 위해 설정해야 하는 파일은?</div><ol class="opt" type="a"><li>urls.py</li><li>settings.py</li><li>views.py</li><li>models.py</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) settings.py</b> — settings.py의 INSTALLED_APPS 항목에 앱 이름을 추가합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">12. MTV 패턴에서 사용자에게 보여지는 화면을 구성하는 요소는 무엇인가?</div><ol class="opt" type="a"><li>Model</li><li>Template</li><li>View</li><li>URLconf</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) Template</b> — Template은 사용자에게 보여질 웹페이지 화면을 정의하며 HTML로 작성됩니다.</div></details></div>
+    </div>
+    <div class="card full">
+      <h3>관련 실습 문제</h3>
+      <div class="pillrow"><span class="pill">3219. requirements 활용하기</span><span class="pill">3220. 현재 위치에 프로젝트 생성하기</span><span class="pill">3221. 한국어 프로젝트 생성하기</span><span class="pill">3019. 프로젝트 생성</span><span class="pill">2641·2642. 장고 프로젝트 시작 예제</span><span class="pill">3020. 메인페이지 생성</span><span class="pill">3021. 추가 페이지 생성</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ★ 활동 정리 ===================== -->
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head">
+    <div class="section-num">★</div>
+    <div><h2>활동 정리 — 핵심 키워드</h2><p class="desc">이번 시간의 핵심 개념 한눈에 보기</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>키워드</th><th>정리</th></tr>
+        <tr><td class="k">웹 애플리케이션</td><td>인터넷을 통해 사용자에게 제공되는 소프트웨어 프로그램. 다양한 디바이스에서 웹 브라우저로 접근</td></tr>
+        <tr><td class="k">클라이언트 / 서버</td><td>서비스를 요청하는 주체(웹 브라우저, 모바일 앱) / 요청에 응답하는 주체(웹 서버, DB 서버)</td></tr>
+        <tr><td class="k">Frontend / Backend</td><td>UI와 상호작용(HTML, CSS, JS) / 서버에서 요청 처리와 DB 상호작용(서버 언어, 프레임워크, DB, API)</td></tr>
+        <tr><td class="k">웹 프레임워크</td><td>웹 애플리케이션을 빠르게 개발하도록 기본 구조·규칙·라이브러리를 제공 (Django, Spring, Express)</td></tr>
+        <tr><td class="k">가상 환경</td><td>하나의 컴퓨터 안의 또 다른 독립된 파이썬 환경. 의존성 충돌 방지, 팀원 간 같은 버전 사용</td></tr>
+        <tr><td class="k">디자인 패턴</td><td>설계에서 공통적인 문제를 해결하는 형식화된 관행 (MVC, MTV). 데이터·사용자 인터페이스·비즈니스 로직을 분리</td></tr>
+        <tr><td class="k">프로젝트 / 앱</td><td>전체 웹 애플리케이션 설정 관리(앱의 집합) / 독립적으로 작동하는 기능 단위 모듈</td></tr>
+        <tr><td class="k">요청과 응답</td><td>① 브라우저가 URL로 요청 → ② 요청 경로와 일치하는 view 함수 호출 → ③ view 함수가 응답 객체 생성·반환 → ④ 브라우저가 응답 객체를 해석해 페이지 렌더링</td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <p style="font-size:.85rem">서버가 있다면 웹 페이지를 브라우저에 보내줄 수 있습니다. 웹 프레임워크인 Django를 활용하면 이 서버를 만들 수 있고, <b>가상 환경 → 프로젝트 → 앱 → URL → View → Template</b> 순서로 만들면 브라우저 요청에 HTML로 응답할 수 있습니다.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>SSAFY 16기 「Django Intro &amp; Design Pattern」(2025-10-12) 강의 슬라이드 123장 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

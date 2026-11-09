@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Many to One Relationships 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · DB 02 · 11/03 Many to One 01 + 02</span>
+    <h1>DB Many to One Relationships 개념정리</h1>
+    <p class="sub">Part 1 관계의 종류 · ForeignKey · 참조와 역참조(comment_set) · 댓글 CREATE · READ · DELETE → Part 2 Article·Comment와 User 관계 · 작성자 저장과 본인 확인 · View decorators · ERD까지, 강의 슬라이드 157장(81 + 76)을 한 페이지로 이어서 재구성했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 Part 2개</span>
+      <span>🧪 댓글 CRUD · 작성자 연결 · 본인만 수정·삭제</span>
+      <span>❓ 확인문제 30개</span>
+      <span>🗂️ 활동 정리 표</span>
+    </div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·Tip·주의 박스를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 Django 공식 동작 기준으로 바로잡았습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#part1" style="background:var(--navy);color:#fff">Part 1 · Many to One Relationships 01 — 게시글과 댓글</a>
+    <a href="#p1-ch1">1. Many to one relationships</a>
+    <a href="#p1-ch2">2. 댓글 모델 구현</a>
+    <a href="#p1-ch3">3. 관계 모델 참조</a>
+    <a href="#p1-ch4">4. 댓글 CREATE</a>
+    <a href="#p1-ch5">5. 댓글 READ · DELETE</a>
+    <a href="#p1-ch6">6. 참고</a>
+    <a href="#part2" style="background:var(--navy);color:#fff">Part 2 · Many to One Relationships 02 — 게시글·댓글과 User</a>
+    <a href="#p2-ch1">8. Article &amp; User</a>
+    <a href="#p2-ch2">9. Comment &amp; User</a>
+    <a href="#p2-ch3">10. View decorators</a>
+    <a href="#p2-ch4">11. ERD</a>
+    <a href="#p2-ch5">12. 추가 기능 구현</a>
+    <a href="#quiz">확인문제 (원본 슬라이드 수록)</a>
+    <a href="#sum">활동 정리</a>
+  </nav>
+</div>
+
+<main>
+<div class="part-banner" id="part1"><span>Part 1</span>Many to One Relationships 01 — 게시글과 댓글 (11/03 오전, 슬라이드 81장)</div>
+<section class="section" id="p1-ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>학습 시작 — 게시글에 댓글 달기</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"사내 게시판에 작성된 게시글에 댓글을 작성할 수 있도록 만들어야 합니다."</h3>
+      <p>사용자가 게시글에 댓글을 달 수 있어야 하고, 게시글과 댓글을 관계로 설정해 데이터베이스에 저장해야 합니다.</p>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>Django의 Many to One 모델 관계를 이해하고 설명할 수 있다.</li>
+        <li>ForeignKey 클래스를 이용해 N:1 관계를 정의할 수 있다.</li>
+        <li>Django shell에서 참조·역참조로 관계 데이터를 조회할 수 있다.</li>
+        <li>댓글 CREATE / READ / DELETE 기능을 구현할 수 있다.</li>
+        <li>admin 페이지에서 댓글 모델을 등록하고 관리할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>Many to one relationships</h2><p class="desc">관계 · 관계의 종류 · N:1 예시 · 댓글과 게시글 · FK 위치</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">1-1</span>관계 (relationship)</h3>
+      <p><b>데이터베이스 내 여러 테이블 간의 논리적인 연결 관계</b>를 나타냅니다.</p>
+      <p>'강사' 테이블과 '학생' 테이블이 있을 때 "OOO 강사가 김싸피 학생을 가르치고 있다"는 정보를 저장하려면 두 테이블 간의 관계를 설정해야 합니다. 이를 위해 한 테이블에 다른 테이블의 <b>기본 키(Primary Key)를 저장</b>하며, 이처럼 다른 테이블의 기본 키를 참조하는 속성을 <b>외래 키(Foreign Key)</b>라고 합니다. 외래 키는 두 테이블 간의 논리적인 연결 고리 역할을 하며, 이를 통해 연관된 데이터를 효율적으로 관리할 수 있습니다.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">1-2</span>관계의 종류</h3>
+      <table class="compare">
+        <tr><th>관계</th><th>의미</th><th>예시</th></tr>
+        <tr><td class="k">1:1 (One to One)</td><td>한 테이블의 레코드가 다른 테이블의 단 하나의 레코드와만 1:1로 매칭되는 관계</td><td>한 명의 사용자(User)는 오직 하나의 프로필(Profile)만 가짐</td></tr>
+        <tr><td class="k">N:1 (Many to One)</td><td>여러 개의 레코드(N)가 하나의 레코드(1)에 소속되는 관계</td><td>하나의 게시글(1)에 여러 댓글(N)이 달릴 수 있음. 하지만 특정 댓글 하나가 여러 게시글에 동시에 달릴 수는 없음 — Comment.article_id(FK) → Article.id(PK)</td></tr>
+        <tr><td class="k">N:M (Many to Many)</td><td>여러 레코드가 여러 레코드와 양방향으로 연결되는 관계. 두 테이블 사이에 연결을 위한 <b>중개 테이블(Through Table)</b>이 필요</td><td>한 학생은 여러 수업을 신청하고, 한 수업에는 여러 학생이 수강 — Student · Enrollment(중개) · Lecture</td></tr>
+      </table>
+      <div class="note tip">1:1 관계는 N:1 관계와 사용 방법이 유사하며, N:M 관계는 추후 진행됩니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-3</span>Many to one relationships</h3>
+      <p><b>한 테이블의 0개 이상의 레코드가 다른 테이블의 레코드 한 개와 관련된 관계</b>.</p>
+      <h3><span class="tag">1-4</span>댓글과 게시글의 관계</h3>
+      <p><b>Comment(N) : Article(1)</b></p>
+      <ul>
+        <li>하나의 게시글에는 여러 개의 댓글이 달림</li>
+        <li>단, 게시글에 댓글이 없는 경우도 존재</li>
+        <li>댓글이 소속된 게시글이 없는 경우는 없음</li>
+      </ul>
+      <p>→ 즉, <b>0개 이상의 댓글은 1개의 게시글에 작성</b>될 수 있다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-5</span>Many to one 예시</h3>
+      <table class="compare">
+        <tr><th>관계</th><th>설명</th></tr>
+        <tr><td class="k">SSAFY Track(1) : Student(N)</td><td>한 트랙에 여러 교육생, 한 교육생은 트랙이 중복될 수 없음</td></tr>
+        <tr><td class="k">Account(N) : Bank(1)</td><td>하나의 계좌는 한 은행에만 소속, 한 은행은 여러 계좌</td></tr>
+        <tr><td class="k">Baseball Team(1) : Member(N)</td><td>한 팀에 여러 선수, 한 선수가 다른 팀에 동시 소속 불가</td></tr>
+        <tr><td class="k">Order(N) : Customer(1)</td><td>한 고객이 여러 주문, 하나의 주문을 여러 고객이 낼 수 없음</td></tr>
+        <tr><td class="k">Country(1) : City(N)</td><td>한 국가에 여러 도시, 한 도시가 여러 국가에 포함되지 않음</td></tr>
+        <tr><td class="k">Movie(N) : Actor(M)</td><td><b>N:1 관계 아님</b> — 영화에 여러 배우, 배우도 여러 영화에 출연</td></tr>
+      </table>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">1-6</span>테이블 관계 설정 — 외래 키는 어디에?</h3>
+      <table class="compare">
+        <tr><th></th><th>✗ '1'쪽(Article)에 FK를 두면</th><th>✓ 'N'쪽(Comment)에 FK를 두면</th></tr>
+        <tr><td class="k">구조</td><td>Article 테이블에 Comment 정보(외래 키) 컬럼</td><td>Comment 테이블에 Article 정보(외래 키) 컬럼</td></tr>
+        <tr><td class="k">결과</td><td>댓글 생성마다 Comment 정보와 함께 Article 정보(id, title, content …)가 매번 중복 저장되어 낭비 발생</td><td>Comment가 생성되면 Article의 정보만 저장하면 됨</td></tr>
+      </table>
+      <div class="note">외래 키(FK)의 적절한 위치는 <b>N:1에서 N을 담당하는 테이블</b>입니다. 외래 키 컬럼에 저장되는 데이터는 참조하는 데이터를 대표하는 <b>Primary Key(PK) 정보</b>입니다.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>댓글 모델 구현</h2><p class="desc">ForeignKey 클래스 · on_delete · Comment 모델 · migration 결과 · shell로 댓글 생성</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">2-1</span>ForeignKey 클래스</h3>
+<pre class="formula">ForeignKey(to, on_delete)</pre>
+      <p><b>한 모델이 다른 모델을 참조하는 관계를 설정하는 클래스</b> → N:1 관계를 표현할 때 사용하며, 데이터베이스에서 외래 키로 구현됩니다.</p>
+      <ul>
+        <li><code>to</code> — 참조하는 모델 class 이름 (N:1에서 N이 아닌 <b>1의 class 정보</b>)</li>
+        <li><code>on_delete</code> — 외래 키가 참조하는 객체(1)가 사라졌을 때, 외래 키를 가진 객체(N)를 어떻게 처리할지 정의하는 설정 (<b>데이터 무결성</b>)</li>
+      </ul>
+      <div class="note"><code>to</code>와 <code>on_delete</code> 속성은 ForeignKey 설정에 <b>필수 요소</b>입니다.</div>
+      <p class="src">데이터 무결성 — 데이터가 정확하고 일관되며, 유효하게 유지되는 상태 (데이터베이스에 저장된 데이터의 정확성, 일관성, 유효성을 유지하는 것)</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-2</span>on_delete 속성 종류</h3>
+      <table class="compare">
+        <tr><th>값</th><th>동작</th></tr>
+        <tr><td class="k">CASCADE</td><td>참조된 객체(부모)가 삭제될 때 이를 참조하는 모든 객체도 삭제. 예) 게시글이 삭제되면 해당 게시글의 모든 댓글 삭제</td></tr>
+        <tr><td class="k">PROTECT</td><td>삭제하려는 부모 객체에 자식 객체가 존재하면 부모 객체를 삭제하지 못하도록 지정. 예) 댓글이 있는 게시글은 삭제 불가</td></tr>
+        <tr><td class="k">SET_NULL</td><td>부모 객체가 삭제되면 해당 필드에 NULL 저장. 단, 해당 ForeignKey 필드에 <code>null=True</code>가 설정되어야 함</td></tr>
+      </table>
+      <p class="src">기타 on_delete 설정 값: https://docs.djangoproject.com/en/5.2/ref/models/fields/#arguments</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-3</span>댓글 모델 정의하기</h3>
+<pre class="formula"># articles/models.py
+class Comment(models.Model):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    content = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</pre>
+      <p>ForeignKey 클래스의 인스턴스 이름은 <b>참조하는 모델 클래스 이름의 단수형(소문자)</b>으로 작성하는 것을 권장합니다.</p>
+      <div class="note tip">단수형을 권장하는 이유 — 단일 객체를 참조하므로 속성명을 단수형으로 쓰면 의미가 명확해지고, 코드 작성 시 문맥이 자연스럽습니다 (<code>comment.article</code>).</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-4</span>Migration 이후 댓글 테이블 확인</h3>
+      <p>articles_comment 테이블 컬럼: <code>id</code> · <code>content</code> varchar(200) · <code>created_at</code> datetime · <code>updated_at</code> datetime · <code>article_id</code> bigint</p>
+      <ul>
+        <li>만들어지는 외래 키 필드 이름 규칙: <b>'작성한 외래 키 필드명' + '_' + 'id'</b> → <code>article_id</code></li>
+        <li>참조하는 클래스 이름의 소문자(단수형)로 작성하는 것이 권장되었던 이유이기도 함</li>
+        <li><b>bigint 자료형</b> — 큰 정수형으로 약 900경까지 저장할 수 있어 숫자 고갈 걱정이 없으므로 Django는 PK를 선언할 때 해당 자료형을 사용. 외래 키는 이 PK 정보를 저장하므로 동일하게 bigint</li>
+      </ul>
+      <div class="note">외래 키는 models.py의 클래스 내에서 ForeignKey 필드를 작성하는 순서와 관계없이 테이블의 <b>마지막 필드</b>로 생성됩니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-5</span>댓글 생성 연습 준비</h3>
+<pre class="formula"># ipython 설치 필요
+$ pip install ipython
+
+# django shell 실행
+$ python manage.py shell
+8 objects imported automatically (use -v 2 for details).</pre>
+<pre class="formula"># 댓글 작성을 위한 게시글 하나 생성
+Article.objects.create(title='title', content='content')</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-6</span>댓글 생성 — 외래 키 누락 에러</h3>
+<pre class="formula"># Comment 클래스의 인스턴스 comment 생성
+comment = Comment()
+
+# 인스턴스 변수 저장
+comment.content = 'first comment'
+
+# DB에 댓글 저장
+comment.save()
+
+# 에러 발생
+IntegrityError: NOT NULL constraint failed: articles_comment.article_id</pre>
+      <p>→ articles_comment 테이블의 ForeignKeyField인 <code>article_id</code> 값이 저장 시 누락되었기 때문. 현재 어떤 게시글에 작성되는 댓글인지 저장될 댓글 데이터에 게시글 정보가 없는 상태입니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-7</span>게시글 정보를 가져와 댓글 저장</h3>
+<pre class="formula"># 게시글 정보 조회하여 가져오기
+article = Article.objects.get(pk=1)
+
+# 외래 키 데이터 입력
+comment.article = article
+# 테이블의 필드에 직접 pk를 넣어도 저장되지만 권장하지 않음
+# comment.article_id = article.pk
+
+# 댓글 저장 및 확인
+comment.save()</pre>
+      <div class="note tip">article_id에 직접 pk를 넣는 것을 권장하지 않는 이유 — 객체를 할당하면 저장될 객체 타입이 다를 때 에러가 발생해 실수를 막아주지만, pk(숫자)를 직접 넣으면 숫자만 저장하므로 잘못된 데이터가 들어가도 알 수 없습니다. 예) <code>comment.article_id = book.pk</code></div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-8</span>댓글 속성 값 확인</h3>
+<pre class="formula">comment.pk          # 1
+comment.content     # 'first comment'
+
+# 클래스 변수명인 article로 조회 시 해당 참조하는 게시글 객체를 조회
+comment.article     # &lt;Article: Article object (1)&gt;
+
+# 테이블 상의 article_id 값은 해당 게시글의 pk
+comment.article_id  # 1
+
+# comment.article_pk 는 존재하지 않는 필드라 사용 불가
+
+# comment를 통해 article 객체의 데이터 참조
+comment.article.pk       # 1
+comment.article.content  # 'content'</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-9</span>두 번째 댓글 생성 및 데이터 확인</h3>
+<pre class="formula">comment = Comment(content='second comment', article=article)
+comment.save()
+
+comment.pk          # 2
+comment             # &lt;Comment: Comment object (2)&gt;
+comment.article.pk  # 1</pre>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>관계 모델 참조</h2><p class="desc">참조 · 역참조 · related manager · 이름 규칙 · 연습</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">3-1</span>참조</h3>
+      <p>참조 필드를 가진 쪽(N)에서 연결된 쪽(1)의 데이터에 접근하는 것을 "참조한다"고 말합니다. 친구의 연락처를 가지고 있어 언제든 연락할 수 있는 것과 같습니다 — 댓글(Comment)에는 ForeignKey 필드인 <code>article</code>이 있어 게시글 정보에 쉽게 접근할 수 있으므로, <b>댓글은 게시글을 참조</b>합니다.</p>
+      <p>예시) 댓글이 달린 게시글 내용에 접근: <code>comment.article.content</code></p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-2</span>특정 게시글의 댓글 조회하기</h3>
+<pre class="formula"># .all() — 특정 게시물의 댓글이 아닌 모든 댓글을 조회함
+comments = Comment.objects.all()
+
+# .filter() — 특정 게시글 정보를 가져온 후 filter 이용
+article = Article.objects.get(pk=1)
+comments = Comment.objects.filter(article=article)</pre>
+      <div class="note tip">Django에는 더 직관적인 방법(역참조)이 존재합니다.</div>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">3-3</span>역참조</h3>
+      <p><b>참조 필드가 없는 쪽(1)에서, 나를 참조하는 쪽(N)의 데이터를 거꾸로 조회하는 것</b>.</p>
+      <p>"내 번호를 저장한 사람들이 누구인지 찾는 것"과 같습니다. 내 휴대폰에는 그 사람들의 정보가 없으므로 반대로 내 번호가 저장된 연락처를 찾아야 합니다. 게시글(Article)에는 댓글을 가리키는 필드가 없고, 어떤 게시글의 댓글인지에 대한 정보(article_id)는 댓글 테이블에만 저장되어 있습니다. 그래서 "article_id가 이 게시글인 댓글"을 거꾸로 찾아야 하며, 앞의 <code>Comment.objects.filter(article=article)</code>이 바로 이 작업입니다.</p>
+      <p>Django는 ForeignKey를 정의하면 반대쪽 모델에서 사용할 역참조 이름(<code>comment_set</code>)을 자동으로 만들어 주므로 <code>article.comment_set.all()</code>로 간단히 조회할 수 있습니다.</p>
+      <table class="compare">
+        <tr><th></th><th>코드</th><th>방향</th></tr>
+        <tr><td class="k">참조</td><td><code>comment.article</code></td><td>댓글 → 게시글 (내 칸의 article_id를 읽음)</td></tr>
+        <tr><td class="k">역참조</td><td><code>article.comment_set.all()</code></td><td>게시글 → 댓글 (article_id = 1인 행을 찾음)</td></tr>
+      </table>
+      <div class="note tip">참조와 역참조는 <b>"같은 연결선을 어느 쪽에서 출발하느냐"</b>의 차이입니다. articles_article에는 연결 정보가 없고, 연결 정보(FK)는 articles_comment에만 있습니다.</div>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">3-4</span>역참조 기본 구조 — <code>article.comment_set.all()</code></h3>
+      <table class="compare">
+        <tr><th>부분</th><th>이름</th><th>설명</th></tr>
+        <tr><td class="k"><code>article</code></td><td>1. 모델 인스턴스</td><td>models.py에 정의된 모델 클래스로 생성된 실제 데이터. <code>article.title</code>처럼 속성에 접근·수정 가능. 역참조는 참조 필드가 없는 '1'쪽 모델(Article)의 인스턴스에서 시작함 — 특정 게시글에 작성된 댓글 전체를 조회하는 요청</td></tr>
+        <tr><td class="k"><code>.comment_set</code></td><td>2. related manager (역참조 이름)</td><td>N:1 혹은 N:M 관계에서 역참조 시에 사용하는 매니저. 'objects' 매니저로 QuerySet API를 사용했던 것처럼 related manager를 통해 QuerySet API를 사용할 수 있게 됨</td></tr>
+        <tr><td class="k"><code>.all()</code></td><td>3. QuerySet API</td><td>데이터를 가져오기 위한 쿼리 결과 집합을 만드는 인터페이스</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-5</span>related manager 이름 규칙</h3>
+      <p>N:1 혹은 M:N 관계에서 FK를 정의하지 않은 모델에서 연결된 객체들을 조회할 수 있게 해 주며, <b>FK를 정의한 모델의 이름을 소문자로 바꾸고 _set을 붙인 것</b>이 기본 값으로 Django가 자동 생성합니다.</p>
+      <ul>
+        <li>특정 댓글의 게시글 참조 (Comment → Article): <code>comment.article</code></li>
+        <li>특정 게시글의 댓글 목록 역참조 (Article → Comment): <code>article.comment_set.all()</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-6</span>related manager 연습</h3>
+<pre class="formula"># $ python manage.py shell
+
+# 1번 게시글 조회
+article = Article.objects.get(pk=1)
+
+# 1번 게시글에 작성된 모든 댓글 조회 (역참조)
+article.comment_set.all()
+# &lt;QuerySet [&lt;Comment: Comment object (1)&gt;, &lt;Comment: Comment object (2)&gt;]&gt;
+
+# 1번 게시글에 작성된 모든 댓글 내용 출력
+comments = article.comment_set.all()
+for comment in comments:
+    print(comment.content)
+# first comment
+# second comment</pre>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch4" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>댓글 CREATE</h2><p class="desc">CommentForm · detail 렌더링 · FK 필드 제외 · comments_create · save(commit=False)</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">4-1</span>CommentForm 정의 · detail에 전달 (1~3/12)</h3>
+<pre class="formula"># articles/forms.py
+from .models import Article, Comment
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = '__all__'</pre>
+<pre class="formula"># articles/views.py — 댓글은 게시글 상세(detail) 페이지 하단에 작성
+from .forms import ArticleForm, CommentForm
+
+def detail(request, pk):
+    article = Article.objects.get(pk=pk)
+    comment_form = CommentForm()
+    context = {
+        'article': article,
+        'comment_form': comment_form,
+    }
+    return render(request, 'articles/detail.html', context)</pre>
+<pre class="formula">&lt;!-- articles/detail.html --&gt;
+&lt;!-- 게시글 정보 출력 코드 --&gt;
+&lt;form action="#" method="POST"&gt;
+  {% csrf_token %}
+  {{ comment_form }}
+  &lt;input type="submit"&gt;
+&lt;/form&gt;</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-2</span>외래 키 필드는 출력하지 않기 (4~5/12)</h3>
+      <p>Comment 클래스의 외래 키 필드 <code>article</code> 또한 데이터 입력이 필요한 필드이기 때문에 폼에 선택 상자(Article object (1))로 출력됩니다. 하지만 외래 키 필드 데이터는 <b>사용자로부터 입력 받는 값이 아니라 view 함수 내에서 다른 방법으로 전달 받아 저장</b>되어야 합니다.</p>
+      <div class="note tip">게시글을 유저가 직접 선택한다면 — 댓글을 작성하는 게시글이 아닌 다른 게시글을 선택해서 댓글을 달 수 있게 되고, 작성자가 게시글을 자세히 확인할 수 없어 엉뚱한 게시글에 댓글이 달릴 수 있습니다.</div>
+<pre class="formula"># articles/forms.py — 출력 필드 조정
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('content',)</pre>
+      <div class="note">fields 속성을 tuple로 작성할 때 요소가 하나이면 마지막 콤마(,)를 반드시 작성해야 합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-3</span>외래 키 데이터는 어디서? (6/12)</h3>
+      <ul>
+        <li>detail 페이지의 URL에 게시글 정보가 존재 — <code>path('&lt;int:pk&gt;/', views.detail, name='detail')</code></li>
+        <li>해당 게시글의 pk 값이 <b>variable routing</b>으로 전달되고 있음</li>
+        <li>댓글의 외래 키 데이터에 필요한 정보가 바로 게시글의 pk 값 → 댓글 작성 시 해당 pk 값으로 게시글 데이터를 가져와 사용</li>
+      </ul>
+      <p class="src">variable routing — URL의 일부를 변수처럼 설정해 사용자의 입력 값에 따라 맞춤형 페이지를 보여주는 기능</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-4</span>URL · form action (7/12)</h3>
+      <p>저장 로직은 detail 함수가 아닌 <b>개별 함수</b>로 작성합니다. 댓글 저장은 게시글 상세 보기와 전혀 다른 기능이기 때문입니다 (<b>단일 책임 원칙</b> — 함수는 하나의 기능만 수행하고, 그 기능이 변경될 이유도 하나여야 한다). 댓글 저장 시 게시글 pk 정보를 URL로 전달합니다.</p>
+<pre class="formula"># articles/urls.py
+app_name = 'articles'
+urlpatterns = [
+    ...,
+    path('&lt;int:pk&gt;/comments/', views.comments_create, name='comments_create'),
+]</pre>
+<pre class="formula">&lt;!-- articles/detail.html --&gt;
+&lt;form action="{% url 'articles:comments_create' article.pk %}" method="POST"&gt;
+  {% csrf_token %}
+  {{ comment_form }}
+  &lt;input type="submit"&gt;
+&lt;/form&gt;</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-5</span>comments_create 초안 (8~9/12)</h3>
+      <p>comments_create 함수는 POST 작성만 진행합니다 (댓글 작성 폼을 출력하는 GET 요청은 detail 함수에 이미 작성됨).</p>
+<pre class="formula">def comments_create(request, pk):
+    article = Article.objects.get(pk=pk)  # 게시글 데이터 조회
+    comment_form = CommentForm(request.POST)
+    if comment_form.is_valid():
+        comment_form.save()
+        return redirect('articles:detail', article.pk)
+    # 유효성 검사 실패 시 에러 정보 및 필요 데이터 전달
+    context = {
+        'article': article,
+        'comment_form': comment_form,
+    }
+    return render(request, 'articles/detail.html', context)</pre>
+      <p>URL로 전달받은 게시글 pk로 게시글 정보를 가져왔지만, 이대로 save하면 article_id가 비어 있습니다. 가져온 article 객체를 댓글 생성 시 어떻게 함께 저장할까?</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-6</span>save 메서드의 commit 인자 (10/12)</h3>
+<pre class="formula">save(commit=False)</pre>
+      <ul>
+        <li>기본 값 True — 인스턴스를 생성하고 DB에도 저장 요청을 보냄</li>
+        <li><b>False</b> — DB에 저장 요청을 보내지 않고 <b>인스턴스만 반환</b> ("Create, but don't save the new instance.")</li>
+      </ul>
+      <p>댓글을 바로 DB에 저장하지 않고, 게시글 정보를 추가한 뒤 저장 요청을 보내도록 로직을 구성하면 게시글 정보와 함께 댓글을 저장할 수 있습니다.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">4-7</span>comments_create 완성 (11~12/12)</h3>
+<pre class="formula"># articles/views.py
+def comments_create(request, pk):
+    article = Article.objects.get(pk=pk)
+    comment_form = CommentForm(request.POST)
+    if comment_form.is_valid():
+        comment = comment_form.save(commit=False)  # 댓글을 저장하지 않고 인스턴스만 생성
+        comment.article = article                  # 댓글에 게시글 정보 추가
+        comment.save()                             # 댓글 정보 DB에 저장 요청
+        return redirect('articles:detail', article.pk)
+    context = {
+        'article': article,
+        'comment_form': comment_form,
+    }
+    return render(request, 'articles/detail.html', context)</pre>
+      <p>댓글 작성 후 DB에서 생성을 확인하면 <code>article_id</code> 필드에 게시글 정보가 저장되어 있습니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>댓글 READ · DELETE</h2><p class="desc">역참조로 댓글 조회 · 목록 출력 · comments_delete · 삭제 버튼</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">5-1</span>댓글 READ (1/2) — detail view</h3>
+<pre class="formula"># articles/views.py
+def detail(request, pk):
+    article = Article.objects.get(pk=pk)
+    comment_form = CommentForm()
+    # 특정 게시글의 댓글이 아닌 모든 댓글을 조회하므로 사용하지 않음
+    # comments = Comment.objects.all()  # 잘못된 댓글 정보 조회
+    comments = article.comment_set.all()  # 특정 게시글의 댓글을 역참조로 조회
+    context = {
+        'article': article,
+        'comment_form': comment_form,
+        'comments': comments,
+    }
+    return render(request, 'articles/detail.html', context)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-2</span>댓글 READ (2/2) — 목록 출력</h3>
+<pre class="formula">&lt;!-- articles/detail.html --&gt;
+&lt;a href="#"&gt;UPDATE&lt;/a&gt;
+&lt;hr&gt;
+&lt;h4&gt;댓글 목록&lt;/h4&gt;
+&lt;ul&gt;
+  {% for comment in comments %}
+    &lt;li&gt;{{ comment.content }}&lt;/li&gt;
+  {% endfor %}
+&lt;/ul&gt;
+&lt;hr&gt;
+&lt;form action="{% url 'articles:comments_create' article.pk %}" method="POST"&gt;
+  ...
+&lt;/form&gt;</pre>
+      <p>상세 페이지 하단에 "댓글 목록 · first comment · second comment · 1번 게시글 댓글 작성!"이 출력됩니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-3</span>댓글 DELETE (1~2/4) — URL · view</h3>
+      <p>개별 댓글마다 삭제할 수 있도록 하며, 어떤 댓글을 삭제할지 대상 정보를 전달하기 위해 variable routing을 이용합니다.</p>
+<pre class="formula"># articles/urls.py
+app_name = 'articles'
+urlpatterns = [
+    ...,
+    path(
+        '&lt;int:article_pk&gt;/comments/&lt;int:comment_pk&gt;/delete/',
+        views.comments_delete,
+        name='comments_delete'
+    ),
+]</pre>
+      <div class="note tip">article_pk는 URL 구조를 일관되게 작성하기 위함 외에도, 삭제 후 detail 페이지로 돌아갈 때 사용할 수 있는 정보이기 때문에 작성합니다.</div>
+<pre class="formula"># articles/views.py
+def comments_delete(request, article_pk, comment_pk):
+    comment = Comment.objects.get(pk=comment_pk)
+    comment.delete()
+    # 댓글 삭제 후 article 게시글 상세 페이지로 이동
+    return redirect('articles:detail', article_pk)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-4</span>댓글 DELETE (3~4/4) — 삭제 버튼</h3>
+<pre class="formula">&lt;!-- articles/detail.html --&gt;
+&lt;h4&gt;댓글 목록&lt;/h4&gt;
+&lt;ul&gt;
+  {% for comment in comments %}
+    &lt;li&gt;
+      {{ comment.content }}
+      &lt;form action="{% url 'articles:comments_delete' article.pk comment.pk %}" method="POST"&gt;
+        {% csrf_token %}
+        &lt;input type="submit" value="DELETE"&gt;
+      &lt;/form&gt;
+    &lt;/li&gt;
+  {% endfor %}
+&lt;/ul&gt;</pre>
+      <p>variable routing으로 게시글 pk와 삭제될 댓글 pk를 전달합니다. 버튼을 눌러 삭제를 테스트합니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch6" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>참고</h2><p class="desc">데이터 무결성 · admin site 등록 · 댓글 추가 사항(for empty · 댓글 개수)</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">6-1</span>데이터 무결성</h3>
+      <p><b>데이터베이스에 저장된 데이터의 정확성, 일관성, 유효성을 유지하는 것</b>. ForeignKey의 on_delete 설정이 참조 대상이 사라졌을 때도 이 무결성을 지키는 장치입니다.</p>
+      <h3><span class="tag">6-2</span>admin site에 댓글 등록하기</h3>
+<pre class="formula"># articles/admin.py
+from .models import Article, Comment
+
+admin.site.register(Article)
+admin.site.register(Comment)</pre>
+      <p>Site administration에 Articles · Comments가 함께 표시되고 추가·변경할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-3</span>댓글 추가 사항</h3>
+      <div class="subhead">1. 댓글이 없는 경우 대체 콘텐츠 출력 — DTL의 for empty 태그</div>
+<pre class="formula">{% for comment in comments %}
+  &lt;li&gt;
+    {{ comment.content }}
+    &lt;form action="{% url 'articles:comments_delete' article.pk comment.pk %}" method="POST"&gt;
+      {% csrf_token %}
+      &lt;input type="submit" value="DELETE"&gt;
+    &lt;/form&gt;
+  &lt;/li&gt;
+{% empty %}
+  &lt;p&gt;댓글이 없어요..&lt;/p&gt;
+{% endfor %}</pre>
+      <p>for 문에 반복할 요소가 없을 때 empty 블록이 출력됩니다.</p>
+      <div class="subhead">2. 댓글 개수 출력하기</div>
+<pre class="formula">&lt;!-- DTL filter 'length' : view에서 전달받은 댓글로 길이 확인 --&gt;
+{{ comments|length }}
+&lt;!-- 역참조를 이용하여 댓글 길이 확인 --&gt;
+{{ article.comment_set.all|length }}
+&lt;!-- QuerySet API의 count() 메서드 활용 --&gt;
+{{ article.comment_set.count }}</pre>
+    </div>
+  </div>
+</section>
+<div class="part-banner" id="part2"><span>Part 2</span>Many to One Relationships 02 — 게시글·댓글과 User (11/03 오후, 슬라이드 76장)</div>
+<section class="section" id="p2-ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">7</div>
+    <div><h2>학습 시작 — 사용자 인증 기반 게시글과 댓글</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"사용자와 게시글, 댓글은 어떤 관계를 가지고, 참조 필드를 어느 모델 클래스에 작성해야 할까요?"</h3>
+      <ol>
+        <li>각각 관계를 가지도록 모델을 설계합니다 — 유저(1) : 게시글(N) / 유저(1) : 댓글(N)</li>
+        <li>User 모델을 참조해 게시글과 댓글 작성자를 ForeignKey로 연결합니다.</li>
+        <li>Django의 ORM을 활용해 Article과 Comment 모델의 CRUD 기능을 구현합니다. View decorators로 허용된 HTTP 요청만 처리하는 방식도 학습합니다.</li>
+      </ol>
+      <p>ERD로 모델 간 관계를 시각적으로 정리하고, 인증된 사용자만 댓글 작성 및 삭제가 가능하도록 기능을 제한하는 방법을 실습합니다.</p>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>User와 Article, User와 Comment 모델 간의 N:1 관계를 정의할 수 있다.</li>
+        <li>인증된 사용자만 게시글/댓글을 작성하거나 삭제할 수 있도록 구현할 수 있다.</li>
+        <li>Django의 ORM을 활용해 CREATE/READ/UPDATE/DELETE 기능을 실습할 수 있다.</li>
+        <li>View decorators를 통해 HTTP 요청 방식에 따라 기능을 제어할 수 있다.</li>
+        <li>ERD를 활용해 모델 관계 구조를 시각적으로 표현하고 설계할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">8</div>
+    <div><h2>Article &amp; User</h2><p class="desc">모델 관계 설정 · User 참조 2가지 방법 · Migration · 게시글 CRUD에 작성자 반영</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">8-1</span>Article - User 모델 관계 설정</h3>
+<pre class="formula"># articles/models.py
+from django.conf import settings
+
+class Article(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=10)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</pre>
+      <div class="note">User 모델을 직접 import해서 사용하지 않는 것에 유의하세요.</div>
+      <div class="note tip">User 모델을 직접 import하지 않는 이유 — Article 클래스 생성 시점이 User 클래스 시점보다 빠른 경우, 외래 키 설정에서 참고할 User 클래스를 찾지 못해 에러가 발생할 수 있습니다. models.py에서는 안정적인 참조가 필요하기 때문에 <code>settings.AUTH_USER_MODEL</code>의 값을 사용합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-2</span>User 모델을 참조하는 2가지 방법</h3>
+      <table class="compare">
+        <tr><th></th><th><code>settings.AUTH_USER_MODEL</code></th><th><code>get_user_model()</code></th></tr>
+        <tr><td class="k">가져오는 것</td><td>settings.py에서 정의된 AUTH_USER_MODEL 설정 값</td><td>현재 settings.py에 정의되어 활성화된 User 모델</td></tr>
+        <tr><td class="k">반환 값</td><td><code>'accounts.User'</code> (문자열)</td><td>User 모델 클래스 (객체)</td></tr>
+        <tr><td class="k">사용 위치</td><td><b>models.py</b>에서 User 모델을 참조할 때</td><td><b>models.py를 제외한</b> 다른 모든 위치</td></tr>
+      </table>
+      <div class="note tip">settings.AUTH_USER_MODEL의 반환 값이 문자열이어도 괜찮은 이유 — 모델의 경로 형태인 문자열이 ForeignKey의 참조 모델로 설정되면, Django가 내부적으로 해당 모델이 완전히 로딩된 후 모델 클래스를 가져와 처리하는 <b>지연 평가(lazy evaluation)</b> 방식으로 동작하기 때문입니다.</div>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">8-3</span>Migration (1~3/3)</h3>
+      <p>기존에 테이블이 있는 상황에서 필드를 추가하려 하기 때문에 발생하는 과정입니다. 기본적으로 모든 필드에는 NOT NULL 제약 조건이 설정되어 있어, 데이터 없이 새로운 필드를 추가할 수 없습니다.</p>
+<pre class="formula">$ python manage.py makemigrations
+It is impossible to add a non-nullable field 'user' to article without specifying a default.
+This is because the database needs something to populate existing rows.
+Please select a fix:
+ 1) Provide a one-off default now (will be set on all existing rows with a null value for this column)
+ 2) Quit and manually define a default value in models.py.
+Select an option: 1      # '1' 입력 후 Enter (다음 화면에서 직접 기본 값 입력)
+
+Please enter the default value as valid Python.
+The datetime and django.utils.timezone modules are available, so it is possible to provide e.g. timezone.now as a value.
+Type 'exit' to exit this prompt
+&gt;&gt;&gt; 1                    # 추가하는 외래 키 필드에 넣을 값 '1' 입력 후 Enter
+
+$ python manage.py migrate</pre>
+      <ul>
+        <li>기존에 작성된 게시글이 있다면 <b>모두 1번 회원이 작성한 것으로 처리</b>됨</li>
+        <li>migrate 후 articles_article 테이블에 <code>user_id</code> 필드 생성 확인</li>
+      </ul>
+      <div class="note">1번 회원이 없는 경우 migrate 시 에러가 발생할 수 있음에 유의하세요.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-4</span>게시글 CREATE (1~3/5) — 폼 수정과 에러</h3>
+      <p>새 게시글 작성 시 ArticleForm에 새롭게 추가된 ForeignKey 필드인 User 필드가 출력됩니다. 사용자가 다른 사람을 선택하면 <b>사칭 문제</b>가 발생할 수 있으므로 입력하지 않아야 하는 입력입니다.</p>
+<pre class="formula"># articles/forms.py
+class ArticleForm(forms.ModelForm):
+    class Meta:
+        model = Article
+        fields = ('title', 'content',)</pre>
+      <p>이제 게시글을 작성하면 에러 발생:</p>
+<pre class="formula">IntegrityError at /articles/create/
+NOT NULL constraint failed: articles_article.user_id</pre>
+      <p>→ user_id 필드 데이터가 누락되어 NOT NULL 제약 조건에 위배</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-5</span>게시글 CREATE (4~5/5) — 작성자 저장</h3>
+      <p>게시글 작성 시 작성자 정보가 함께 저장되도록 save의 <b>commit 옵션</b>을 활용합니다. 글 작성자는 현재 글을 작성하는 로그인된 사용자(<code>request.user</code>) 정보를 저장합니다.</p>
+<pre class="formula"># articles/views.py
+@login_required
+def create(request):
+    if request.method == 'POST':
+        form = ArticleForm(request.POST)
+        if form.is_valid():
+            article = form.save(commit=False)
+            article.user = request.user
+            article.save()
+            return redirect('articles:detail', article.pk)
+    else:
+        form = ArticleForm()
+    ...</pre>
+      <div class="note">로그인한 User에 따라 저장되는 user_id가 다를 수 있음에 유의하세요.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-6</span>게시글 READ — 작성자 출력</h3>
+<pre class="formula">&lt;!-- articles/index.html --&gt;
+{% for article in articles %}
+  &lt;p&gt;작성자 : {{ article.user }}&lt;/p&gt;
+  &lt;p&gt;글 번호: {{ article.pk }}&lt;/p&gt;
+  &lt;a href="{% url 'articles:detail' article.pk %}"&gt;
+    &lt;p&gt;글 제목: {{ article.title }}&lt;/p&gt;
+  &lt;/a&gt;
+  &lt;p&gt;글 내용: {{ article.content }}&lt;/p&gt;
+  &lt;hr&gt;
+{% endfor %}</pre>
+<pre class="formula">&lt;!-- articles/detail.html --&gt;
+&lt;h2&gt;DETAIL&lt;/h2&gt;
+&lt;h3&gt;{{ article.pk }} 번째 글&lt;/h3&gt;
+&lt;hr&gt;
+&lt;p&gt;작성자 : {{ article.user }}&lt;/p&gt;
+&lt;p&gt;제목: {{ article.title }}&lt;/p&gt;
+&lt;p&gt;내용: {{ article.content }}&lt;/p&gt;
+&lt;p&gt;작성 시각: {{ article.created_at }}&lt;/p&gt;
+&lt;p&gt;수정 시각: {{ article.updated_at }}&lt;/p&gt;</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-7</span>게시글 UPDATE — 본인 글만 수정</h3>
+<pre class="formula"># articles/views.py
+@login_required
+def update(request, pk):
+    article = Article.objects.get(pk=pk)
+    if request.user == article.user:
+        if request.method == 'POST':
+            form = ArticleForm(request.POST, instance=article)
+            if form.is_valid():
+                form.save()
+                return redirect('articles:detail', article.pk)
+        else:
+            form = ArticleForm(instance=article)
+    else:
+        return redirect('articles:index')
+    context = {
+        'article': article,
+        'form': form,
+    }
+    return render(request, 'articles/update.html', context)</pre>
+<pre class="formula">&lt;!-- articles/detail.html — 작성자가 아니면 수정/삭제 버튼 숨김 --&gt;
+{% if request.user == article.user %}
+  &lt;a href="{% url 'articles:update' article.pk %}"&gt;UPDATE&lt;/a&gt;&lt;br&gt;
+  &lt;form action="{% url 'articles:delete' article.pk %}" method="POST"&gt;
+    {% csrf_token %}
+    &lt;input type="submit" value="DELETE"&gt;
+  &lt;/form&gt;
+{% endif %}</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-8</span>게시글 DELETE — 본인 글만 삭제</h3>
+<pre class="formula"># articles/views.py
+@login_required
+def delete(request, pk):
+    article = Article.objects.get(pk=pk)
+    if request.user == article.user:
+        article.delete()
+    return redirect('articles:index')</pre>
+      <div class="note tip">views.py에서 또 사용자를 구분하여 처리하는 이유 — 요청을 보내는 방법은 브라우저만 있는 것이 아니기 때문입니다. requests 패키지나 Postman 같은 도구를 이용한 요청은 브라우저(템플릿의 버튼 숨김)를 거치지 않으므로, 내부에서도 반드시 사용자 구분 처리가 필요합니다.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">9</div>
+    <div><h2>Comment &amp; User</h2><p class="desc">모델 관계 설정 · Migration · 댓글 CREATE · READ · DELETE에 작성자 반영</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">9-1</span>Comment - User 모델 관계 설정</h3>
+<pre class="formula"># articles/models.py
+class Comment(models.Model):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</pre>
+      <h3><span class="tag">9-2</span>Migration</h3>
+      <p>Article-User 관계 설정 때와 동일한 상황 — 기존 Comment 테이블에 새로운 필드가 빈 값으로 추가될 수 없기 때문에 기본 값 설정 과정이 필요합니다.</p>
+<pre class="formula">$ python manage.py makemigrations
+# ... 공통 과정 생략
+$ python manage.py migrate</pre>
+      <p>migration 후 articles_comment 테이블에 <code>user_id</code> 필드 확인 (article_id 다음).</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">9-3</span>댓글 CREATE</h3>
+      <p>댓글 작성 시 게시글 작성 때와 동일한 에러 — <code>NOT NULL constraint failed: articles_comment.user_id</code> (댓글의 작성자를 나타내는 user_id 필드 데이터 누락).</p>
+<pre class="formula"># articles/views.py
+def comments_create(request, pk):
+    article = Article.objects.get(pk=pk)
+    comment_form = CommentForm(request.POST)
+    if comment_form.is_valid():
+        comment = comment_form.save(commit=False)
+        comment.article = article
+        comment.user = request.user
+        comment.save()
+        return redirect('articles:detail', article.pk)
+    context = {
+        # ... (중략)
+    }</pre>
+      <div class="note">로그인한 User에 따라 저장되는 user_id가 다를 수 있음에 유의하세요.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">9-4</span>댓글 READ — 작성자와 함께 출력</h3>
+<pre class="formula">&lt;!-- articles/detail.html --&gt;
+&lt;h4&gt;댓글 목록&lt;/h4&gt;
+&lt;ul&gt;
+  {% for comment in comments %}
+    &lt;li&gt;
+      {{ comment.user }} - {{ comment.content }}
+      ...
+    &lt;/li&gt;
+  {% endfor %}
+&lt;/ul&gt;</pre>
+      <p>출력 예: admin - First comment / admin - Second comment / user01 - Third comment with User</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">9-5</span>댓글 DELETE — 본인 댓글만</h3>
+<pre class="formula">&lt;!-- articles/detail.html — 작성자가 아니면 삭제 버튼 숨김 --&gt;
+{% for comment in comments %}
+  &lt;li&gt;
+    {{ comment.user }} - {{ comment.content }}
+    {% if request.user == comment.user %}
+      &lt;form action="{% url 'articles:comments_delete' article.pk comment.pk %}" method="POST"&gt;
+        {% csrf_token %}
+        &lt;input type="submit" value="DELETE"&gt;
+      &lt;/form&gt;
+    {% endif %}
+  &lt;/li&gt;
+{% endfor %}</pre>
+<pre class="formula"># articles/views.py
+def comments_delete(request, article_pk, comment_pk):
+    comment = Comment.objects.get(pk=comment_pk)
+    if request.user == comment.user:
+        comment.delete()
+    return redirect('articles:detail', article_pk)</pre>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">10</div>
+    <div><h2>View decorators</h2><p class="desc">View decorator · 종류 · Allowed HTTP methods 3가지</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">10-1</span>View decorator</h3>
+      <p><b>View 함수의 동작을 수정하거나 추가 기능을 제공하는 데 사용되는 Python 데코레이터</b>.</p>
+      <p>View decorator는 일종의 "사전 체크리스트"처럼 동작합니다. 뷰 함수 위에 붙여서 작동하며, 코드 흐름을 방해하지 않고 깔끔하게 조건을 설정할 수 있습니다. 자주 쓰이는 View decorator는 로그인 여부, 권한 검사, HTTP 요청 방식 확인 등으로 사용자 접근을 보다 안전하고 체계적으로 관리할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-2</span>View decorators 종류</h3>
+      <ul>
+        <li><b>Allowed HTTP methods</b> — 뷰가 허용하는 HTTP 요청 방식(GET, POST 등)을 제한</li>
+        <li><b>Conditional view processing</b> — 클라이언트가 보낸 요청을 확인한 후 조건에 따른 응답 처리</li>
+        <li><b>GZip compression</b> — 서버에서 응답 데이터를 압축해서 전송</li>
+      </ul>
+      <p class="src">추가 view decorators: https://docs.djangoproject.com/en/5.2/topics/http/decorators/</p>
+      <div class="note tip">Allowed HTTP methods 데코레이터를 사용하면 View 로직을 보호하면서 사용자에게도 올바른 인터페이스를 제공할 수 있고, 각 view의 역할도 명확하게 분리됩니다.</div>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">10-3</span>주요 Allowed HTTP methods</h3>
+      <table class="compare">
+        <tr><th>데코레이터</th><th>허용 method</th></tr>
+        <tr><td class="k"><code>require_http_methods(["METHOD1", "METHOD2", ...])</code></td><td>지정된 HTTP method만 허용</td></tr>
+        <tr><td class="k"><code>require_safe()</code></td><td>GET과 HEAD method만 허용</td></tr>
+        <tr><td class="k"><code>require_POST()</code></td><td>POST method만 허용</td></tr>
+      </table>
+      <div class="note">허용되지 않은 method로 요청하는 경우 <b>405 (Method Not Allowed)</b> 오류, 즉 HttpResponseNotAllowed를 반환합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-4</span>require_http_methods(request_method_list)</h3>
+      <ul>
+        <li>인자는 list이며, list의 요소는 요청이 허용될 HTTP method를 문자열(대문자)로 작성</li>
+        <li>list에 작성된 method 이외의 method로 요청하면 HttpResponseNotAllowed(405) 반환</li>
+      </ul>
+<pre class="formula">from django.views.decorators.http import require_http_methods
+
+@require_http_methods(['GET', 'POST'])
+def func(request):
+    pass</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-5</span>require_safe() · require_POST()</h3>
+<pre class="formula">from django.views.decorators.http import require_safe, require_POST
+
+@require_safe       # GET, HEAD 이외 → 405
+def func(request):
+    pass
+
+@require_POST       # POST 이외 → 405
+def func(request):
+    pass</pre>
+      <div class="note tip">require_GET이 있지만 require_safe를 권장하는 이유 — GET과 HEAD는 서버 상태를 변경하지 않고 조회를 수행하는 safe method로 정의돼 있습니다. HEAD 요청은 주로 브라우저가 리소스를 받지 않고 메타 데이터 정보를 조회할 때 사용합니다. 즉 require_safe가 require_GET보다 더 포괄적이며 표준 HTTP 클라이언트와의 호환성이 높습니다.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch4" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">11</div>
+    <div><h2>ERD</h2><p class="desc">정의 · 구성 요소(엔티티 · 속성 · 관계 · Cardinality) · 중요성 · 제작 사이트</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">11-1</span>ERD (Entity-Relationship Diagram)</h3>
+      <p><b>데이터베이스의 구조를 시각적으로 표현하는 도구</b>. Entity(개체), 속성, 그리고 엔티티 간의 관계를 그래픽 형태로 나타내어 시스템의 논리적 구조를 모델링하는 다이어그램입니다. 각 박스는 테이블을, 그 안의 필드는 속성(컬럼)을 나타내며, 이를 통해 개발자와 디자이너가 데이터 구조를 한눈에 이해할 수 있습니다.</p>
+      <p class="src">ERD 예시: https://www.lucidchart.com/pages/er-diagrams</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-2</span>ERD의 구성 요소</h3>
+      <table class="compare">
+        <tr><th>요소</th><th>의미</th><th>예</th></tr>
+        <tr><td class="k">엔티티 (Entity)</td><td>데이터베이스에 저장되는 객체나 개념. 주로 테이블로 표현됨</td><td>'게시글', '댓글', '회원'</td></tr>
+        <tr><td class="k">속성 (Attribute)</td><td>엔티티가 가지는 고유한 데이터 항목. 테이블의 컬럼으로 표현됨</td><td>'게시글'의 '제목', '내용', '작성일자', '생성일자'</td></tr>
+        <tr><td class="k">관계 (Relationship)</td><td>엔티티 간의 연관성. 테이블 간의 연결된 선으로 표현됨</td><td>게시글을 '작성'한 회원, 게시글에 '달린' 댓글</td></tr>
+      </table>
+      <p>예: User(id integer · name varchar · address varchar) — Comment(id integer · content varchar · created_at datetime · user_id integer)를 선으로 연결.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-3</span>Cardinality</h3>
+      <p><b>한 엔티티와 다른 엔티티 간의 수적 관계</b>를 나타내는 표현.</p>
+      <ul>
+        <li><b>일대일 (1:1)</b> — 한 엔티티의 레코드가 다른 엔티티의 하나의 레코드와만 연결. 예) 한 '사람'은 하나의 '여권'만 소유하고, '여권'도 한 '사람'에게만 발급</li>
+        <li><b>다대일 (N:1)</b> — 여러 레코드가 하나의 엔티티와 연결되며, 반대 방향에서는 하나만 연결. 예) 여러 명의 '학생'이 하나의 '학교'에 소속</li>
+        <li><b>다대다 (M:N)</b> — 양쪽 모두 여러 레코드와 연결. 예) '학생'은 여러 '과목'을 수강하고, '과목'도 여러 '학생'이 수강</li>
+      </ul>
+      <div class="subhead">Cardinality 표현 (Crow's foot)</div>
+      <p>선의 끝부분에 숫자나 기호(까마귀 발)로 표시: <b>One (and only one)</b> · <b>Zero or one</b> · <b>One or many</b> · <b>Zero or many</b>. 예) User 1명 — Comment 0개 이상.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-4</span>ERD의 중요성</h3>
+      <ul>
+        <li><b>데이터베이스 설계의 핵심 도구</b> — 엔티티·속성·관계를 명확히 정의해 논리적 데이터 구조를 시각적으로 표현. 복잡한 비즈니스 로직을 직관적인 다이어그램으로 정리하고, 중복 데이터를 제거해 효율적인 저장 구조를 만들 수 있음</li>
+        <li><b>시각적 모델링으로 효과적인 의사소통 지원</b> — 개발자·기획자·디자이너 등 다양한 직군이 협업 가능. 요구사항 분석 단계에서 누락된 기능·관계를 빠르게 파악하고, 비전문가에게도 시스템 구조를 쉽게 설명</li>
+        <li><b>실제 시스템 개발 전 데이터 구조 최적화에 중요</b> — 데이터 흐름과 연관 관계를 사전에 분석해 불필요한 관계·비효율적 설계를 방지. DB 구축 단계의 중대한 구조적 오류를 줄이고, 변경·유지보수 시에도 ERD 기반으로 안정적으로 수정</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-5</span>무료 ERD 제작 사이트</h3>
+      <ul>
+        <li><b>Draw.io (diagrams.net)</b> — 별도의 회원가입 없이 바로 사용 가능, 다양한 다이어그램 템플릿 제공 · https://app.diagrams.net</li>
+        <li><b>ERDCloud</b> — 실시간 협업 기능 지원 · https://www.erdcloud.com</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch5" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">12</div>
+    <div><h2>추가 기능 구현</h2><p class="desc">인증된 사용자만 댓글 작성 및 삭제</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">12-1</span>인증된 사용자만 댓글 작성 및 삭제</h3>
+      <p>로그인된 사용자만 댓글을 작성·삭제할 수 있도록 데코레이터를 추가합니다.</p>
+<pre class="formula"># articles/views.py
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def comments_create(request, pk):
+    pass
+
+@login_required
+def comments_delete(request, article_pk, comment_pk):
+    pass</pre>
+      <div class="note tip">작성·삭제처럼 DB를 바꾸는 view에는 <code>@require_POST</code>를 함께 붙여 GET 요청을 막을 수 있습니다 (허용되지 않으면 405).</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">Q</div>
+    <div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">Part별 원본 확인문제 30개 · 문제를 먼저 풀고, 눌러서 정답과 해설을 확인하세요</p></div></div>
+  <div class="card-grid"><div class="card full">
+<div class="subhead">Many to One Relationships 01 — 게시글과 댓글 (11/03 오전, 슬라이드 81장)</div>
+<div class="quiz-q"><div class="qq">1. related_name이 없을 때, 올바른 역참조 코드는 무엇인가요? (<code>class Comment</code>에 <code>article = models.ForeignKey(Article, ...)</code>, <code>article = Article.objects.get(id=1)</code>)</div><ol class="opt" type="a"><li>article.comments.all()</li><li>article.comment_set.all()</li><li>Comment.objects.get(article)</li><li>article.Comment.all()</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) article.comment_set.all()</b> — ForeignKey에서 related_name을 별도로 설정하지 않으면, Django는 자동으로 '참조하는모델명_set'(소문자) 형태의 역참조 매니저를 생성한다.</div></details></div>
+<div class="quiz-q"><div class="qq">2. id가 1인 게시글에 댓글을 생성하는 올바른 방법은? (<code>article = Article.objects.get(id=1)</code>, <code>content = '새 댓글'</code>)</div><ol class="opt" type="a"><li>Comment.objects.create(...)</li><li>Comment.objects.new(...)</li><li>Comment.create(...)</li><li>article.comments.add(...)</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) Comment.objects.create(...)</b> — 예: <code>Comment.objects.create(article=article, content=content)</code>. 매니저(objects)를 통해 생성하고, ForeignKey 필드에 참조할 객체를 전달한다.</div></details></div>
+<div class="quiz-q"><div class="qq">3. O/X — 'N'쪽 객체에서 '1'쪽 객체 필드 접근은 '역참조'이다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">X</b> — 'N'쪽에서 '1'쪽으로 접근하는 것은 '참조'이며, '1'쪽에서 자신을 참조하는 'N'쪽 객체 목록에 접근하는 것이 '역참조'이다.</div></details></div>
+<div class="quiz-q"><div class="qq">4. Django 템플릿에서 댓글이 없는 경우를 처리하기 위해 사용하는 문법은?</div><ol class="opt" type="a"><li>{% if not comments %}</li><li>{% empty %}</li><li>{% else %}</li><li>{% forempty %}</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) {% empty %}</b> — <code>{% for comment in comments %} ... {% empty %} ... {% endfor %}</code> 형태로 사용하면 댓글이 없을 때 대체 콘텐츠를 자연스럽게 출력할 수 있다. 사용자 경험을 고려한 표현이다.</div></details></div>
+<div class="quiz-q"><div class="qq">5. admin 사이트에 모델을 등록하는 함수는? (<code>from .models import Comment</code> 다음 줄에 <code>???(Comment)</code>)</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">admin.site.register</b> — admin.py에서 <code>admin.site.register()</code> 함수를 사용하여 모델을 관리자 페이지에 등록할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">6. 다음 중 N:1 관계를 설명한 것은?</div><ol class="opt" type="a"><li>하나의 댓글이 여러 게시글에 달린다.</li><li>하나의 게시글에 여러 댓글이 달린다.</li><li>댓글과 게시글은 1:1 관계이다.</li><li>댓글은 게시글 없이도 존재한다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 하나의 게시글에 여러 댓글이 달린다.</b> — N:1 관계는 여러 댓글이 하나의 게시글을 참조하는 구조이다.</div></details></div>
+<div class="quiz-q"><div class="qq">7. 댓글 모델에서 게시글을 참조할 때 사용하는 필드는?</div><ol class="opt" type="a"><li>OneToOneField</li><li>ManyToManyField</li><li>ForeignKey</li><li>CharField</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) ForeignKey</b> — ForeignKey는 N:1 관계를 정의하는 필드이다.</div></details></div>
+<div class="quiz-q"><div class="qq">8. O/X — Django shell에서는 <code>Comment.objects.create(article=article, content='내용')</code>으로 댓글을 생성할 수 있다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — Django shell에서는 ORM으로 바로 객체를 생성할 수 있으며, ForeignKey 필드에는 참조할 객체(article)를 전달해야 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">9. O/X — ForeignKey로 연결된 모델은 역참조 시 자동으로 related_name 속성이 생성된다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">X</b> — related_name은 명시적으로 설정하지 않으면 생성되지 않는다. 대신 Django는 기본적으로 '소문자 모델명_set'(예: comment_set) 형식의 역참조 매니저를 제공한다.</div></details></div>
+<div class="quiz-q"><div class="qq">10. Django 댓글 생성 시 commit=False 사용 이유는?</div><ol class="opt" type="a"><li>DB 저장 없이 객체 삭제</li><li>생성 후 필드 추가 설정</li><li>즉시 저장해 성능 향상</li><li>조건에 맞는 객체 필터링</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 생성 후 필드 추가 설정</b> — <code>form.save(commit=False)</code>는 폼 데이터를 기반으로 객체를 생성하되 DB에는 저장하지 않는다. 이 시점에 관계 필드(article, user 등)를 설정한 후 save()를 호출해 저장한다. N:1 관계에서 외래 키를 설정할 때 자주 사용된다.</div></details></div>
+<div class="quiz-q"><div class="qq">11. 다음 중 N:1 관계에 해당하지 않는 예시는 무엇인가요?</div><ol class="opt" type="a"><li>여러 명의 학생이 한 명의 강사에게 배운다.</li><li>여러 개의 댓글이 하나의 게시글에 달린다.</li><li>여러 개의 주문이 한 명의 고객에게 속한다.</li><li>여러 명의 배우가 여러 영화에 출연한다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) 여러 명의 배우가 여러 영화에 출연한다.</b> — 배우는 여러 영화에 출연할 수 있고 영화도 여러 배우를 가질 수 있으므로 N:M 관계이다. N:1은 여러 레코드가 하나의 레코드와 연결되는 구조이다.</div></details></div>
+<div class="quiz-q"><div class="qq">12. ForeignKey 필드 필수 속성 2가지는? (주관식)</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">model class(to), on_delete</b> — ForeignKey를 정의할 때 참조할 모델 클래스(to)와 참조 대상이 삭제될 때의 동작(on_delete)은 필수로 작성해야 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">13. O/X — 댓글(Comment) 모델에서 게시글(Article)을 참조하도록 ForeignKey를 설정하면, 게시글에서 직접 참조 필드를 통해 댓글 목록을 조회할 수 있다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">X</b> — Article 모델에는 Comment를 직접 참조하는 필드가 없어 직접 접근할 수 없다. 대신 Django는 역참조 기능으로 <code>article.comment_set.all()</code>처럼 데이터를 거꾸로 조회할 수 있도록 지원한다.</div></details></div>
+<div class="quiz-q"><div class="qq">14. 다음 중 ForeignKey 필드명을 작성할 때 권장되는 방식은 무엇인가요?</div><ol class="opt" type="a"><li>복수형으로 작성한다. (예: articles)</li><li>참조하는 모델의 클래스명을 그대로 쓴다. (예: Article)</li><li>참조하는 모델의 클래스명을 소문자 단수형으로 쓴다.</li><li>필드명은 아무렇게나 작성해도 된다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 소문자 단수형</b> — ForeignKey 필드는 참조하는 모델의 단일 객체를 가리키므로 의미가 명확하도록 소문자 단수형으로 작성하는 것이 좋다. 예: <code>article = models.ForeignKey(...)</code></div></details></div>
+<div class="subhead">Many to One Relationships 02 — 게시글·댓글과 User (11/03 오후, 슬라이드 76장)</div>
+<div class="quiz-q"><div class="qq">15. Article이 User와 N:1 관계일 때 외래 키 설정은?</div><ol class="opt" type="a"><li>ForeignKey('User', PROTECT)</li><li>OneToOneField(User, CASCADE)</li><li>ForeignKey(settings.AUTH_USER_MODEL, …)</li><li>ManyToManyField(User)</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) ForeignKey(settings.AUTH_USER_MODEL, ...)</b> — User 모델을 안전하게 참조하기 위해 settings.AUTH_USER_MODEL을 사용하며, N:1 관계에는 ForeignKey를 사용한다.</div></details></div>
+<div class="quiz-q"><div class="qq">16. get_user_model()은 주로 어디에서 사용하나요?</div><ol class="opt" type="a"><li>models.py 내부</li><li>템플릿 파일</li><li>models.py 외부 파일</li><li>settings.py 내부</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) models.py 외부 파일</b> — get_user_model()은 활성화된 User 모델을 객체로 반환하며, models.py를 제외한 views.py, forms.py 등 외부에서 사용된다.</div></details></div>
+<div class="quiz-q"><div class="qq">17. 외래 키 필드 추가 시 필요한 과정은?</div><ol class="opt" type="a"><li>null=True 설정</li><li>기본값 입력</li><li>모델 삭제</li><li>related_name 지정</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 기본값 입력</b> — NOT NULL 제약 조건 때문에 기존 데이터에 대한 기본값을 입력해야 마이그레이션이 가능하다.</div></details></div>
+<div class="quiz-q"><div class="qq">18. 게시글 작성 시 작성자 정보를 저장하려면 어떤 작업이 필요한가?</div><ol class="opt" type="a"><li>form.save()</li><li>commit=True 설정</li><li>article.user = request.user</li><li>article.save(commit=True)</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) article.user = request.user</b> — 작성자 필드는 form.save(commit=False) 이후 request.user를 직접 할당해 저장해야 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">19. 작성자 미지정 시 발생하는 에러는?</div><ol class="opt" type="a"><li>KeyError</li><li>NOT NULL constraint failed</li><li>404 Not Found</li><li>CSRF token missing</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) NOT NULL constraint failed</b> — user 필드가 비어 있으면 DB의 NOT NULL 제약 조건 위반으로 에러가 발생한다.</div></details></div>
+<div class="quiz-q"><div class="qq">20. @login_required를 사용하는 이유는?</div><ol class="opt" type="a"><li>사용자 정보를 삭제하기 위해</li><li>사용자 인증 없이 접근 허용</li><li>로그인한 사용자만 접근 허용</li><li>서버 오류를 방지하기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 로그인한 사용자만 접근 허용</b> — @login_required 데코레이터는 인증된 사용자만 해당 view를 사용할 수 있게 제한한다.</div></details></div>
+<div class="quiz-q"><div class="qq">21. require_POST의 기능은?</div><ol class="opt" type="a"><li>GET만 허용</li><li>POST만 허용</li><li>모든 요청 허용</li><li>DELETE만 허용</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) POST만 허용</b> — require_POST는 해당 뷰가 POST 요청만 처리하도록 제한하고, 다른 요청은 405 에러를 반환한다.</div></details></div>
+<div class="quiz-q"><div class="qq">22. ERD에서 엔티티는 무엇을 의미하나요?</div><ol class="opt" type="a"><li>테이블</li><li>외래 키</li><li>HTTP 요청</li><li>사용자 인증</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) 테이블</b> — ERD에서 엔티티는 데이터베이스의 테이블을 의미하며, 저장되는 개체나 개념을 나타낸다.</div></details></div>
+<div class="quiz-q"><div class="qq">23. ERD에서 속성은 무엇을 나타내나요?</div><ol class="opt" type="a"><li>테이블 이름</li><li>컬럼 정보</li><li>사용자 권한</li><li>관계 유형</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 컬럼 정보</b> — 속성(Attribute)은 엔티티가 가지는 데이터 항목이며, 데이터베이스에서는 컬럼으로 표현된다.</div></details></div>
+<div class="quiz-q"><div class="qq">24. 댓글 삭제 시 본인 확인을 위해 비교하는 값은?</div><ol class="opt" type="a"><li>comment.pk와 user.pk</li><li>request.user와 comment.user</li><li>article.pk와 comment.pk</li><li>request.user와 article.user</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) request.user와 comment.user</b> — 댓글 작성자만 삭제할 수 있도록 요청한 사용자(request.user)와 댓글의 작성자(comment.user)를 비교한다.</div></details></div>
+<div class="quiz-q"><div class="qq">25. 댓글 작성자와 내용을 출력할 때 사용하는 코드는?</div><ol class="opt" type="a"><li>{{ user.comment }}</li><li>{{ comment.content }}</li><li>{{ comment.user }} - {{ comment.content }}</li><li>{{ article.comment }}</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) {{ comment.user }} - {{ comment.content }}</b> — 템플릿에서 comment 객체의 user(작성자)와 content(내용) 속성을 함께 출력해 댓글 정보를 표시한다.</div></details></div>
+<div class="quiz-q"><div class="qq">26. request.user와 비교하는 이유는?</div><ol class="opt" type="a"><li>URL을 구분하려고</li><li>로그인 여부 확인</li><li>작성자 본인인지 확인</li><li>뷰 함수를 호출하려고</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 작성자 본인인지 확인</b> — 작성자 본인만 수정 또는 삭제할 수 있도록 request.user와 객체의 user를 비교한다.</div></details></div>
+<div class="quiz-q"><div class="qq">27. ERD를 작성하는 주된 목적은?</div><ol class="opt" type="a"><li>HTML 구조 확인</li><li>테이블 구조 시각화</li><li>사용자 인증 설정</li><li>DB 속도 측정</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 테이블 구조 시각화</b> — ERD는 데이터베이스의 테이블과 관계를 시각적으로 표현하여 구조를 쉽게 이해하고 설계할 수 있게 돕는 도구이다.</div></details></div>
+<div class="quiz-q"><div class="qq">28. 빈칸 ⓐ — 댓글 삭제 기능을 구현할 때, 댓글 작성자 본인만 삭제할 수 있도록 조건을 설정합니다. 이때 comment.user와 비교해야 할 객체는 로그인한 유저 정보가 담긴 ( ⓐ )이다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">request.user</b> — request.user는 현재 요청을 보낸 사용자이며, comment.user는 댓글을 작성한 사용자이다. 두 값을 비교해 작성자 본인인지 확인한다.</div></details></div>
+<div class="quiz-q"><div class="qq">29. settings.AUTH_USER_MODEL을 User 모델 대신 사용하는 이유는?</div><ol class="opt" type="a"><li>속도가 빠르기 때문</li><li>User 모델이 자동 생성되기 때문</li><li>에러 없이 안전하게 참조하려고</li><li>관리자 권한을 주기 위해서</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 에러 없이 안전하게 참조하려고</b> — settings.AUTH_USER_MODEL은 모델 로딩 순서에 상관없이 User를 안정적으로 참조할 수 있게 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">30. 빈칸 ⓑ — 게시글 생성 시 작성자 정보를 저장하기 위해 article.user에 할당하는 값은 ( ⓑ )이다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">request.user</b> — 로그인한 사용자의 정보를 게시글의 작성자로 저장하기 위해 article.user에 request.user를 할당한다.</div></details></div>
+  </div>
+  <div class="card full"><h3>관련 실습 문제</h3><div class="subhead">Many to One Relationships 01 — 게시글과 댓글 (11/03 오전, 슬라이드 81장)</div><div class="pillrow"><span class="pill">1901. 도서 관리 서비스 만들기 - 1:N 관계 정의</span><span class="pill">1896. 레스토랑 관리 서비스 - 모델 정의</span><span class="pill">1902. 도서 관리 서비스 - 1:N 관계 데이터 생성</span><span class="pill">3055. 댓글 생성 기능 구현 준비</span><span class="pill">3056. 댓글 생성 기능 구현</span><span class="pill">1898. 레스토랑 관리 서비스 - 메뉴</span><span class="pill">1899. 레스토랑 관리 서비스 - 메뉴 상세정보</span><span class="pill">1900. 레스토랑 관리 서비스 - 이미지 추가</span></div><div class="subhead">Many to One Relationships 02 — 게시글·댓글과 User (11/03 오후, 슬라이드 76장)</div><div class="pillrow"><span class="pill">3058. 할 일 목록 생성 시 작성자 정보 추가하기</span><span class="pill">3059. 내 할 일 목록만 모아보기</span><span class="pill">3060. 로그인 기능을 활용한 코드 개선</span><span class="pill">1904. 편의점 프랜차이즈 시스템 - auth 시스템</span><span class="pill">1905. 편의점 프랜차이즈 시스템 - 신규 매장</span><span class="pill">1906. 편의점 프랜차이즈 시스템 - 회원 정보</span><span class="pill">1908. 리뷰 서비스 - 책과 리뷰와 유저</span><span class="pill">1909. 리뷰 서비스 - 로그인</span></div></div></div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">★</div>
+    <div><h2>활동 정리 — 핵심 키워드</h2><p class="desc">Part별 핵심 개념 한눈에 보기</p></div></div>
+  <div class="card-grid"><div class="card full part-sum"><h3>Many to One Relationships 01 — 게시글과 댓글 (11/03 오전, 슬라이드 81장)</h3></div>
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">ForeignKey</td><td>다른 모델과 N:1 관계를 정의할 때 사용하는 필드</td><td><code>article = models.ForeignKey(Article, on_delete=models.CASCADE)</code></td></tr>
+        <tr><td class="k">Many to One</td><td>여러 하위 객체가 하나의 상위 객체를 참조하는 모델 관계</td><td>여러 댓글 → 하나의 게시글</td></tr>
+        <tr><td class="k">ORM</td><td>Django에서 데이터베이스를 객체처럼 다루는 방식</td><td><code>Comment.objects.create(...)</code></td></tr>
+        <tr><td class="k">역참조</td><td>상위 모델에서 연결된 하위 모델을 조회하는 방식</td><td><code>article.comment_set.all()</code></td></tr>
+        <tr><td class="k">admin 등록</td><td>admin 사이트에서 모델을 시각적으로 관리하도록 설정</td><td><code>admin.site.register(Comment)</code></td></tr>
+        <tr><td class="k">for-empty 문법</td><td>반복문에서 데이터가 없을 경우를 처리하는 Django 템플릿 문법</td><td><code>{% for comment in comments %}...{% empty %}...{% endfor %}</code></td></tr>
+        <tr><td class="k">데이터 무결성</td><td>관계 설정 시 데이터 일관성과 안정성을 유지하는 것</td><td><code>on_delete=models.CASCADE</code></td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <ul>
+        <li><b>FK는 N쪽에</b>: 여러 댓글이 하나의 게시글에 속하므로 Comment에 <code>article = ForeignKey(Article, on_delete=...)</code>. DB에는 <code>article_id</code>(bigint) 컬럼이 마지막에 생긴다.</li>
+        <li><b>참조 vs 역참조</b>: <code>comment.article</code>(N→1) / <code>article.comment_set.all()</code>(1→N, related manager).</li>
+        <li><b>댓글 CREATE</b>: 폼에서 FK 필드를 빼고(<code>fields = ('content',)</code>), URL의 게시글 pk로 객체를 가져와 <code>save(commit=False)</code> → <code>comment.article = article</code> → <code>save()</code>.</li>
+        <li><b>READ·DELETE</b>: detail에서 역참조로 목록을 넘기고, 삭제 URL에 article_pk와 comment_pk를 함께 둔다.</li>
+      </ul>
+    </div>
+  <div class="card full part-sum"><h3>Many to One Relationships 02 — 게시글·댓글과 User (11/03 오후, 슬라이드 76장)</h3></div>
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">User 참조 방법</td><td>settings.AUTH_USER_MODEL로 사용자 모델을 참조</td><td><code>models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)</code></td></tr>
+        <tr><td class="k">View Decorator</td><td>View 함수에 조건을 부여해 특정 요청만 허용</td><td><code>@require_http_methods(["POST"])</code></td></tr>
+        <tr><td class="k">인증 기반 기능</td><td>로그인된 사용자만 특정 기능을 수행할 수 있도록 제한</td><td><code>request.user.is_authenticated</code> 조건문 활용</td></tr>
+        <tr><td class="k">ERD</td><td>엔티티(테이블), 속성(컬럼), 관계(선)로 구성된 데이터베이스 설계 다이어그램</td><td>게시글 - 댓글 - 사용자 사이의 관계선 연결</td></tr>
+        <tr><td class="k">댓글 기능 제한</td><td>비로그인 사용자의 댓글 작성/삭제 요청은 처리하지 않음</td><td><code>if not request.user.is_authenticated: return redirect(...)</code></td></tr>
+        <tr><td class="k">Article-User 관계</td><td>하나의 User가 여러 개의 Article을 작성할 수 있는 구조</td><td>여러 게시글 → 하나의 작성자</td></tr>
+        <tr><td class="k">Comment-User 관계</td><td>하나의 User가 여러 개의 Comment를 작성할 수 있는 구조</td><td>여러 댓글 → 하나의 작성자</td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <ul>
+        <li><b>User 참조</b>: models.py에서는 <code>settings.AUTH_USER_MODEL</code>(문자열, 지연 평가), 그 밖에서는 <code>get_user_model()</code>(클래스).</li>
+        <li><b>작성자 저장 패턴</b>: 폼에서 user 필드를 빼고 <code>save(commit=False)</code> → <code>obj.user = request.user</code> → <code>save()</code>. 기존 데이터가 있으면 migration 때 기본값(1)을 넣는다.</li>
+        <li><b>본인만 수정·삭제</b>: 템플릿에서는 <code>request.user == obj.user</code>로 버튼을 숨기고, view에서도 같은 비교를 다시 한다(브라우저 밖 요청 대비).</li>
+        <li><b>View decorators</b>로 허용할 HTTP method를 제한(405)하고, <code>@login_required</code>로 인증된 사용자만 접근하게 한다.</li>
+        <li><b>ERD</b>: 엔티티(테이블) · 속성(컬럼) · 관계(선) + Cardinality(Crow's foot)로 설계를 먼저 그린다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「DB Many to One Relationships 01·02」(2025-11-03, 157장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

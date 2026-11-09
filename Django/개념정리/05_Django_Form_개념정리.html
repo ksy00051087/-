@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django Form 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · Django 06 · 10/20 오전</span>
+    <h1>Django Form 개념정리</h1>
+    <p class="sub">HTML form의 한계와 유효성 검사 → Form class와 Widgets → ModelForm과 Meta class → is_valid() · save() → HTTP 요청 다루기(new+create, edit+update 결합) → 키워드 인자 · Widgets 응용 · 수동 렌더링까지, 강의 슬라이드 78장과 「따라하기만 하면 CRUD 완성!」 가이드를 함께 재구성했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 5개 장 + 참고 + 부록(ModelForm CRUD 가이드)</span>
+      <span>🧪 결합된 create/update view 전체</span>
+      <span>❓ 확인문제 10개</span>
+      <span>🗂️ 활동 정리 · 자주 막히는 에러 표</span>
+    </div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·Tip·주의 박스를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 Django 공식 동작 기준으로 바로잡았습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#ch0">0. 학습 시작</a>
+    <a href="#ch1">1. Django Form</a>
+    <a href="#ch2">2. Django ModelForm</a>
+    <a href="#ch3">3. ModelForm 적용 · save 메서드</a>
+    <a href="#ch4">4. HTTP 요청 다루기</a>
+    <a href="#ch5">5. 참고</a>
+    <a href="#apx">부록</a>
+    <a href="#quiz">확인문제 (원본 슬라이드 수록)</a>
+    <a href="#sum">활동 정리</a>
+  </nav>
+</div>
+
+<main>
+
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>학습 시작 — 데이터를 직접 검증하지 않아도 된다</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"웹사이트에서 회원가입이나 글을 쓸 때, 우리는 직접 데이터가 제대로 입력됐는지 일일이 확인하지 않아도 됩니다!"</h3>
+      <ol>
+        <li>Django가 제공하는 <b>Form</b>을 통해 입력 데이터가 정확한지 확인합니다.</li>
+        <li>입력된 정보를 자동으로 <b>ModelForm</b> 클래스의 <b>save()</b> 메서드를 통해 데이터베이스에 저장하고, 사용자에게 결과를 응답합니다.</li>
+        <li>사용자가 잘못된 정보를 입력하면 Django의 Form 클래스가 제공하는 <b>is_valid()</b> 메서드를 통해 자동으로 오류 메시지를 전달해줍니다.</li>
+      </ol>
+      <p>이번 시간이 끝나면, Django의 Form 및 ModelForm 클래스를 통해 복잡한 유효성 검사 로직을 작성하지 않고도 웹페이지가 정확하게 데이터를 처리하도록 만들 수 있습니다.</p>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>Django Form이 무엇인지 설명할 수 있다.</li>
+        <li>Form 클래스를 정의하고 유효성 검사를 직접 구현할 수 있다.</li>
+        <li>ModelForm을 활용하여 데이터베이스와 연동되는 입력 폼을 생성할 수 있다.</li>
+        <li>HTTP 요청 방식(GET/POST)에 따라 view 함수의 구조를 통합할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>Django Form</h2><p class="desc">HTML form의 한계 · 유효성 검사 · Form class 정의 · new 로직 적용 · Widgets</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">1-1</span>HTML 'form'의 한계와 유효성 검사</h3>
+      <p>지금까지 사용자로부터 데이터를 제출받기 위해 HTML form을 사용했습니다. 그러나 <b>비정상적 혹은 악의적인 요청</b>을 필터링할 수 없음. 유효한 데이터인지에 대한 확인이 필요합니다.</p>
+      <p><b>유효성 검사란?</b> — 수집한 데이터가 정확하고 유효한지 확인하는 과정. 유효성 검사를 구현하기 위해서는 입력 값, 형식, 중복, 범위, 보안 등 많은 것들을 고려해야 함. 이런 과정과 기능을 직접 개발하는 것이 아닌 Django가 제공하는 Form을 사용합니다.</p>
+      <p><b>Django Form</b> — 사용자 입력 데이터를 수집하고, <b>처리 및 유효성 검사를 수행하기 위한 도구</b>. 유효성 검사를 단순화하고 자동화할 수 있는 기능을 제공하며, 개발자는 이를 통해 빠르고 일관된 입력 검증 기능을 구현할 수 있습니다.</p>
+      <div class="note tip">사용자가 잘못 입력한 데이터는 자동으로 오류로 처리되어 안전성을 높입니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-2</span>Form Class 정의</h3>
+      <p>Form Class를 상속받아 제목과 내용에 대한 사용자 입력을 받는 ArticleForm을 정의합니다. (앱 폴더에 <code>forms.py</code> 직접 생성)</p>
+<pre class="formula"># articles/forms.py
+from django import forms
+
+class ArticleForm(forms.Form):
+    title = forms.CharField(max_length=10)
+    content = forms.CharField()</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-3</span>Form Class를 적용한 new 로직</h3>
+<pre class="formula"># articles/views.py
+from .forms import ArticleForm
+
+def new(request):
+    form = ArticleForm()
+    context = {
+        'form': form,
+    }
+    return render(request, 'articles/new.html', context)</pre>
+<pre class="formula">&lt;!-- articles/new.html : new 페이지에서 form 인스턴스 출력 --&gt;
+&lt;form action="{% url 'articles:create' %}" method="POST"&gt;
+  {% csrf_token %}
+  {{ form }}
+  &lt;input type="submit"&gt;
+&lt;/form&gt;</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">1-4</span>Form class가 대체하는 것</h3>
+      <p>개발자 도구로 렌더링 결과를 보면, Form class가 <b>label과 input을 자동으로 생성</b>했고, 유효성 속성(<code>maxlength="10"</code>, <code>required</code>)까지 붙여 줍니다. <code>&lt;form&gt;</code> 태그, csrf_token, 제출 버튼은 직접 작성합니다.</p>
+<pre class="formula">&lt;input type="hidden" name="csrfmiddlewaretoken" value="..."&gt;
+&lt;label for="id_title"&gt;Title:&lt;/label&gt;
+&lt;input type="text" name="title" maxlength="10" required id="id_title"&gt;
+&lt;label for="id_content"&gt;Content:&lt;/label&gt;
+&lt;input type="text" name="content" required id="id_content"&gt;</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">1-5</span>Widgets</h3>
+      <p><b>Widgets</b> — 폼 필드를 화면에 표시하는 HTML 입력 요소를 정의하는 구성요소. HTML 'input' element의 표현을 담당합니다.</p>
+      <p>Django Form의 widgets은 각 필드가 HTML에서 어떻게 렌더링될지를 결정합니다. 예를 들어, TextInput, Select, CheckboxInput 등 다양한 위젯 클래스를 사용해 입력 방식과 속성을 세부 조정할 수 있습니다.</p>
+<pre class="formula"># articles/forms.py
+class ArticleForm(forms.Form):
+    title = forms.CharField(max_length=10)
+    content = forms.CharField(widget=forms.Textarea)   # 한 줄 input → 여러 줄 textarea</pre>
+      <div class="note">Widget은 단순히 <b>input 요소의 속성 및 출력되는 부분을 변경</b>하는 것이며, 유효성 검사와는 관계없습니다.</div>
+      <p class="src">https://docs.djangoproject.com/ko/5.2/ref/forms/widgets/#built-in-widgets</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>Django ModelForm</h2><p class="desc">Form vs ModelForm · ModelForm class · Meta class · fields / exclude · 주의사항</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">2-1</span>Form vs. ModelForm</h3>
+      <table class="compare">
+        <tr><th>Form</th><th>ModelForm</th></tr>
+        <tr><td>사용자 입력 데이터를 <b>DB에 저장하지 않을 때</b> (ex. 검색, 로그인)</td><td>사용자 입력 데이터를 <b>DB에 저장해야 할 때</b> (ex. 게시글 작성, 회원가입)</td></tr>
+      </table>
+      <p><b>ModelForm</b> — Model과 연결된 Form을 자동으로 생성해주는 기능을 제공. ModelForm은 Form 클래스와 Model 클래스를 결합한 형태로, 모델 필드를 기반으로 입력 폼을 자동 생성해 줍니다. 데이터 수집과 저장 과정을 동시에 처리할 수 있도록 도와줍니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-2</span>ModelForm class 정의</h3>
+<pre class="formula"># articles/forms.py
+from django import forms
+from .models import Article
+
+class ArticleForm(forms.ModelForm):
+    class Meta:
+        model = Article
+        fields = '__all__'</pre>
+      <p>렌더링 결과: title은 <code>input type="text" maxlength="10"</code>, content는 모델의 TextField에 맞춰 <code>textarea</code>가 자동으로 생성됩니다. created_at, updated_at은 자동 입력 필드라 form에 나오지 않습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-3</span>Meta class</h3>
+      <ul>
+        <li>ModelForm의 <b>정보를 작성하는 곳</b></li>
+        <li>Meta class는 ModelForm 내부에서 어떤 모델과 연결할지, 어떤 필드를 사용할지 등을 정의하는 설정 공간</li>
+        <li>폼의 동작 방식을 제어하는 핵심 역할</li>
+      </ul>
+      <div class="subhead">'fields' 및 'exclude' 속성</div>
+<pre class="formula">class ArticleForm(forms.ModelForm):
+    class Meta:
+        model = Article
+        fields = ('title',)        # 포함할 필드
+
+class ArticleForm(forms.ModelForm):
+    class Meta:
+        model = Article
+        exclude = ('title',)       # 제외할 필드</pre>
+      <p>exclude 속성을 사용하여 모델에서 포함하지 않을 필드를 지정할 수도 있습니다.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">2-4</span>Meta class 주의사항</h3>
+      <p>Django에서 ModelForm에 대한 추가 정보나 속성을 작성하는 클래스 구조를 Meta 클래스로 작성했을 뿐이며, 파이썬의 inner class와 같은 문법적인 관점으로 접근하지 말 것. 문법상 클래스 안의 클래스(inner class)가 맞지만, <b>상속하거나 객체를 만드는 용도가 아니라 설정을 적어두는 공간</b>으로 이해하기.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>ModelForm 적용 · save 메서드</h2><p class="desc">create · is_valid() · 에러 메시지 출력 · edit · update · save()의 생성/수정 구분</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">3-1</span>ModelForm을 적용한 create 로직</h3>
+<pre class="formula"># articles/views.py
+from .forms import ArticleForm
+
+def create(request):
+    form = ArticleForm(request.POST)
+    if form.is_valid():
+        article = form.save()
+        return redirect('articles:detail', article.pk)
+    context = {
+        'form': form,
+    }
+    return render(request, 'articles/new.html', context)</pre>
+      <p>제목 input에 스페이스바로 <b>공백만 입력 후 제출</b> 시 에러 메시지 출력 확인 → 유효성 검사의 결과: <code>* This field is required.</code></p>
+      <div class="note"><b>Tip</b> — 아무것도 입력하지 않고 제출하면 Django보다 <b>브라우저가 먼저</b> "이 입력란을 작성하세요"라고 막습니다. Form이 input에 <code>required</code> 속성을 자동으로 붙여주기 때문입니다. 공백만 입력하면 브라우저 검사는 통과하지만, <b>Django가 앞뒤 공백을 제거한 뒤 빈 값으로 판단</b>해 에러를 돌려줍니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-2</span>is_valid()</h3>
+      <p>여러 유효성 검사를 실행하고, 데이터가 유효한지 여부를 <b>Boolean으로 반환</b>합니다.</p>
+      <div class="subhead">공백 데이터가 유효하지 않은 이유와 에러메시지가 출력되는 과정</div>
+      <ul>
+        <li>별도로 명시하지 않았지만 <b>모델 필드에는 기본적으로 빈 값은 허용하지 않는 제약조건</b>이 설정되어 있었음 (blank=False)</li>
+        <li>빈 값은 is_valid()에 의해 False로 평가되고 form 객체에는 그에 맞는 <b>에러 메시지가 포함</b>되어 다음 코드로 진행됨 (context에 담겨 new.html을 다시 렌더링)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-3</span>ModelForm을 적용한 edit · update 로직</h3>
+<pre class="formula"># articles/views.py
+def edit(request, pk):
+    article = Article.objects.get(pk=pk)
+    form = ArticleForm(instance=article)
+    context = {
+        'article': article,
+        'form': form,
+    }
+    return render(request, 'articles/edit.html', context)
+
+def update(request, pk):
+    article = Article.objects.get(pk=pk)
+    form = ArticleForm(request.POST, instance=article)
+    if form.is_valid():
+        form.save()
+        return redirect('articles:detail', article.pk)
+    context = {
+        'article': article,
+        'form': form,
+    }
+    return render(request, 'articles/edit.html', context)</pre>
+<pre class="formula">&lt;!-- articles/edit.html --&gt;
+&lt;form action="{% url 'articles:update' article.pk %}" method="POST"&gt;
+  {% csrf_token %}
+  {{ form }}
+  &lt;input type="submit"&gt;
+&lt;/form&gt;</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">3-4</span>save 메서드</h3>
+      <p>데이터베이스 객체를 만들고 저장하는 ModelForm의 인스턴스 메서드. form 데이터가 유효한 경우, save() 메서드를 호출하면 모델 인스턴스를 생성하고 저장됩니다. <b>instance 인자를 통해 새 객체 생성과 기존 객체 수정도 구분</b>할 수 있습니다. 이 과정을 통해 SQL을 작성하지 않고도 데이터를 저장할 수 있습니다.</p>
+<pre class="formula"># CREATE
+form = ArticleForm(request.POST)
+form.save()
+
+# UPDATE
+form = ArticleForm(request.POST, instance=article)
+form.save()</pre>
+      <p>save() 메서드가 생성과 수정을 구분하는 법 — <b>키워드 인자 instance 여부</b>를 통해 생성할지, 수정할지를 결정합니다.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">3-5</span>Django Form 정리</h3>
+      <p>"사용자로부터 데이터를 수집하고 처리하기 위한 강력하고 유연한 도구" — HTML form의 생성, 데이터 유효성 검사 및 처리를 쉽게 할 수 있도록 도움.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>HTTP 요청 다루기</h2><p class="desc">view 함수 구조 변화 · new &amp; create 결합 · edit &amp; update 결합 · 기존 코드 정리</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">4-1</span>View 함수 구조 변화</h3>
+      <p>"new는 GET method 요청만을, create는 POST method 요청만을 처리" → HTTP request method 차이점을 활용해 <b>동일한 목적을 가지는 2개의 view 함수를 하나로 구조화</b>합니다.</p>
+      <table class="compare">
+        <tr><th>요청</th><th>의미</th></tr>
+        <tr><td><code>(GET) articles/create/</code></td><td>게시글 생성 문서를 줘!</td></tr>
+        <tr><td><code>(POST) articles/create/</code></td><td>게시글을 생성해줘!</td></tr>
+      </table>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">4-2</span>new &amp; create 함수 결합 — 새로운 create view 함수</h3>
+<pre class="formula"># articles/views.py
+def create(request):
+    if request.method == 'POST':
+        form = ArticleForm(request.POST)
+        if form.is_valid():
+            article = form.save()
+            return redirect('articles:detail', article.pk)
+    else:
+        form = ArticleForm()
+    context = {
+        'form': form,
+    }
+    return render(request, 'articles/new.html', context)</pre>
+      <ol>
+        <li>new와 create view 함수의 공통점과 차이점을 기반으로 하나의 함수로 결합</li>
+        <li>두 함수의 <b>유일한 차이점</b>이었던 <b>request method에 따른 분기</b></li>
+        <li>POST일 때는 과거 create 함수 구조였던 객체 생성 및 저장 로직 처리</li>
+        <li>POST가 아닐 때는 과거 new 함수에서 진행했던 form 인스턴스 생성</li>
+        <li>context에 담기는 form은 ① is_valid()를 통과하지 못해 <b>에러메시지를 담은 form</b>이거나 ② else 문을 통한 <b>form 인스턴스</b></li>
+      </ol>
+      <div class="note tip"><b>왜 <code>request.method == 'POST'</code>를 먼저 검사할까?</b> — DB에 영향을 주는 POST를 명시적으로 확인하고, 그 외(GET 등)는 모두 페이지 제공으로 처리하기 위함입니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-3</span>기존 new 관련 코드 수정</h3>
+<pre class="formula"># articles/urls.py : 사용하지 않게 된 new url 제거
+app_name = 'articles'
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('&lt;int:pk&gt;/', views.detail, name='detail'),
+    path('create/', views.create, name='create'),
+    path('&lt;int:pk&gt;/delete/', views.delete, name='delete'),
+    path('&lt;int:pk&gt;/edit/', views.edit, name='edit'),
+    path('&lt;int:pk&gt;/update/', views.update, name='update'),
+]</pre>
+<pre class="formula">&lt;!-- index.html : new 관련 링크를 create로 변경 --&gt;
+&lt;a href="{% url 'articles:create' %}"&gt;CREATE&lt;/a&gt;
+
+&lt;!-- new.html → create.html 로 이름 변경, action도 create로 --&gt;
+&lt;h1&gt;CREATE&lt;/h1&gt;
+&lt;form action="{% url 'articles:create' %}" method="POST"&gt;</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-4</span>edit &amp; update 함수 결합 — 새로운 update view 함수</h3>
+<pre class="formula"># articles/views.py
+def update(request, pk):
+    article = Article.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = ArticleForm(request.POST, instance=article)
+        if form.is_valid():
+            form.save()
+            return redirect('articles:detail', article.pk)
+    else:
+        form = ArticleForm(instance=article)
+    context = {
+        'article': article,
+        'form': form,
+    }
+    return render(request, 'articles/update.html', context)</pre>
+      <ul>
+        <li>사용하지 않는 edit url 제거 (<code># path('&lt;int:pk&gt;/edit/', ...)</code>)</li>
+        <li>edit 관련 키워드를 update로 변경 (edit.html → update.html, 링크와 action을 <code>articles:update</code>로)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch5" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>참고</h2><p class="desc">ModelForm의 키워드 인자 구성 · Widgets 응용 · 필드를 수동으로 렌더링하기</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">5-1</span>ModelForm 키워드 인자 data와 instance 살펴보기</h3>
+<pre class="formula"># ModelForm의 상위 클래스인 BaseModelForm의 생성자 함수 모습
+class BaseModelForm(BaseForm):
+    def __init__(self, data=None, files=None, auto_id='id_%s', prefix=None,
+                 initial=None, error_class=ErrorList, label_suffix=None,
+                 empty_permitted=False, instance=None, use_required_attribute=None,
+                 renderer=None):</pre>
+      <ul>
+        <li><code>data</code>는 <b>첫 번째 자리</b>라서 'data='를 쓰지 않고 값만 순서대로 넘길 수 있음 → <code>ArticleForm(request.POST)</code></li>
+        <li><code>instance</code>는 <b>9번째 자리</b>라서 순서대로 넘기려면 앞의 8개를 모두 채워야 함 → 그래서 <code>instance=article</code>처럼 <b>이름을 붙여</b> 넘김</li>
+        <li><code>files</code>는 2번째 자리 (다음 Static files 시간에 <code>request.FILES</code>로 사용)</li>
+      </ul>
+      <p class="src">https://github.com/django/django/blob/main/django/forms/models.py#L345</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">5-2</span>Widgets 응용</h3>
+<pre class="formula"># articles/forms.py
+class ArticleForm(forms.ModelForm):
+    title = forms.CharField(
+        label='제목',
+        widget=forms.TextInput(
+            attrs={
+                'class': 'my-title',
+                'placeholder': 'Enter the title',
+            }
+        ),
+    )
+    content = forms.CharField(
+        label='내용',
+        widget=forms.Textarea(
+            attrs={
+                'class': 'my-content',
+                'placeholder': 'Enter the content',
+                'rows': 5,
+                'cols': 50,
+            }
+        ),
+        error_messages={'required': '내용을 입력해주세요.'},
+    )
+
+    class Meta:
+        model = Article
+        fields = '__all__'</pre>
+      <div class="note">필드를 직접 선언하면 모델에서 자동으로 가져오던 설정(label, max_length 등)을 <b>직접 다시 써야</b> 합니다. <code>attrs</code>의 <code>maxlength</code>는 브라우저 입력 제한일 뿐이므로, 서버 검증까지 원하면 <code>forms.CharField(max_length=10, ...)</code>처럼 써야 합니다.</div>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">5-3</span>필드를 수동으로 렌더링 하기</h3>
+<pre class="formula">&lt;form action="{% url 'articles:create' %}" method="POST"&gt;
+  {% csrf_token %}
+  {{ form.non_field_errors }}
+  &lt;div&gt;
+    {{ form.title.errors }}
+    &lt;label for="{{ form.title.id_for_label }}"&gt;Title:&lt;/label&gt;
+    {{ form.title }}
+  &lt;/div&gt;
+  &lt;div&gt;
+    {{ form.content.errors }}
+    &lt;label for="{{ form.content.id_for_label }}"&gt;Content:&lt;/label&gt;
+    {{ form.content }}
+  &lt;/div&gt;
+  &lt;input type="submit"&gt;
+&lt;/form&gt;</pre>
+      <p>출력 옵션: <code>{{ form.as_p }}</code>(각 필드를 &lt;p&gt;로 감쌈), <code>{{ form.as_ul }}</code>, <code>{{ form.as_table }}</code>, <code>{{ form.as_div }}</code></p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="apx" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">A</div>
+    <div><h2>부록 — 따라하기만 하면 CRUD 완성! (ModelForm CRUD 가이드)</h2><p class="desc">프로젝트 crud / 앱 articles 기준. 위에서부터 순서대로 작성</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">A-1</span>전체 구조와 요청 흐름</h3>
+<pre class="formula">00_ModelForm_crud/
+└── crud/
+    ├── manage.py
+    ├── crud/                 # 프로젝트 설정
+    │   ├── settings.py
+    │   └── urls.py
+    ├── templates/
+    │   └── base.html         # 공통 레이아웃
+    └── articles/             # 앱
+        ├── models.py         # 테이블 정의
+        ├── forms.py          # ModelForm 정의
+        ├── urls.py           # 앱 URL
+        ├── views.py          # 요청 처리
+        └── templates/articles/
+            ├── index.html
+            ├── create.html
+            ├── detail.html
+            └── update.html</pre>
+      <table class="compare">
+        <tr><th>파일</th><th>역할</th></tr>
+        <tr><td class="k">models.py</td><td>DB 테이블 구조</td></tr>
+        <tr><td class="k">forms.py</td><td>모델 기반 입력 양식 + 유효성 검사</td></tr>
+        <tr><td class="k">urls.py</td><td>주소 ↔ view 연결</td></tr>
+        <tr><td class="k">views.py</td><td>요청 받아 DB 처리 후 응답</td></tr>
+        <tr><td class="k">templates/</td><td>화면 HTML</td></tr>
+      </table>
+      <div class="flow"><span>브라우저</span><i>→</i><span>urls.py</span><i>→</i><span>views.py</span><i>→</i><span>forms.py / models.py</span><i>→</i><span>templates</span><i>→</i><span>브라우저</span></div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">A-2</span>1. 프로젝트 준비 및 가상환경</h3>
+<pre class="formula">python -m venv venv
+source venv/Scripts/activate     # Windows (git bash)
+# source venv/bin/activate       # Mac / Linux
+pip install django
+django-admin startproject crud .
+python manage.py runserver       # http://127.0.0.1:8000 확인</pre>
+      <table class="compare">
+        <tr><th>명령</th><th>의미</th></tr>
+        <tr><td><code>python -m venv venv</code></td><td>가상환경 생성 (폴더명 venv)</td></tr>
+        <tr><td><code>activate</code></td><td>가상환경 진입 → 프롬프트에 (venv) 표시</td></tr>
+        <tr><td><code>startproject crud .</code></td><td>현재 폴더에 프로젝트 생성 ('.' 주의)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="tag">A-3</span>2. 앱 생성 · 설정 · 공통 레이아웃</h3>
+<pre class="formula">python manage.py startapp articles</pre>
+<pre class="formula"># crud/settings.py
+INSTALLED_APPS = [
+    'articles',          # 앱 등록 (맨 위)
+    'django.contrib.admin',
+    ...
+]
+TEMPLATES = [{
+    ...
+    'DIRS': [BASE_DIR / 'templates'],   # 공통 templates
+    'APP_DIRS': True,
+}]</pre>
+      <ul><li>INSTALLED_APPS: 등록 안 하면 모델·템플릿 인식 불가</li><li>DIRS: 최상위 templates/ 폴더를 Django가 찾도록 지정</li></ul>
+<pre class="formula">&lt;!-- crud/templates/base.html --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;Document&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;header&gt;
+    &lt;a href="{% url 'articles:index' %}"&gt;목록&lt;/a&gt; |
+    &lt;a href="{% url 'articles:create' %}"&gt;새 글&lt;/a&gt;
+  &lt;/header&gt;
+  {% block content %}{% endblock content %}
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+      <p>이후 모든 페이지는 <code>{% extends "base.html" %}</code>로 시작합니다.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">A-4</span>모델 + ModelForm</h3>
+<pre class="formula"># articles/models.py
+from django.db import models
+
+class Article(models.Model):
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)   # 생성 시 1회 자동 저장
+    updated_at = models.DateTimeField(auto_now=True)       # 저장할 때마다 갱신
+
+    def __str__(self):
+        return self.title</pre>
+<pre class="formula">python manage.py makemigrations   # 설계도 생성
+python manage.py migrate          # DB 반영</pre>
+<pre class="formula"># articles/forms.py
+from django.forms import ModelForm
+from .models import Article
+
+class ArticleForm(ModelForm):
+    class Meta:
+        model = Article
+        fields = ('title', 'content',)
+        # fields = '__all__'</pre>
+      <ul><li><code>model</code>: 어떤 모델 기준으로 양식을 생성할지</li><li><code>fields</code>: 사용자에게 입력받을 필드만 지정 (created_at 등 자동 필드 제외)</li></ul>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">A-5</span>URL 작성 (프로젝트 → 앱)</h3>
+<pre class="formula"># crud/urls.py
+from django.contrib import admin
+from django.urls import path, include
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('articles/', include('articles.urls')),   # articles/ 이하 → 앱 urls.py
+]
+
+# articles/urls.py
+from django.urls import path
+from . import views
+app_name = 'articles'                                     # namespace
+urlpatterns = [
+    path('', views.index, name='index'),                  # 목록
+    path('create/', views.create, name='create'),         # 생성 화면 + 생성 요청
+    path('&lt;int:pk&gt;/', views.detail, name='detail'),       # 상세
+    path('&lt;int:pk&gt;/update/', views.update, name='update'),# 수정 화면 + 수정 요청
+    path('&lt;int:pk&gt;/delete/', views.delete, name='delete'),# 삭제 요청
+]</pre>
+      <table class="compare">
+        <tr><th>항목</th><th>역할</th><th>템플릿에서 사용</th></tr>
+        <tr><td class="k">app_name</td><td>URL namespace (앱 구분)</td><td><code>{% url "articles:index" %}</code></td></tr>
+        <tr><td class="k">name</td><td>각 URL 별명. 주소가 바뀌어도 템플릿 수정 불필요</td><td><code>{% url "articles:detail" article.pk %}</code></td></tr>
+        <tr><td class="k">&lt;int:pk&gt;</td><td>variable routing: URL 일부를 정수로 받아 view 인자 pk로 전달</td><td><code>articles/3/</code> → <code>detail(request, pk=3)</code></td></tr>
+      </table>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">A-6</span>View 작성 — 기능 한눈 표</h3>
+      <table class="compare">
+        <tr><th>기능</th><th>URL</th><th>method</th><th>view</th><th>템플릿</th></tr>
+        <tr><td class="k">index (목록)</td><td>articles/</td><td>GET</td><td>index</td><td>index.html</td></tr>
+        <tr><td class="k">CREATE</td><td>articles/create/</td><td>GET, POST</td><td>create</td><td>create.html</td></tr>
+        <tr><td class="k">READ</td><td>articles/&lt;pk&gt;/</td><td>GET</td><td>detail</td><td>detail.html</td></tr>
+        <tr><td class="k">UPDATE</td><td>articles/&lt;pk&gt;/update/</td><td>GET, POST</td><td>update</td><td>update.html</td></tr>
+        <tr><td class="k">DELETE</td><td>articles/&lt;pk&gt;/delete/</td><td>POST</td><td>delete</td><td>없음 (redirect)</td></tr>
+      </table>
+<pre class="formula"># articles/views.py
+from django.shortcuts import render, redirect
+from .forms import ArticleForm
+from .models import Article
+
+def index(request):
+    articles = Article.objects.all().order_by('-pk')   # 최신 글 위로
+    context = {'articles': articles}                    # 템플릿에 넘길 데이터(dict)
+    return render(request, 'articles/index.html', context)
+
+def create(request):
+    if request.method == 'POST':
+        form = ArticleForm(request.POST)        # 사용자 입력 담은 양식
+        if form.is_valid():                     # 유효성 검사
+            article = form.save()               # DB 저장 + 저장된 객체 반환
+            return redirect('articles:detail', article.pk)
+    else:
+        form = ArticleForm()                    # 빈 양식
+    context = {'form': form}
+    return render(request, 'articles/create.html', context)
+
+def detail(request, pk):
+    article = Article.objects.get(pk=pk)        # pk: URL &lt;int:pk&gt;에서 전달된 값, 해당 글 1개 조회
+    context = {'article': article}
+    return render(request, 'articles/detail.html', context)
+
+def update(request, pk):
+    article = Article.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = ArticleForm(data=request.POST, instance=article)   # 입력값 + 기존 글
+        if form.is_valid():
+            form.save()
+            return redirect('articles:detail', pk)
+    else:
+        form = ArticleForm(instance=article)                      # 기존 글이 채워진 양식
+    context = {'form': form}
+    return render(request, 'articles/update.html', context)
+
+def delete(request, pk):
+    if request.method == 'POST':
+        article = Article.objects.get(pk=pk)
+        article.delete()
+    return redirect('articles:index')</pre>
+      <table class="compare">
+        <tr><th>create 분기</th><th>상황</th><th>form</th></tr>
+        <tr><td class="k">GET</td><td>작성 화면 요청</td><td><code>ArticleForm()</code> 빈 양식</td></tr>
+        <tr><td class="k">POST</td><td>글쓰기 버튼 클릭</td><td><code>ArticleForm(request.POST)</code> 입력값 담긴 양식</td></tr>
+        <tr><td class="k">POST + 검증 실패</td><td>is_valid() False</td><td>if 밖으로 내려와 에러 포함 양식 다시 렌더</td></tr>
+      </table>
+      <ul>
+        <li><code>redirect('articles:detail', article.pk)</code>: 새 글 상세 페이지로 이동 (새로고침 중복 저장 방지)</li>
+        <li>update의 <code>instance=article</code>: 새 글 생성이 아닌 기존 글 수정. GET에서도 instance 전달 → 양식에 원래 내용 미리 채움</li>
+        <li>delete는 POST일 때만 삭제 → 주소창 직접 입력(GET)으로는 삭제 불가. 버튼은 detail.html에 위치, 처리 후 목록으로 redirect</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">A-7</span>템플릿</h3>
+<pre class="formula">&lt;!-- index.html --&gt;
+{% extends "base.html" %}
+{% block content %}
+  &lt;h1&gt;게시글 목록&lt;/h1&gt;
+  &lt;div&gt;
+    {% for article in articles %}
+      &lt;a href="{% url "articles:detail" article.pk %}"&gt;&lt;p&gt;{{ article.title }}&lt;/p&gt;&lt;/a&gt;
+    {% endfor %}
+  &lt;/div&gt;
+{% endblock content %}
+
+&lt;!-- create.html --&gt;
+{% extends "base.html" %}
+{% block content %}
+  &lt;h1&gt;새 글 작성&lt;/h1&gt;
+  &lt;form action="" method="POST"&gt;        &lt;!-- action="": 현재 주소(create/)로 다시 요청 --&gt;
+    {% csrf_token %}                     &lt;!-- POST 요청 필수 보안 토큰 (없으면 403) --&gt;
+    {{ form.as_p }}                      &lt;!-- 필드를 &lt;p&gt;로 감싸 출력 --&gt;
+    &lt;input type="submit" value="작성하기"&gt;
+  &lt;/form&gt;
+{% endblock content %}
+
+&lt;!-- detail.html --&gt;
+{% extends "base.html" %}
+{% block content %}
+  &lt;h1&gt;게시글 상세&lt;/h1&gt;&lt;hr&gt;
+  &lt;h1&gt;{{ article.title }}&lt;/h1&gt;&lt;hr&gt;
+  &lt;p&gt;{{ article.content }}&lt;/p&gt;&lt;hr&gt;
+  &lt;a href="{% url "articles:index" %}"&gt;[목록으로]&lt;/a&gt;
+  &lt;a href="{% url "articles:update" article.pk %}"&gt;[수정하기]&lt;/a&gt;   &lt;!-- 수정: a 링크(GET으로 수정 화면) --&gt;
+  &lt;form action="{% url "articles:delete" article.pk %}" method="POST"&gt;   &lt;!-- 삭제: 데이터 변경이므로 GET 링크 금지 --&gt;
+    {% csrf_token %}
+    &lt;input type="submit" value="삭제하기"&gt;
+  &lt;/form&gt;
+{% endblock content %}
+
+&lt;!-- update.html : 구조는 create.html과 동일, 제목·버튼만 다름 --&gt;
+{% extends "base.html" %}
+{% block content %}
+  &lt;h1&gt;게시글 수정&lt;/h1&gt;
+  &lt;form action="" method="POST"&gt;
+    {% csrf_token %}
+    {{ form }}
+    &lt;input type="submit" value="수정"&gt;
+  &lt;/form&gt;
+{% endblock content %}</pre>
+      <p>확인 순서: ① 목록 화면 <code>/articles/</code> → ② 새 글 작성 후 상세로 이동 <code>/articles/create/</code> → ③ 상세에서 수정 <code>/articles/1/update/</code> → ④ 상세 화면 삭제 버튼</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">A-8</span>예정된 막힘 (증상 · 원인 · 대처)</h3>
+      <table class="compare">
+        <tr><th>증상</th><th>원인</th><th>대처</th></tr>
+        <tr><td class="k">TemplateDoesNotExist: base.html</td><td>settings.py DIRS 미설정</td><td><code>'DIRS': [BASE_DIR / 'templates']</code></td></tr>
+        <tr><td class="k">NoReverseMatch: 'articles' is not a registered namespace</td><td>app_name 누락</td><td>articles/urls.py에 <code>app_name = 'articles'</code></td></tr>
+        <tr><td class="k">403 Forbidden (CSRF)</td><td><code>{% csrf_token %}</code> 누락</td><td>&lt;form&gt; 안에 추가</td></tr>
+        <tr><td class="k">no such table: articles_article</td><td>migrate 안 함</td><td>makemigrations → migrate</td></tr>
+        <tr><td class="k">수정 화면이 빈 양식</td><td>GET 분기에 instance 누락</td><td><code>ArticleForm(instance=article)</code></td></tr>
+        <tr><td class="k">ModuleNotFoundError: django</td><td>가상환경 미활성화</td><td><code>source venv/Scripts/activate</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">Q</div>
+    <div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">문제를 먼저 풀고, 눌러서 정답과 해설을 확인하세요</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <div class="quiz-q"><div class="qq">1. 다음 중 Django Form이 하는 일로 적절하지 않은 것은?</div><ol class="opt" type="a"><li>데이터 유효성 검사</li><li>데이터 자동 저장 처리</li><li>데이터베이스에 접속하여 직접 테이블 삭제</li><li>입력 화면 생성</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — Django Form은 사용자로부터 입력받은 데이터의 화면 표시, 유효성 검사, 데이터 처리를 담당하지만, 데이터베이스의 테이블을 직접 삭제하는 기능은 제공하지 않습니다. 테이블 삭제와 같은 작업은 데이터베이스 관리자의 권한으로 수행되며 Form 클래스와는 관련이 없습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">2. ModelForm과 일반 Form의 차이에 대해 옳은 것은?</div><ol class="opt" type="a"><li>ModelForm은 DB와 연결되지 않는다.</li><li>일반 Form은 DB에 데이터를 저장할 때 사용한다.</li><li>ModelForm은 Model과 연결되어 있어 입력 데이터를 DB에 저장할 수 있다.</li><li>일반 Form은 자동 유효성 검사를 지원하지 않는다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — ModelForm은 Django의 모델(Model)과 직접 연결되어 있어 데이터베이스에 저장하거나 수정할 때 편리하게 사용할 수 있습니다. 일반 Form은 Model과 연결되지 않고 단지 입력값 수집 및 유효성 검사만 처리합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">3. 다음 중 Django Form의 유효성 검사를 수행하는 메서드는?</div><ol class="opt" type="a"><li>save()</li><li>is_valid()</li><li>redirect()</li><li>render()</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) is_valid()</b> — 사용자 입력 데이터가 유효한 형식인지 검사합니다. save()는 유효성 검사를 통과한 후 데이터를 저장할 때 사용하는 메서드입니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">4. Form의 입력 필드를 화면에 렌더링할 때 사용하는 옵션 중, 각 필드를 &lt;p&gt; 태그로 감싸주는 옵션은?</div><ol class="opt" type="a"><li>{{form.as_ul}}</li><li>{{form.as_table}}</li><li>{{form.as_p}}</li><li>{{form.as_render}}</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) {{form.as_p}}</b> — 각 입력 필드를 자동으로 &lt;p&gt; 태그로 감싸서 출력합니다. as_ul, as_table 같은 다른 옵션도 존재하지만, &lt;p&gt; 태그를 사용하는 것은 as_p입니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">5. Django에서 사용자 입력 데이터를 저장하거나 수정할 때 사용하는 메서드는?</div><ol class="opt" type="a"><li>update()</li><li>create()</li><li>save()</li><li>delete()</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) save()</b> — ModelForm의 save()로 데이터를 저장하거나 기존 데이터를 수정합니다. create(), update(), delete()는 모델(QuerySet)의 메서드로 사용될 수 있지만 Form에서 데이터를 처리할 때는 사용하지 않습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">6. Django Form 클래스의 기본 구조에서 HTML의 입력 요소를 조정할 때 사용하는 것은?</div><ol class="opt" type="a"><li>model</li><li>widget</li><li>validator</li><li>queryset</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) widget</b> — HTML 입력 요소의 스타일이나 추가 속성(placeholder, class 등)을 지정할 때 Widget을 사용합니다. 입력 필드가 HTML에서 어떻게 렌더링될지 세부적으로 조정할 수 있습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">7. Django의 ModelForm에서 사용할 필드를 선택적으로 제외할 때 사용하는 Meta 클래스 속성은?</div><ol class="opt" type="a"><li>fields</li><li>exclude</li><li>remove</li><li>drop</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) exclude</b> — exclude는 폼 생성 시 제외하고 싶은 필드를 지정하는 데 사용합니다. 반면 fields는 포함할 필드를 명시적으로 정의할 때 사용합니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">8. 다음 중 Django Form에서 입력값이 유효하지 않을 때 발생하는 동작으로 가장 알맞은 것은?</div><ol class="opt" type="a"><li>서버가 500 에러를 반환한다.</li><li>Form 객체가 생성되지 않는다.</li><li>is_valid()는 False를 반환하고 오류 메시지가 form 객체에 저장된다.</li><li>잘못된 값도 그대로 저장된다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c)</b> — 오류 내용은 form 객체의 errors 속성에 저장되어 사용자에게 표시할 수 있습니다. 이 과정은 자동으로 수행되며 서버 에러가 발생하지 않고, 잘못된 값도 저장되지 않습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">9. Form 위젯에서 HTML 속성(placeholder, class 등)을 설정할 수 있는 곳은?</div><ol class="opt" type="a"><li>fields</li><li>model</li><li>attrs</li><li>exclude</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) attrs</b> — 입력 필드에 추가 속성을 지정하려면 Widget 내부의 attrs 속성을 사용합니다. 이를 통해 화면에 표시되는 HTML 요소를 세부적으로 제어할 수 있습니다.</div></details></div>
+      <div class="quiz-q"><div class="qq">10. 다음 중 Django view 함수가 HTTP의 POST 요청을 처리하는 상황으로 올바른 것은?</div><ol class="opt" type="a"><li>화면에 폼을 출력하여 사용자에게 보여준다.</li><li>사용자가 입력한 데이터를 받아서 유효성 검사를 수행한다.</li><li>데이터베이스에 있는 데이터를 화면에 표시한다.</li><li>URL 주소를 통해 직접 화면에 접근할 때 사용된다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b)</b> — POST 요청은 사용자가 입력한 데이터를 서버로 전송하여 처리할 때 사용됩니다. 사용자가 제출한 폼 데이터를 받아 유효성 검사를 거쳐 데이터베이스에 저장하거나 처리하는 데 활용됩니다.</div></details></div>
+    </div>
+    <div class="card full">
+      <h3>관련 실습 문제</h3>
+      <div class="pillrow"><span class="pill">2686. ModelForm 기본 사용 예제</span><span class="pill">3034. Form과 ModelForm 작성</span><span class="pill">3035. Form과 ModelForm을 활용한 CRUD</span><span class="pill">2687. HTTP method 사용 예제</span><span class="pill">2689. 특정 HTTP method 요청 예제</span><span class="pill">3036. HTTP requests 관리와 코드 개선</span><span class="pill">2688. Form widget 사용법 예제</span><span class="pill">3234·3235. 메뉴 관리 시스템 - widget 활용</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head">
+    <div class="section-num">★</div>
+    <div><h2>활동 정리 — 핵심 키워드</h2><p class="desc">이번 시간의 핵심 개념 한눈에 보기</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">Form</td><td>사용자 입력을 처리하고 유효성 검사를 자동화하기 위한 Django 클래스</td><td><code>class ArticleForm(forms.Form)</code></td></tr>
+        <tr><td class="k">is_valid()</td><td>입력 데이터의 유효성을 검사하여 True/False 반환</td><td><code>if form.is_valid():</code></td></tr>
+        <tr><td class="k">save()</td><td>유효한 데이터를 데이터베이스에 저장</td><td><code>form.save()</code></td></tr>
+        <tr><td class="k">ModelForm</td><td>모델과 연결된 폼을 자동 생성해주는 Django 클래스</td><td><code>class ArticleForm(forms.ModelForm)</code></td></tr>
+        <tr><td class="k">Meta class</td><td>ModelForm 내부에서 model과 fields를 정의하는 내부 클래스</td><td><code>class Meta: model = Article; fields = '__all__'</code></td></tr>
+        <tr><td class="k">Widget</td><td>폼 필드를 HTML 요소로 어떻게 보여줄지 정의하는 구성 요소</td><td><code>forms.Textarea(attrs={'placeholder': '내용 입력'})</code></td></tr>
+        <tr><td class="k">instance</td><td>ModelForm에서 기존 데이터를 수정할 때 사용되는 인자</td><td><code>form = ArticleForm(instance=article)</code></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>SSAFY 16기 「Django Form」(2025-10-20 오전) 강의 슬라이드 78장 + 「따라하기만 하면 CRUD 완성!」 가이드 11쪽 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

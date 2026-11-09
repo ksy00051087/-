@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django · SQL 치트시트</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · Django 08장 + DB 03장 · 헷갈리는 것만 모음</span>
+    <h1>Django · SQL 치트시트</h1>
+    <p class="sub">비슷해 보여서 섞이기 쉬운 30쌍과 자주 만나는 에러 13개를 한 장에 모았습니다. 시험·실습 직전에 훑어보는 용도이고, 자세한 설명은 각 장의 개념정리 페이지에 있습니다.</p>
+    <div class="hero-meta">
+      <span>🔀 헷갈리는 쌍 30개</span>
+      <span>🚨 에러 → 원인 13개</span>
+      <span>📄 개념정리 11페이지와 짝</span>
+    </div>
+    <div class="hero-note">💡 표의 왼쪽(A)과 오른쪽(B)을 가린 채 말로 설명해 보면 빠르게 점검할 수 있습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#ch1">1. View · Model · ORM</a>
+    <a href="#ch2">2. Form · Static · Media</a>
+    <a href="#ch3">3. Authentication</a>
+    <a href="#ch4">4. SQL</a>
+    <a href="#ch5">5. 모델 관계 · 쿼리 최적화</a>
+    <a href="#ch6">6. Django REST Framework</a>
+    <a href="#err">에러 메시지로 원인 찾기</a>
+  </nav>
+</div>
+
+<main>
+
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>View · Model · ORM</h2><p class="desc">응답 방식 · 조회 · 필드 옵션 · migration</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>비교</th><th>A</th><th>B</th></tr>
+        <tr><td class="k">render vs redirect</td><td>템플릿을 렌더링해 바로 응답</td><td>클라이언트에게 다른 URL로 다시 GET 요청하라고 응답</td></tr>
+        <tr><td class="k">get() vs filter()</td><td>인스턴스 1개. 없거나 여러 개면 예외</td><td>QuerySet. 없으면 빈 QuerySet</td></tr>
+        <tr><td class="k">null vs blank</td><td>DB에 NULL 허용</td><td>form 유효성 검사에서 빈 값 허용</td></tr>
+        <tr><td class="k">auto_now_add vs auto_now</td><td>처음 생성될 때만 시각 저장</td><td>저장할 때마다 시각 저장</td></tr>
+        <tr><td class="k">makemigrations vs migrate</td><td>모델 → migration 파일(설계도) 생성</td><td>migration 파일 → SQL로 DB에 반영</td></tr>
+      </table>
+<pre class="formula">return render(request, 'articles/detail.html', context)   # 화면을 바로 그림
+return redirect('articles:detail', article.pk)             # 다른 URL로 다시 요청하게 함
+
+Article.objects.get(pk=1)          # 객체 1개 (없으면 DoesNotExist)
+Article.objects.filter(title='a')  # QuerySet (없으면 &lt;QuerySet []&gt;)</pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>Form · Static · Media</h2><p class="desc">폼 종류 · 인자 순서 · commit · 정적/미디어 경로</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>비교</th><th>A</th><th>B</th></tr>
+        <tr><td class="k">Form vs ModelForm</td><td>DB 저장 안 함(검색·로그인), save 없음</td><td>DB 저장(게시글·회원가입), save 있음</td></tr>
+        <tr><td class="k">ArticleForm(...) vs AuthenticationForm(...)</td><td>첫 인자 = data (request.POST)</td><td>첫 인자 = request, 둘째 = data</td></tr>
+        <tr><td class="k">PasswordChangeForm(...)</td><td>첫 인자 = user (request.user)</td><td>둘째 = data</td></tr>
+        <tr><td class="k">save() vs save(commit=False)</td><td>인스턴스 생성 + DB 저장</td><td>인스턴스만 반환, 빠진 값 채운 뒤 직접 save</td></tr>
+        <tr><td class="k">STATIC_URL vs 실제 경로</td><td>웹에서 쓰는 주소 별명(static/)</td><td>앱/static/, STATICFILES_DIRS</td></tr>
+        <tr><td class="k">MEDIA_ROOT vs MEDIA_URL</td><td>업로드 파일의 실제 저장 폴더</td><td>웹 주소 별명(media/)</td></tr>
+      </table>
+<pre class="formula">ArticleForm(request.POST, request.FILES, instance=article)
+AuthenticationForm(request, request.POST)
+PasswordChangeForm(request.user, request.POST)
+UserChangeForm(request.POST, instance=request.user)   # CustomUserChangeForm
+
+comment = comment_form.save(commit=False)
+comment.article = article
+comment.user = request.user
+comment.save()</pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>Authentication</h2><p class="desc">쿠키·세션 · User 모델 · 참조 방법 · 로그인 확인 · 탈퇴</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>비교</th><th>A</th><th>B</th></tr>
+        <tr><td class="k">쿠키 vs 세션</td><td>클라이언트 저장</td><td>서버 저장(쿠키엔 session id만)</td></tr>
+        <tr><td class="k">AbstractUser vs AbstractBaseUser</td><td>기본 User의 모든 필드 포함</td><td>최소 필드만, 완전히 새로운 인증용</td></tr>
+        <tr><td class="k">settings.AUTH_USER_MODEL vs get_user_model()</td><td>문자열, models.py에서</td><td>클래스, models.py 외 모든 곳</td></tr>
+        <tr><td class="k">is_authenticated vs @login_required</td><td>속성(괄호 없음), 분기용</td><td>데코레이터, 비로그인이면 로그인 페이지로</td></tr>
+        <tr><td class="k">탈퇴 순서</td><td>request.user.delete() 먼저</td><td>그다음 auth_logout(request)</td></tr>
+      </table>
+<pre class="formula"># models.py
+user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+# forms.py / views.py
+User = get_user_model()
+
+# 템플릿·view 분기
+{% if request.user.is_authenticated %} ... {% endif %}</pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch4" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>SQL</h2><p class="desc">조건 위치 · 삭제 범위 · NULL 비교 · JOIN</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>비교</th><th>A</th><th>B</th></tr>
+        <tr><td class="k">WHERE vs HAVING</td><td>개별 행, GROUP BY 이전</td><td>그룹, GROUP BY 이후</td></tr>
+        <tr><td class="k">DELETE vs DROP TABLE</td><td>레코드 삭제</td><td>테이블(구조+데이터) 삭제</td></tr>
+        <tr><td class="k">= NULL vs IS NULL</td><td>UNKNOWN(의도대로 동작 안 함)</td><td>올바른 NULL 비교</td></tr>
+        <tr><td class="k">INNER JOIN vs LEFT JOIN</td><td>양쪽에 모두 일치하는 행만</td><td>왼쪽 전부 + 일치 없으면 NULL</td></tr>
+      </table>
+      <div class="flow"><span>FROM</span><i>→</i><span>WHERE</span><i>→</i><span>GROUP BY</span><i>→</i><span>HAVING</span><i>→</i><span>SELECT</span><i>→</i><span>ORDER BY</span><i>→</i><span>LIMIT</span></div>
+<pre class="formula">SELECT Composer, AVG(Milliseconds / 60000) AS avgOfMinute
+FROM tracks
+GROUP BY Composer
+HAVING avgOfMinute &lt; 10;        -- 집계 조건은 WHERE가 아니라 HAVING
+
+SELECT users.name FROM users
+LEFT JOIN articles ON articles.userId = users.id
+WHERE articles.userId IS NULL;  -- LEFT JOIN + IS NULL = "~한 적 없는"</pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch5" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>모델 관계 · 쿼리 최적화</h2><p class="desc">참조/역참조 · FK 위치 · select/prefetch · exists</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>비교</th><th>A</th><th>B</th></tr>
+        <tr><td class="k">참조 vs 역참조</td><td>FK를 가진 쪽에서: <code>comment.article</code></td><td>반대쪽에서: <code>article.comment_set.all()</code></td></tr>
+        <tr><td class="k">FK 위치</td><td>N쪽(Comment)에 둔다</td><td>M:N은 어느 쪽이든 되고 중개 테이블이 생김</td></tr>
+        <tr><td class="k">select_related vs prefetch_related</td><td>N:1 참조·1:1, SQL JOIN 1쿼리</td><td>M:N·역참조, 별도 쿼리 + Python JOIN</td></tr>
+        <tr><td class="k">in .all() vs .exists()</td><td>목록 전체를 가져와 비교</td><td>DB에서 존재 여부만 확인</td></tr>
+      </table>
+<pre class="formula"># User - Article 사이의 related manager 4개
+article.user            # 작성자 (N:1)
+user.article_set        # 작성한 글 (N:1 역참조)
+article.like_users      # 좋아요 누른 유저 (M:N)
+user.like_articles      # 좋아요 누른 글 (M:N 역참조, related_name)
+
+# 팔로우
+followings = models.ManyToManyField('self', symmetrical=False, related_name='followers')
+
+# 최적화
+Article.objects.annotate(comment_count=Count('comment'))
+Article.objects.select_related('user')
+Article.objects.prefetch_related(
+    Prefetch('comment_set', queryset=Comment.objects.select_related('user'))
+)
+article.like_users.filter(pk=request.user.pk).exists()</pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch6" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>Django REST Framework</h2><p class="desc">직렬화 · 수정 방식 · 읽기 전용 · 삭제 응답 · 404 · 역참조 이름</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>비교</th><th>A</th><th>B</th></tr>
+        <tr><td class="k">Serialization vs Serializer</td><td>과정(번역): <code>serializer.data</code>를 꺼낼 때 일어남</td><td>도구(번역가): serializers.py에 작성하는 클래스</td></tr>
+        <tr><td class="k">PUT vs PATCH</td><td>전체 교체, 모든 필수 필드 필요 (partial=False)</td><td>일부 수정, 보낸 필드만 (partial=True 필수)</td></tr>
+        <tr><td class="k">read_only_fields vs read_only=True</td><td>Meta 안, 기존 필드를 그대로 응답 전용으로</td><td>필드 선언 시, 재정의·새로 추가한 필드 (read_only_fields가 안 먹음)</td></tr>
+        <tr><td class="k">DELETE 204 vs 200</td><td>기본: 본문 없이 <code>Response(status=204)</code></td><td>삭제 정보를 돌려줄 때만 <code>Response(data, status=200)</code></td></tr>
+        <tr><td class="k">get() vs get_object_or_404()</td><td>없으면 DoesNotExist → 500</td><td>없으면 Http404 → 404</td></tr>
+        <tr><td class="k">comment_set vs Count('comment')</td><td>Serializer 필드 이름 = 역참조 매니저명</td><td>annotate 조회 이름 = 소문자 모델명 (related_name 지정 시 둘 다 그 이름)</td></tr>
+      </table>
+      <div class="flow"><span>GET 200</span><i>·</i><span>POST 201 / 실패 400</span><i>·</i><span>PUT·PATCH 200</span><i>·</i><span>DELETE 204</span><i>·</i><span>없음 404</span><i>·</i><span>막힌 메서드 405</span></div>
+<pre class="formula">@api_view(['GET', 'POST'])
+def article_list(request):
+    if request.method == 'GET':
+        articles = Article.objects.all()
+        serializer = ArticleListSerializer(articles, many=True)   # QuerySet이면 many=True
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = ArticleSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):             # 실패 시 자동 400
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# 댓글 생성: FK는 view에서 넣고, Serializer에서는 read_only
+serializer.save(article=article)
+
+# 댓글 개수: view에서 annotate, Serializer에서 SerializerMethodField
+article = get_object_or_404(Article.objects.annotate(num_of_comments=Count('comment')), pk=article_pk)
+def get_num_of_comments(self, obj):
+    if hasattr(obj, 'num_of_comments'):
+        return obj.num_of_comments
+    return obj.comment_set.count()</pre>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="err" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">!</div>
+    <div><h2>에러 메시지로 원인 찾기</h2><p class="desc">실습에서 자주 만나는 에러와 고치는 곳</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>에러</th><th>원인 · 해결</th></tr>
+        <tr><td class="k">403 CSRF verification failed</td><td>POST form에 <code>{% csrf_token %}</code> 누락</td></tr>
+        <tr><td class="k">405 Method Not Allowed</td><td><code>require_POST</code> 등으로 막힌 method로 요청</td></tr>
+        <tr><td class="k">DoesNotExist / MultipleObjectsReturned</td><td><code>get()</code> 결과가 0개 / 2개 이상</td></tr>
+        <tr><td class="k">IntegrityError: NOT NULL constraint failed: ..._id</td><td>FK 값(article, user) 없이 save → <code>save(commit=False)</code> 후 채우기</td></tr>
+        <tr><td class="k">Manager isn't available; 'auth.User' has been swapped</td><td>내장 UserCreationForm/UserChangeForm을 Custom User로 재정의하지 않음</td></tr>
+        <tr><td class="k">fields.E304 Reverse accessor clash</td><td>FK와 M:N의 역참조 이름 충돌 → M:N 쪽에 <code>related_name</code></td></tr>
+        <tr><td class="k">Cannot use ImageField because Pillow is not installed</td><td><code>pip install pillow</code></td></tr>
+        <tr><td class="k">ValueError (image has no file)</td><td>이미지 없는 글에서 <code>.image.url</code> 사용 → <code>{% if article.image %}</code></td></tr>
+        <tr><td class="k">UnicodeDecodeError (loaddata)</td><td>fixture 인코딩 문제 → <code>python -Xutf8 manage.py dumpdata</code> 또는 UTF-8로 다시 저장</td></tr>
+        <tr><td class="k">misuse of aggregate: AVG()</td><td>WHERE에 집계 함수·집계 별칭 사용 → HAVING으로 옮기기</td></tr>
+        <tr><td class="k">400 "article": ["This field is required."]</td><td>view에서 넣을 FK를 Serializer가 입력값으로 요구 → <code>read_only_fields = ('article',)</code> + <code>serializer.save(article=article)</code></td></tr>
+        <tr><td class="k">AttributeError: ... 'num_of_comments'</td><td>annotate 안 거친 객체(새로 만든 글)에서 주석 필드 참조 → <code>hasattr</code>로 확인 후 <code>comment_set.count()</code></td></tr>
+        <tr><td class="k">DRF 요청인데 HTML이 오거나 이상한 에러</td><td><code>@api_view([...])</code> 누락 — 요청이 실패하면 데코레이터부터 확인</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>SSAFY 16기 Django 12강·DB 6강 교재 기반 치트시트.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

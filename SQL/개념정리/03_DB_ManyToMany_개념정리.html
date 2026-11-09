@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DB Many to Many Relationships 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · DB 03 · 11/04 Many to Many 01 + 02</span>
+    <h1>DB Many to Many Relationships 개념정리</h1>
+    <p class="sub">Part 1 N:1의 한계 · 중개 모델 · ManyToManyField · through · related_name · symmetrical · 좋아요 → Part 2 프로필 · 팔로우(self) · Fixtures(dumpdata · loaddata) · N+1과 annotate · select_related · prefetch_related · exists까지, 강의 슬라이드 175장(75 + 100)을 한 페이지로 이어서 재구성했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 Part 2개</span>
+      <span>🧪 병원 예약 · 좋아요 · 팔로우 · 쿼리 최적화 실습</span>
+      <span>❓ 확인문제 32개</span>
+      <span>🗂️ 최적화 메서드 비교 표</span>
+    </div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·Tip·주의 박스를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 Django 공식 동작 기준으로 바로잡았습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#part1" style="background:var(--navy);color:#fff">Part 1 · Many to Many Relationships 01 — 중개 모델과 좋아요</a>
+    <a href="#p1-ch1">1. Many to many relationships</a>
+    <a href="#p1-ch2">2. 중개 모델</a>
+    <a href="#p1-ch3">3. ManyToManyField</a>
+    <a href="#p1-ch4">4. 'through' argument</a>
+    <a href="#p1-ch5">5. ManyToManyField(to, **options)</a>
+    <a href="#p1-ch6">6. 좋아요 기능 구현</a>
+    <a href="#part2" style="background:var(--navy);color:#fff">Part 2 · Many to Many Relationships 02 — 팔로우 · Fixtures · Improve query</a>
+    <a href="#p2-ch1">8. 프로필 페이지</a>
+    <a href="#p2-ch2">9. 팔로우 기능</a>
+    <a href="#p2-ch3">10. Fixtures</a>
+    <a href="#p2-ch4">11. Improve query</a>
+    <a href="#p2-ch5">12. 'exists' method · 참고</a>
+    <a href="#quiz">확인문제 (원본 슬라이드 수록)</a>
+    <a href="#sum">활동 정리</a>
+  </nav>
+</div>
+
+<main>
+<div class="part-banner" id="part1"><span>Part 1</span>Many to Many Relationships 01 — 중개 모델과 좋아요 (11/04 오전, 슬라이드 75장)</div>
+<section class="section" id="p1-ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>학습 시작 — 여러 개와 여러 개를 잇기</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"한 환자가 여러 의사에게, 한 의사가 여러 환자에게 — N:1만으로는 이 관계를 표현하기 어렵습니다."</h3>
+      <p>어떻게 하면 데이터를 중복 없이 효율적으로 저장할 수 있을까요? 중개 모델을 사용하면 예약 정보와 함께 부가 정보(필드)를 추가할 수 있고, 실제 서비스에서 유연하고 확장성 있는 구조를 만들 수 있습니다. 이번 시간에는 M:N 관계를 어떻게 구현하고 Django에서 이를 어떻게 다루는지 학습합니다.</p>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>N:1 구조로 M:N 관계를 표현할 때의 한계를 설명할 수 있다.</li>
+        <li>중개 모델을 직접 정의하고 ManyToManyField로 M:N 관계를 설정할 수 있다.</li>
+        <li>add() / remove()로 관계를 추가·삭제하고, through로 추가 정보를 저장할 수 있다.</li>
+        <li>through · related_name · symmetrical 인자의 역할을 구분할 수 있다.</li>
+        <li>Article - User 간 M:N 관계로 좋아요 기능을 구현할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>Many to many relationships</h2><p class="desc">정의 · 병원 진료 시스템 실습 · N:1의 한계 3가지</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">1-1</span>다대다 관계 (Many to many relationships)</h3>
+      <p><b>한 테이블의 0개 이상의 레코드가 다른 테이블의 0개 이상의 레코드와 관련된 경우</b>. 영화와 배우처럼 한쪽의 여러 개가 다른 쪽의 여러 개와 연결되는 복잡한 관계를 말합니다. 다대다 관계를 설정하면 한 영화에 여러 배우를 추가하거나, 한 배우가 출연한 모든 영화를 쉽게 찾아낼 수 있습니다.</p>
+      <div class="subhead">실습 목표 — M:N 관계의 역할과 필요성 이해하기</div>
+      <ul>
+        <li>'병원 진료 시스템 모델 관계'를 직접 만들어 보기 — 환자와 의사 2개의 모델로 구조 구상</li>
+        <li>기존의 N:1 구조로 환자와 의사 테이블을 구성했을 때 어떤 한계가 있는지 확인</li>
+        <li>M:N 관계는 데이터베이스에서 어떻게 관리하는지 확인</li>
+        <li>제공된 '99-mtm-practice' 프로젝트를 기반으로 진행</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-2</span>의사와 환자 간 모델 관계 설정 (N:1)</h3>
+      <p>한 명의 의사에게 여러 환자가 예약할 수 있도록 Patient(환자) 모델에 Doctor 외래 키를 정의하고 Migration까지 진행합니다.</p>
+<pre class="formula"># hospitals/models.py
+class Doctor(models.Model):
+    name = models.TextField()
+
+    def __str__(self):  # print 시 출력될 text 정의
+        return f'{self.pk}번 의사 {self.name}'
+
+
+class Patient(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    name = models.TextField()
+
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-3</span>의사와 환자 데이터 생성</h3>
+<pre class="formula"># $ python manage.py shell -v 2
+doctor1 = Doctor.objects.create(name='allie')
+# &lt;Doctor: 1번 의사 allie&gt;
+doctor2 = Doctor.objects.create(name='barbie')
+# &lt;Doctor: 2번 의사 barbie&gt;
+
+# 2명의 환자를 생성하고 각 환자는 서로 다른 의사에게 예약
+patient1 = Patient.objects.create(name='carol', doctor=doctor1)
+# &lt;Patient: 1번 환자 carol&gt;
+patient2 = Patient.objects.create(name='duke', doctor=doctor2)
+# &lt;Patient: 2번 환자 duke&gt;</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">1-4</span>N:1의 한계 상황</h3>
+<pre class="formula"># (1/3) 1번 환자(carol)가 두 의사 모두에게 진료를 받고자 한다면
+patient3 = Patient.objects.create(name='carol', doctor=doctor2)
+# &lt;Patient: 3번 환자 carol&gt;  → 환자 테이블에 carol이 중복으로 입력됨
+
+# (2/3) 진료 받을 의사 정보를 동시에 저장하려 하면 에러
+patient4 = Patient.objects.create(name='carol', doctor=doctor1, doctor2)
+# SyntaxError: positional argument follows keyword argument</pre>
+      <ol>
+        <li>동일한 환자지만 다른 의사에게도 진료 받기 위해 예약하려면 <b>객체를 하나 더 만들어야</b> 하며, 이때 동일한 환자 정보를 또 작성해 저장하게 됨</li>
+        <li>환자 정보가 바뀌면 모든 행을 다 고쳐야 하는 문제가 발생하고, 실수로 하나라도 누락하면 <b>데이터 일관성</b>이 깨지게 됨</li>
+        <li>외래 키 컬럼에 '1, 2' 형태로 저장하는 것은 DB 타입 문제로 불가능 — <b>제1정규형을 만족하지 못함</b></li>
+      </ol>
+      <div class="note tip">의사의 정보도 외래 키로 참조하고, 환자의 정보도 외래 키로 참조하는 <b>별개의 테이블</b>을 만든다면 위 문제를 해결할 수 있습니다. 즉, <b>"예약 테이블을 따로 만들자"</b>.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>중개 모델</h2><p class="desc">정의 · 예약 모델 생성 · 예약 데이터 생성과 조회</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">2-1</span>중개 모델</h3>
+      <p><b>다대다 관계에서 두 모델을 연결하는 역할을 하는, 특별한 기능을 가진 모델</b>.</p>
+      <p>의사와 환자가 '예약'이라는 관계로 연결될 때, 단순히 '의사 A와 환자 B가 연결됐다'는 사실 외에 '언제 예약했는지', '예약의 상태는 무엇인지' 같은 추가 정보가 필요할 수 있습니다. 중개 모델을 사용하면 Doctor 모델이나 Patient 모델을 건드리지 않고 이런 정보를 저장할 수 있어 복잡한 현실 세계의 관계를 더욱 정교하게 표현할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-2</span>예약 모델 생성</h3>
+      <p>환자 모델의 외래 키를 삭제하고 별도의 예약 모델을 새로 생성합니다. 예약 모델은 의사와 환자에 <b>각각 N:1 관계</b>를 가집니다.</p>
+<pre class="formula"># hospitals/models.py
+# 외래 키 삭제
+class Patient(models.Model):
+    name = models.TextField()
+
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'
+
+
+# 중개 모델 작성
+class Reservation(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.doctor_id}번 의사의 {self.patient_id}번 환자'</pre>
+      <p>예약 테이블 구조: <code>id</code> · <code>doctor_id</code> bigint · <code>patient_id</code> bigint</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-3</span>예약 데이터 생성 · 조회</h3>
+<pre class="formula"># 데이터베이스 초기화 후 Migration 진행 및 shell 실행
+doctor1 = Doctor.objects.create(name='allie')
+# &lt;Doctor: 1번 의사 allie&gt;
+patient1 = Patient.objects.create(name='carol')
+# &lt;Patient: 1번 환자 carol&gt;
+reservation1 = Reservation.objects.create(doctor=doctor1, patient=patient1)
+# &lt;Reservation: 1번 의사의 1번 환자&gt;
+
+# 의사 -&gt; 예약 정보 찾기 (중개 테이블 역참조)
+doctor1.reservation_set.all()
+# &lt;QuerySet [&lt;Reservation: 1번 의사의 1번 환자&gt;]&gt;
+
+# 환자 -&gt; 예약 정보 찾기
+patient1.reservation_set.all()
+# &lt;QuerySet [&lt;Reservation: 1번 의사의 1번 환자&gt;]&gt;</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">2-4</span>추가 예약 생성 · 전체 예약 조회</h3>
+<pre class="formula"># 1번 의사에게 새로운 환자 예약 생성
+patient2 = Patient.objects.create(name='duke')
+# &lt;Patient: 2번 환자 duke&gt;
+reservation2 = Reservation.objects.create(doctor=doctor1, patient=patient2)
+# &lt;Reservation: 1번 의사의 2번 환자&gt;
+
+# 1번 의사의 전체 예약 정보 조회
+doctor1.reservation_set.all()
+# &lt;QuerySet [&lt;Reservation: 1번 의사의 1번 환자&gt;, &lt;Reservation: 1번 의사의 2번 환자&gt;]&gt;</pre>
+      <p>hospitals_reservation 테이블: (id 1, doctor_id 1, patient_id 1), (id 2, doctor_id 1, patient_id 2).</p>
+      <div class="note tip">이렇게 다대다 관계에서는 중개 테이블을 생성해 데이터를 효율적으로 관리할 수 있습니다. Django에서는 <b>'ManyToManyField'</b>를 통해 두 모델 간의 중간 테이블(중개 모델)이 자동으로 만들어집니다.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>ManyToManyField</h2><p class="desc">정의 · add() · remove() · 실습 1~6 · 기본 필드의 한계</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">3-1</span>ManyToManyField()</h3>
+      <p><b>M:N 관계 설정 모델 필드</b>. 이 필드를 설정하면 Django는 자동으로 중간 테이블(중개 모델)을 생성하여 각 모델 간의 관계를 관리합니다.</p>
+      <ul>
+        <li>모델 클래스 내부에 필드로 정의하며, <b>어느 모델에 정의해도 관계는 동일하게 유지</b>됨</li>
+        <li>필드명은 다대다 관계를 나타내기 위해 <b>복수형</b>으로 작성을 권장</li>
+        <li>필수 인자는 관계를 가지는 모델 클래스</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-2</span>ManyToManyField 조작</h3>
+      <table class="compare">
+        <tr><th>메서드</th><th>설명</th></tr>
+        <tr><td class="k"><code>add()</code></td><td>중개 테이블에 새로운 데이터를 추가할 때 사용. 인자로 연결할 대상 모델의 인스턴스를 넣어서 사용</td></tr>
+        <tr><td class="k"><code>remove()</code></td><td>중개 테이블에 있는 데이터를 삭제할 때 사용. 인자로 전달한 인스턴스를 중개 테이블에서 제거하며, <b>대상 객체 자체는 삭제되지 않음</b></td></tr>
+      </table>
+<pre class="formula"># 단일 인스턴스 추가 / 여러 인스턴스 한 번에 추가
+patient.doctors.add(doctor1)
+patient.doctors.add(doctor2, doctor3)
+
+# 단일 관계 삭제 / 여러 관계 한 번에 삭제
+patient.doctors.remove(doctor1)
+patient.doctors.remove(doctor2, doctor3)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-3</span>실습 (1~2/6) — 필드 작성과 중개 테이블</h3>
+<pre class="formula"># hospitals/models.py
+class Patient(models.Model):
+    # ManyToManyField 작성
+    doctors = models.ManyToManyField(Doctor)
+    name = models.TextField()
+
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'
+
+# Reservation Class 주석 처리</pre>
+      <p>의사 모델에 작성해도 상관없으며 참조/역참조 관계만 잘 기억하면 됩니다 — 환자 모델이 의사 모델을 참조하고, 의사 모델은 역참조를 통해 환자 모델에 접근합니다.</p>
+      <p>DB 초기화 후 Migration → 생성된 중개 테이블 <code>hospitals_patient_doctors</code>(id · patient_id · doctor_id) 확인. 중개 테이블 이름은 <b>'앱이름_모델클래스명_필드명'</b>으로 생성됩니다.</p>
+      <div class="note">필드가 아닌 <b>테이블</b>이 생성됨에 유의하세요 (patient 테이블에 doctors 컬럼은 없음).</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-4</span>실습 (3~4/6) — 예약 추가와 조회</h3>
+<pre class="formula">doctor1 = Doctor.objects.create(name='allie')
+patient1 = Patient.objects.create(name='carol')
+patient2 = Patient.objects.create(name='duke')
+
+# patient1이 doctor1에게 예약 (참조)
+patient1.doctors.add(doctor1)
+
+# patient1 - 자신이 예약한 의사 목록 확인
+patient1.doctors.all()
+# &lt;QuerySet [&lt;Doctor: 1번 의사 allie&gt;]&gt;
+
+# doctor1 - 자신의 예약 환자 목록 확인 (역참조)
+doctor1.patient_set.all()
+# &lt;QuerySet [&lt;Patient: 1번 환자 carol&gt;]&gt;
+
+# doctor1이 patient2를 예약 (역참조 매니저로도 추가 가능)
+doctor1.patient_set.add(patient2)
+doctor1.patient_set.all()
+# &lt;QuerySet [&lt;Patient: 1번 환자 carol&gt;, &lt;Patient: 2번 환자 duke&gt;]&gt;
+patient2.doctors.all()
+# &lt;QuerySet [&lt;Doctor: 1번 의사 allie&gt;]&gt;</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-5</span>실습 (5/6) — 중개 테이블 확인</h3>
+      <p>hospitals_patient_doctors: (1, patient_id 1, doctor_id 1), (2, patient_id 2, doctor_id 1). 환자와 의사 정보가 외래 키로 저장되어 있고, 중복 없이 정보를 효율적으로 저장하고 있습니다.</p>
+      <h3><span class="tag">3-6</span>실습 (6/6) — 예약 취소하기</h3>
+      <p>이전에는 Reservation을 찾아서 지워야 했다면, 이제는 <code>.remove()</code>로 삭제할 수 있습니다.</p>
+<pre class="formula"># patient2가 doctor1 진료 예약 취소
+patient2.doctors.remove(doctor1)
+patient2.doctors.all()     # &lt;QuerySet []&gt;
+doctor1.patient_set.all()  # &lt;QuerySet [&lt;Patient: 1번 환자 carol&gt;]&gt;
+
+# doctor1이 patient1 진료 예약 취소
+doctor1.patient_set.remove(patient1)
+doctor1.patient_set.all()  # &lt;QuerySet []&gt;
+patient1.doctors.all()     # &lt;QuerySet []&gt;</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-7</span>기본 ManyToManyField의 한계</h3>
+      <ul>
+        <li>기본 ManyToManyField로 생성된 중개 테이블은 의사와 환자의 <b>외래 키 정보만</b> 저장함</li>
+        <li>예약 중개 테이블에 병의 증상, 예약 일정, 방문 횟수 같은 추가 정보가 필요하면 기본 ManyToManyField를 그대로 사용할 수 없음</li>
+        <li>추가 정보를 저장하려면 사용자가 직접 중개 테이블을 정의해야 함</li>
+        <li>단, through 없이 중개 모델만 따로 정의하면 <code>.add()</code>, <code>.remove()</code> 메서드를 사용할 수 없음</li>
+      </ul>
+      <div class="note tip">ManyToManyField에 <b>'through' 속성</b>으로 사용자가 작성한 중개 테이블을 등록하면, 추가 정보 저장과 .add() · .remove() 메서드를 그대로 활용할 수 있습니다.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch4" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>'through' argument</h2><p class="desc">through 속성 · 실습 1~6 · M:N 관계 주요 사항</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">4-1</span>ManyToManyField의 'through' 속성</h3>
+      <p><b>중개 테이블에 '추가 데이터'를 사용해 M:N 관계를 형성하려는 경우에 사용</b>.</p>
+<pre class="formula">class Patient(models.Model):
+    doctors = models.ManyToManyField(Doctor, through='Reservation')
+    name = models.TextField()
+
+    def __str__(self):
+        return f'{self.pk}번 환자 {self.name}'
+
+
+class Reservation(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    symptom = models.TextField()
+    reserved_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.doctor.pk}번 의사의 {self.patient.pk}번 환자'</pre>
+      <p>이제 예약 정보에 <b>"증상(symptom)"</b>과 <b>"예약일(reserved_at)"</b>이라는 추가 필드가 생깁니다. 중개 테이블 hospitals_reservation: id · symptom TEXT · reserved_at datetime · doctor_id · patient_id.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-2</span>예약 생성 방법 1 — Reservation class</h3>
+<pre class="formula"># DB 초기화 후 Migration, 의사 1명 · 환자 2명 생성
+doctor1 = Doctor.objects.create(name='allie')
+patient1 = Patient.objects.create(name='carol')
+patient2 = Patient.objects.create(name='duke')
+
+reservation1 = Reservation(doctor=doctor1, patient=patient1, symptom='headache')
+reservation1.save()
+
+doctor1.patient_set.all()
+# &lt;QuerySet [&lt;Patient: 1번 환자 carol&gt;]&gt;
+patient1.doctors.all()
+# &lt;QuerySet [&lt;Doctor: 1번 의사 allie&gt;]&gt;</pre>
+      <h3><span class="tag">4-3</span>예약 생성 방법 2 — through_defaults</h3>
+      <p>Patient 또는 Doctor의 인스턴스를 통한 예약 생성. <code>.add()</code> 메서드의 <b>through_defaults</b> 인자에 <code>{필드명: 값}</code> 형태로 전달하면 중개 모델의 해당 필드에 값이 저장됩니다.</p>
+<pre class="formula">patient2.doctors.add(doctor1, through_defaults={'symptom': 'flu'})
+
+doctor1.patient_set.all()
+# &lt;QuerySet [&lt;Patient: 1번 환자 carol&gt;, &lt;Patient: 2번 환자 duke&gt;]&gt;
+patient2.doctors.all()
+# &lt;QuerySet [&lt;Doctor: 1번 의사 allie&gt;]&gt;</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-4</span>실습 (5~6/6) — 확인과 삭제</h3>
+      <p>중개 테이블(hospitals_reservation)에 (1, headache), (2, flu) — 두 방법 모두 잘 저장되었습니다.</p>
+<pre class="formula"># Reservation을 이용한 예약 삭제 (중개 테이블 인스턴스 직접 삭제)
+reservation1.delete()
+# (1, {'hospitals.Reservation': 1})
+
+# 의사를 통한 예약 삭제
+doctor1.patient_set.remove(patient2)
+# 환자 데이터를 통해서도 동일하게 예약 삭제 가능</pre>
+      <div class="note">중개 테이블 인스턴스를 직접 삭제할 때는 <code>delete()</code> 메서드를 사용합니다. 생성과 마찬가지로 의사와 환자 모두 각각 예약을 삭제할 수 있습니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-5</span>M:N 관계 주요 사항 정리</h3>
+      <ul>
+        <li>M:N 관계로 맺어진 두 테이블에는 <b>물리적인 변화가 없음</b></li>
+        <li>ManyToManyField는 중개 테이블을 자동으로 생성</li>
+        <li>ManyToManyField는 M:N 관계를 맺는 두 모델 <b>어디에 위치해도 상관 없음</b> — 대신 필드 작성 위치에 따라 참조와 역참조 방향을 주의할 것</li>
+        <li>N:1은 완전한 종속의 관계였지만 M:N은 종속적인 관계가 아니며, '의사에게 진찰받는 환자'와 '환자를 진찰하는 의사' 2가지 형태 모두 표현 가능</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>ManyToManyField(to, **options)</h2><p class="desc">대표 인자 3가지 · through · related_name · symmetrical</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">5-1</span>ManyToManyField의 대표 인자 3가지</h3>
+      <table class="compare">
+        <tr><th>인자</th><th>역할</th></tr>
+        <tr><td class="k">1. through</td><td>직접 생성한 중개 테이블을 등록하는 인자</td></tr>
+        <tr><td class="k">2. related_name</td><td>역참조 이름을 변경할 때 설정하는 인자</td></tr>
+        <tr><td class="k">3. symmetrical</td><td>관계 설정 시 대칭에 대한 설정을 하는 인자</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-2</span>'through' argument</h3>
+      <p>사용하고자 하는 중개모델을 지정. 일반적으로 <b>"추가 데이터를 M:N 관계와 연결하려는 경우"</b>에 활용합니다.</p>
+<pre class="formula">class Patient(models.Model):
+    doctors = models.ManyToManyField(Doctor, through='Reservation')
+    name = models.TextField()
+
+class Reservation(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+    symptom = models.TextField()
+    reserved_at = models.DateTimeField(auto_now_add=True)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-3</span>'related_name' argument</h3>
+      <ul>
+        <li>역참조 시 사용하는 manager name을 변경</li>
+        <li>기본 값인 '역참조모델명_set'을 다른 이름으로 변경할 때 사용</li>
+        <li>이름을 변경하면 <b>더 이상 기본 값('역참조모델명_set')을 사용할 수 없음</b></li>
+      </ul>
+<pre class="formula">class Patient(models.Model):
+    doctors = models.ManyToManyField(Doctor, related_name='patients')
+    name = models.TextField()
+
+# 변경 전
+doctor.patient_set.all()
+# 변경 후 (이전 manager name은 사용 불가)
+doctor.patients.all()</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">5-4</span>'symmetrical' argument</h3>
+      <p>관계 설정 시 대칭 유무 설정. ManyToManyField가 <b>동일한 모델을 가리키는 정의에서만</b> 사용하며, 기본 값은 <b>True</b>입니다.</p>
+<pre class="formula">class Person(models.Model):
+    friends = models.ManyToManyField('self')
+    # friends = models.ManyToManyField('self', symmetrical=False)</pre>
+      <table class="compare">
+        <tr><th>값</th><th>동작</th></tr>
+        <tr><td class="k">True</td><td>source 모델(관계를 시작하는 모델)의 인스턴스가 target 모델(관계의 대상이 되는 모델)의 인스턴스를 참조하면, 자동으로 target 모델 인스턴스도 source 모델 인스턴스를 참조하도록 함(대칭). 즉, 내가 당신의 친구라면 자동으로 당신도 내 친구가 됨</td></tr>
+        <tr><td class="k">False</td><td>True와 반대 (대칭되지 않음) — 예: 팔로우</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch6" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>좋아요 기능 구현</h2><p class="desc">모델 관계 설정 · 역참조 이름 충돌과 해결 · related manager 정리 · 기능 구현</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">6-1</span>좋아요 기능의 모델 관계 설정</h3>
+      <p><b>Article(M) - User(N)</b> — 양쪽 모두에서 N:1 관계를 가집니다.</p>
+      <ul>
+        <li>게시글은 좋아요가 없을 수도 있고, 여러 개 존재할 수 있음</li>
+        <li>사용자는 게시글에 좋아요를 한 번도 누르지 않았을 수도 있고, 여러 게시글에 좋아요를 누를 수 있음</li>
+        <li>Article 클래스에 ManyToManyField 작성 — 필드명은 직관적이고 복수형으로</li>
+      </ul>
+<pre class="formula"># articles/models.py
+class Article(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    like_users = models.ManyToManyField(settings.AUTH_USER_MODEL)
+    title = models.CharField(max_length=10)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-2</span>Migration 시 역참조 이름 충돌 에러</h3>
+<pre class="formula">$ python manage.py makemigrations
+SystemCheckError: System check identified some issues:
+
+ERRORS:
+articles.Article.like_users: (fields.E304) Reverse accessor 'User.article_set'
+  for 'articles.Article.like_users' clashes with reverse accessor for 'articles.Article.user'.
+  HINT: Add or change a related_name argument to the definition for
+  'articles.Article.like_users' or 'articles.Article.user'.
+articles.Article.user: (fields.E304) Reverse accessor 'User.article_set'
+  for 'articles.Article.user' clashes with reverse accessor for 'articles.Article.like_users'.</pre>
+      <ul>
+        <li>작성자 저장을 위한 ForeignKey의 역참조 — "유저가 작성한 게시글": <code>user.article_set.all()</code></li>
+        <li>좋아요를 위한 ManyToManyField의 역참조 — "유저가 좋아요 한 게시글"도 <code>user.article_set.all()</code></li>
+        <li>User와 Article 사이에 ForeignKey(작성자)와 ManyToManyField(좋아요) 두 관계가 공존해 'article_set'이라는 역참조 이름이 충돌 → 어떤 데이터에 접근해야 하는지 알 수 없게 됨</li>
+      </ul>
+      <div class="note">두 관계 중 하나에 related_name을 설정해야 하는데, 일반적으로 <b>ManyToManyField 쪽에 related_name을 추가</b>하는 것을 권장합니다.</div>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">6-3</span>M:N 관계의 related_name을 바꾸는 것이 더 좋은 이유 2가지</h3>
+      <ol>
+        <li><b>'소유' 관계의 기본값 유지</b> — ForeignKey(N:1) 관계는 보통 '소유'나 '소속'의 의미를 가짐(예: 게시글의 소유자는 유저). Django의 기본 역참조 이름 'article_set'은 'User가 소유한 Article의 집합'이라는 매우 직관적인 의미를 가지므로, 가장 중요하고 대표적인 관계의 기본값을 그대로 유지하는 것이 코드의 예측 가능성을 높임</li>
+        <li><b>'행위' 관계의 명확한 이름 부여</b> — ManyToManyField(M:N) 관계는 보통 '참여'나 '행위'의 의미를 가짐(예: 유저가 게시글에 '좋아요를 누르는' 행위). 이 관계에 <code>related_name='like_articles'</code>처럼 행위의 의미가 드러나는 구체적인 이름을 붙이면 코드의 가독성이 크게 향상됨</li>
+      </ol>
+      <table class="compare">
+        <tr><th>코드</th><th>의미</th></tr>
+        <tr><td class="k"><code>user.article_set.all()</code></td><td>"이 유저가 작성한 모든 글" (소유 관계, 기본)</td></tr>
+        <tr><td class="k"><code>user.like_articles.all()</code></td><td>"이 유저가 좋아요를 누른 모든 글" (행위 관계, 명시적)</td></tr>
+      </table>
+      <div class="note tip">핵심적인 '소유' 관계(N:1)는 기본값을 유지하고, 부가적인 '행위' 관계(M:N)에 구체적인 이름을 붙여주는 것으로 설계합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-4</span>충돌 해결 — related_name 작성 후 Migration 재진행</h3>
+<pre class="formula"># articles/models.py
+class Article(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_articles')
+    title = models.CharField(max_length=10)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</pre>
+      <p>생성된 중개 테이블 <code>articles_article_like_users</code>: id · article_id bigint · user_id bigint.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-5</span>User - Article 간 사용 가능한 전체 related manager</h3>
+      <table class="compare">
+        <tr><th>코드</th><th>의미</th><th>관계</th></tr>
+        <tr><td class="k"><code>article.user</code></td><td>게시글을 작성한 유저</td><td>N:1</td></tr>
+        <tr><td class="k"><code>user.article_set</code></td><td>유저가 작성한 게시글 (역참조)</td><td>N:1</td></tr>
+        <tr><td class="k"><code>article.like_users</code></td><td>게시글을 좋아요 한 유저</td><td>M:N</td></tr>
+        <tr><td class="k"><code>user.like_articles</code></td><td>유저가 좋아요 한 게시글 (역참조)</td><td>M:N</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-6</span>좋아요 기능 구현 (1~2/4) — URL · view</h3>
+<pre class="formula"># articles/urls.py
+app_name = 'articles'
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('&lt;int:pk&gt;/', views.detail, name='detail'),
+    # ... (중략)
+    path('&lt;int:article_pk&gt;/likes/', views.likes, name='likes'),
+]</pre>
+      <p>어떤 게시글에 좋아요가 눌렸는지 전달하기 위해 '게시글 pk'를 variable routing으로 추가합니다.</p>
+<pre class="formula"># articles/views.py
+@login_required
+def likes(request, article_pk):
+    article = Article.objects.get(pk=article_pk)
+    if request.user in article.like_users.all():
+        article.like_users.remove(request.user)  # 좋아요 취소
+    else:
+        article.like_users.add(request.user)     # 좋아요 추가
+    return redirect('articles:index')</pre>
+      <ul>
+        <li>사용자가 게시글의 좋아요 목록에 있으면 좋아요 취소 (사용자 정보 삭제)</li>
+        <li>없으면 좋아요 추가 (사용자 정보 추가)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-7</span>좋아요 기능 구현 (3~4/4) — 버튼 출력</h3>
+<pre class="formula">&lt;!-- articles/index.html --&gt;
+{% for article in articles %}
+  ...
+  &lt;form action="{% url 'articles:likes' article.pk %}" method="POST"&gt;
+    {% csrf_token %}
+    {% if request.user in article.like_users.all %}
+      &lt;input type="submit" value="좋아요 취소"&gt;
+    {% else %}
+      &lt;input type="submit" value="좋아요"&gt;
+    {% endif %}
+  &lt;/form&gt;
+  &lt;hr&gt;
+{% endfor %}</pre>
+      <p>좋아요 버튼의 value는 현재 상태에 따라 다르게 출력됩니다. 버튼 클릭 후 articles_article_like_users 테이블에 (article_id, user_id)가 저장되는지 확인합니다.</p>
+    </div>
+  </div>
+</section>
+<div class="part-banner" id="part2"><span>Part 2</span>Many to Many Relationships 02 — 팔로우 · Fixtures · Improve query (11/04 오후, 슬라이드 100장)</div>
+<section class="section" id="p2-ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">7</div>
+    <div><h2>학습 시작 — 유저 관계와 쿼리 성능</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"Django로 유저 관계를 정의하고 쿼리 성능을 높이는 방법을 고민해 봅시다."</h3>
+      <ul>
+        <li>팔로우 기능을 구현하려면 유저가 유저를 참조하는 관계(self 관계)를 이해해야 합니다.</li>
+        <li>프로필 페이지를 통해 유저의 활동 정보(게시글, 댓글)를 효율적으로 조회해야 합니다.</li>
+        <li>다대다 관계 구성 시 역참조명 충돌을 방지하기 위해 related_name을 설정합니다.</li>
+        <li>fixtures를 활용하면 팔로우 테스트 데이터를 손쉽게 재사용할 수 있습니다.</li>
+        <li>복잡한 관계에서도 exists 메서드로 존재 여부를 빠르게 체크할 수 있습니다.</li>
+      </ul>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>유저 간 팔로우 기능을 위한 M:N 모델 관계를 설계하고 구현할 수 있다.</li>
+        <li>fixtures(dumpdata · loaddata)로 데이터를 추출하고 불러올 수 있다.</li>
+        <li>exists 등의 유틸 메서드를 활용한 성능 개선 방안을 이해한다.</li>
+        <li>복잡한 쿼리 요구 상황에서 Django ORM 최적화 전략을 선택할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">8</div>
+    <div><h2>프로필 페이지</h2><p class="desc">URL · view · 템플릿 · 프로필 링크</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">8-1</span>프로필 페이지</h3>
+      <p>회원의 개인 프로필 페이지에 해당 사용자의 추가 정보를 같이 볼 수 있게 내용을 작성합니다 — <b>사용자가 작성한 게시글 목록</b>, <b>해당 사용자가 작성한 댓글 목록</b>, <b>해당 사용자가 좋아요를 누른 게시글 목록</b>. 팔로우 기능 구현 전에 각 회원의 프로필 페이지를 먼저 구현합니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-2</span>프로필 페이지 구현 (1~2/6) — URL · view</h3>
+      <p>프로필 페이지는 사용자와 관련된 기능이므로 accounts 앱의 urls.py에 추가합니다. 내 프로필뿐 아니라 다른 사람의 프로필 페이지 방문도 가능해야 하므로 username을 variable routing으로 전달합니다.</p>
+<pre class="formula"># accounts/urls.py
+app_name = 'accounts'
+urlpatterns = [
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
+    # ... (중략)
+    path('profile/&lt;username&gt;/', views.profile, name='profile'),
+]</pre>
+<pre class="formula"># accounts/views.py
+from django.contrib.auth import get_user_model
+
+def profile(request, username):
+    User = get_user_model()
+    person = User.objects.get(username=username)
+    context = {
+        'person': person,
+    }
+    return render(request, 'accounts/profile.html', context)</pre>
+      <div class="note">URL로 전달되는 username으로 사용자 정보를 조회해 template에 전달합니다. 유저 모델을 직접 import하지 않고 <code>get_user_model()</code>을 사용해야 합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-3</span>프로필 페이지 구현 (3/6) — 템플릿</h3>
+<pre class="formula">&lt;!-- accounts/profile.html --&gt;
+&lt;h1&gt;{{ person.username }}님의 프로필&lt;/h1&gt;
+&lt;hr&gt;
+&lt;h2&gt;{{ person.username }}가 작성한 게시글&lt;/h2&gt;
+{% for article in person.article_set.all %}
+  &lt;div&gt;{{ article.title }}&lt;/div&gt;
+{% endfor %}
+&lt;hr&gt;
+&lt;h2&gt;{{ person.username }}가 작성한 댓글&lt;/h2&gt;
+{% for comment in person.comment_set.all %}
+  &lt;div&gt;{{ comment.content }}&lt;/div&gt;
+{% endfor %}
+&lt;hr&gt;
+&lt;h2&gt;{{ person.username }}가 좋아요한 게시글&lt;/h2&gt;
+{% for article in person.like_articles.all %}
+  &lt;div&gt;{{ article.title }}&lt;/div&gt;
+{% endfor %}</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">8-4</span>프로필 페이지 구현 (4~6/6) — 프로필 링크</h3>
+<pre class="formula">&lt;!-- articles/index.html — 내 프로필로 이동하는 링크 --&gt;
+&lt;h1&gt;Articles&lt;/h1&gt;
+{% if request.user.is_authenticated %}
+  &lt;h3&gt;Hello, {{ user.username }}&lt;/h3&gt;
+  &lt;a href="{% url 'accounts:profile' user.username %}"&gt;내 프로필&lt;/a&gt;
+  ...
+{% endif %}
+
+&lt;!-- 작성자 이름에도 해당 유저의 프로필 링크 --&gt;
+{% for article in articles %}
+  &lt;p&gt;작성자 : &lt;a href="{% url 'accounts:profile' article.user.username %}"&gt;{{ article.user }}&lt;/a&gt;&lt;/p&gt;
+  ...
+{% endfor %}</pre>
+      <p>/accounts/profile/admin/에서 "admin님의 프로필 · admin가 작성한 게시글 · 작성한 댓글 · 좋아요한 게시글"이 잘 나오는지 확인합니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">9</div>
+    <div><h2>팔로우 기능</h2><p class="desc">User(M) - User(N) · self · symmetrical=False · follow view · 프로필 버튼</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">9-1</span>팔로우 기능의 모델 관계</h3>
+      <p><b>User(M) - User(N)</b> — 팔로우는 유저와 유저의 관계를 나타냅니다.</p>
+      <ul>
+        <li>회원은 여러 명의 회원을 팔로우할 수 있고, 한 명도 하지 않을 수도 있음</li>
+        <li>회원은 여러 명의 팔로워를 가질 수 있고, 한 명도 가지지 않을 수도 있음</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">9-2</span>팔로우 모델 관계 설정</h3>
+<pre class="formula"># accounts/models.py
+class User(AbstractUser):
+    followings = models.ManyToManyField('self', symmetrical=False, related_name='followers')</pre>
+      <ul>
+        <li>User 모델 클래스에 ManyToManyField로 팔로우 필드 추가</li>
+        <li>User 모델과 관계를 맺으므로 settings.AUTH_USER_MODEL을 써도 되지만, 자기 자신과의 관계이므로 <b>'self'</b>로 표현할 수 있음</li>
+        <li>팔로우는 단방향 관계이므로 반드시 <b>symmetrical=False</b></li>
+        <li>참조 필드 <code>followings</code> = 내가 팔로우하는 사람들. 역참조는 user_set을 써도 되지만 명확한 의미를 위해 related_name으로 <code>followers</code>로 변경</li>
+      </ul>
+      <div class="note tip">참조·역참조 이름은 서로 바뀌어도 상관없으나, 관계 조회 시 생각하기 편한 방향으로 정해 작성합니다. 생성된 중개 테이블: id · <code>from_user_id</code> · <code>to_user_id</code>.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">9-3</span>팔로우 기능 구현 (1~2/5) — URL · view</h3>
+<pre class="formula"># accounts/urls.py
+urlpatterns = [
+    path('login/', views.login, name='login'),
+    # ... (중략)
+    path('profile/&lt;username&gt;/', views.profile, name='profile'),
+    path('&lt;int:user_pk&gt;/follow/', views.follow, name='follow'),
+]</pre>
+      <p>어느 사용자를 팔로우하는지 상대 사용자의 정보를 variable routing으로 전달합니다.</p>
+<pre class="formula"># accounts/views.py
+@login_required
+def follow(request, user_pk):
+    User = get_user_model()
+    person = User.objects.get(pk=user_pk)
+    if person != request.user:
+        if request.user in person.followers.all():
+            person.followers.remove(request.user)  # 팔로우 해제
+        else:
+            person.followers.add(request.user)     # 팔로우 진행
+    return redirect('accounts:profile', person.username)</pre>
+      <ul>
+        <li>중개 테이블에 이미 내 정보가 있으면 제거 (팔로우 해제)</li>
+        <li>없으면 추가 (팔로우 진행). 자기 자신은 팔로우할 수 없게 <code>person != request.user</code></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">9-4</span>팔로우 기능 구현 (3~4/5) — 프로필 템플릿</h3>
+<pre class="formula">&lt;!-- accounts/profile.html --&gt;
+&lt;h1&gt;{{ person.username }}님의 프로필&lt;/h1&gt;
+&lt;div&gt;
+  &lt;div&gt;
+    팔로잉 : {{ person.followings.all|length }} / 팔로워 : {{ person.followers.all|length }}
+  &lt;/div&gt;
+  {% if request.user != person %}
+    &lt;div&gt;
+      &lt;form action="{% url 'accounts:follow' person.pk %}" method="POST"&gt;
+        {% csrf_token %}
+        {% if request.user in person.followers.all %}
+          &lt;input type="submit" value="Unfollow"&gt;
+        {% else %}
+          &lt;input type="submit" value="Follow"&gt;
+        {% endif %}
+      &lt;/form&gt;
+    &lt;/div&gt;
+  {% endif %}
+&lt;/div&gt;</pre>
+      <ul>
+        <li>팔로잉과 팔로워 수는 DTL의 length 필터로 출력</li>
+        <li>프로필 유저(person)가 로그인한 사용자(request.user) 본인이면 팔로우 버튼 숨기기</li>
+        <li>팔로우 여부에 따라 버튼 텍스트를 다르게 출력</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">9-5</span>팔로우 기능 구현 (5/5) — 확인</h3>
+      <p>팔로우 버튼을 누르면 숫자와 버튼 텍스트가 바뀌고, 내 프로필에서는 팔로우 버튼이 생략됩니다. 예) admin이 user01을 팔로우 → user01 프로필 "팔로잉 : 0 / 팔로워 : 1", admin 프로필 "팔로잉 : 1 / 팔로워 : 0".</p>
+      <table class="compare">
+        <tr><th>중개 테이블 컬럼</th><th>의미</th></tr>
+        <tr><td class="k">from_user_id</td><td>팔로우 버튼을 누른 유저 (나)</td></tr>
+        <tr><td class="k">to_user_id</td><td>팔로우된 유저 (상대방)</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">10</div>
+    <div><h2>Fixtures</h2><p class="desc">사용 목적 · 초기 데이터의 필요성 · dumpdata · loaddata · 주의 사항</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">10-1</span>Fixtures</h3>
+      <p><b>Django가 데이터베이스로 가져오는 방법을 알고 있는 데이터 모음</b>. 데이터베이스 구조에 맞추어 작성되어 있습니다.</p>
+      <div class="subhead">Fixtures 사용 목적</div>
+      <ul>
+        <li><b>초기 데이터 세팅</b> — 웹 서비스가 처음 시작될 때 필요한 기본 데이터(기본 권한 그룹, 상품 카테고리 등)를 미리 세팅</li>
+        <li><b>테스트 샘플 데이터 준비</b> — 항상 동일하고 예측 가능한 데이터 환경으로 테스트의 신뢰성과 반복 가능성을 높임</li>
+        <li><b>협업 시 동일한 데이터 환경 맞추기</b> — 팀원 모두가 같은 초기 데이터·테스트 데이터 셋을 쉽게 공유·적용해 개발 환경 간 일관성을 유지하고 협업 효율을 높임</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-2</span>초기 데이터의 필요성</h3>
+      <ol>
+        <li>협업하는 유저 A가 먼저 프로젝트를 작업 후 원격 저장소에 push — .gitignore 때문에 DB는 업로드되지 않음</li>
+        <li>B가 원격 저장소에서 A가 push한 프로젝트를 pull(혹은 clone) — 결과적으로 B는 DB가 없는 프로젝트를 받게 됨</li>
+      </ol>
+      <p>이처럼 프로젝트의 앱을 처음 설정할 때 동일하게 준비된 데이터로 데이터베이스를 미리 채우는 것이 필요한 순간이 있고, Django는 fixtures로 앱에 초기 데이터(initial data)를 제공합니다.</p>
+      <table class="compare">
+        <tr><th>명령어</th><th>역할</th></tr>
+        <tr><td class="k">dumpdata</td><td>데이터베이스에서 데이터를 내보낼 때 사용. 주로 파일(JSON) 형태로 추출하며, 특정 테이블의 데이터만 추출도 가능</td></tr>
+        <tr><td class="k">loaddata</td><td>내보내기 형태로 저장된 JSON 등을 읽어와서 데이터베이스에 저장</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-3</span>실습 사전 준비</h3>
+      <p>M:N까지 모두 작성된 Django 프로젝트에서 유저·게시글·댓글 데이터를 준비합니다.</p>
+      <ul>
+        <li>유저 — 최소 3명을 회원 가입으로 준비</li>
+        <li>게시글 — 유저별로 1~2개씩</li>
+        <li>댓글 — 게시글당 2~3개씩, 유저별로 0~2개 정도</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-4</span>dumpdata — 데이터베이스의 특정 앱 혹은 모델 전체 데이터 추출</h3>
+<pre class="formula">$ python manage.py dumpdata [앱이름.모델이름] [옵션] &gt; 추출파일명.json</pre>
+      <ul>
+        <li>앱이름.모델이름 지정 — 특정 모델의 데이터를 추출</li>
+        <li>앱이름 혹은 모델명을 지정하지 않으면 — 프로젝트 전체 모델 데이터를 추출</li>
+        <li><code>--format</code> 옵션으로 JSON, YAML 등 형식 지정 가능 (기본값: JSON)</li>
+      </ul>
+<pre class="formula"># articles 앱의 Article 모델 데이터 추출 (--indent 4: 4칸 들여쓰기)
+$ python manage.py dumpdata --indent 4 articles.article &gt; articles.json
+
+# comment 모델과 user 모델의 데이터 추출
+$ python manage.py dumpdata --indent 4 articles.comment &gt; comments.json
+$ python manage.py dumpdata --indent 4 accounts.user &gt; users.json</pre>
+      <p>명령어 실행 후 프로젝트 폴더에 JSON 파일이 생성되고, 파일에는 해당 모델의 모든 데이터가 JSON 형식으로 작성됩니다. Fixtures 파일명은 자유롭게 작성할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-5</span>loaddata — 추출한 데이터 파일을 다시 DB에 반영</h3>
+<pre class="formula">$ python manage.py loaddata 파일경로</pre>
+      <ul>
+        <li>Fixtures 파일의 기본 경로: <code>app_name/fixtures/</code></li>
+        <li>Django는 설치된 모든 app의 디렉토리에서 fixtures 폴더 이후의 경로로 fixtures 파일을 찾아 load를 진행</li>
+      </ul>
+      <div class="subhead">실습 사전 준비</div>
+      <p>articles 폴더 안에 fixtures 폴더를 만들고 dumpdata로 생성한 파일들(articles.json, comments.json, users.json)을 옮긴 뒤, db.sqlite3 파일을 삭제하고 migrate로 데이터베이스를 초기화합니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-6</span>loaddata 명령어 예시 · 순서</h3>
+<pre class="formula"># 한 번에 불러오기 — 모든 데이터를 넣은 뒤 마지막에 관계를 검사하므로 순서 상관 없음
+$ python manage.py loaddata articles.json users.json comments.json
+
+# 별도로 실행한다면 모델 관계에 따라 순서가 중요
+$ python manage.py loaddata users.json
+$ python manage.py loaddata articles.json
+$ python manage.py loaddata comments.json</pre>
+      <p>comment는 article과 user에 대한 key가, article은 user에 대한 key가 필요하므로 <b>user → article → comment</b> 순으로 load해야 오류가 발생하지 않습니다. comments.json을 먼저 load하면 작성자·게시글 정보를 찾을 수 없어 에러:</p>
+<pre class="formula">django.db.utils.IntegrityError: Problem installing fixtures: The row in table
+'articles_comment' with primary key '1' has an invalid foreign key:
+articles_comment.user_id contains a value '1' that does not have a corresponding value in accounts_user.id.</pre>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">10-7</span>loaddata 주의 사항 · 정리</h3>
+      <ul>
+        <li>loaddata를 실행하기 전에 해당 모델에 대한 <b>마이그레이션이 완료</b>되어 있어야 함</li>
+        <li>같은 PK를 가진 데이터가 이미 있으면 중복 에러가 발생할 수 있음 — 기존 데이터를 지우거나 새로운 Fixture 파일을 사용</li>
+      </ul>
+      <p>dumpdata는 DB의 데이터를 파일로 백업하는 도구이고, loaddata는 그 Fixture 파일을 DB로 불러오는 명령어로 개발 환경 준비나 협업 시 매우 유용합니다. 마이그레이션 상태를 먼저 확인하고 인코딩 문제 등을 사전에 해결하면 매끄럽게 데이터를 복원할 수 있습니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch4" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">11</div>
+    <div><h2>Improve query</h2><p class="desc">N+1 Problem · 사전 준비 · annotate · select_related · prefetch_related · 함께 쓰기</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">11-1</span>Improve query</h3>
+      <p><b>같은 결과를 얻기 위해 DB 측에 보내는 query 개수를 점차 줄여 조회하기</b>.</p>
+      <h3><span class="tag">11-2</span>N+1 Problem</h3>
+      <p><b>1개의 쿼리로 데이터를 가져왔더라도, 관련 데이터를 추가로 가져오기 위해 추가 쿼리가 N개 더 실행되는 상황</b>. ORM에서 관련 객체를 반복적으로 접근할 때, 초기 1번의 쿼리로 기본 데이터를 조회한 후 각 객체마다 관련 데이터를 가져오는 쿼리가 N번 실행되어 총 N+1개의 쿼리가 발생합니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-3</span>실습 사전 준비</h3>
+      <ul>
+        <li>99-improve-query 프로젝트에서 진행</li>
+        <li>fixtures 데이터 — 게시글 10개 / 댓글 100개 / 유저 5개</li>
+        <li>N:1 — Article:User / Comment:Article / Comment:User, M:N — Article:User</li>
+      </ul>
+<pre class="formula">$ python manage.py migrate
+$ python manage.py loaddata users.json articles.json comments.json
+Installed 115 object(s) from 3 fixture(s)</pre>
+      <p>Django Debug Toolbar가 실행되는지 확인합니다 (오른쪽 패널의 SQL 탭에서 쿼리 수 확인).</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-4</span>annotate</h3>
+      <p><b>SQL의 GROUP BY를 사용</b>하여 쿼리셋의 각 객체에 계산된 필드를 추가합니다. 각 행(row)별로 계산된 필드를 추가하며, 집계 함수(Count, Sum 등 여러 데이터를 요약해 분석하는 함수)와 함께 사용합니다.</p>
+<pre class="formula">Book.objects.annotate(num_authors=Count('authors'))</pre>
+      <ul>
+        <li>결과 객체에 'num_authors'라는 새로운 필드를 추가 — 각 책과 연관된 저자의 수를 계산</li>
+        <li><code>book.num_authors</code>로 해당 책의 저자 수에 접근</li>
+        <li>'num_authors'는 새로 추가되는 필드명이며 다른 명칭으로 작성해도 됨. 생략하면 'authors__count'로 필드명이 자동 생성</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-5</span>① 댓글 개수 — annotate 적용</h3>
+      <p>/articles/index-1/ : "11 queries including 10 similar". 전체 게시글 쿼리 1개 + 각 게시글 댓글 개수 확인 쿼리 10개 — 매번 DB로 쿼리를 보내 댓글 데이터를 받아오고 있습니다. 게시글이 100개이고 여러 명이 동시에 요청하면 그만큼 서버 부하가 커집니다.</p>
+<pre class="formula">&lt;!-- index_1.html (문제) --&gt;
+&lt;p&gt;댓글개수 : {{ article.comment_set.count }}&lt;/p&gt;</pre>
+<pre class="formula"># articles/views.py (해결) — 게시글을 조회하면서 댓글 개수까지 한 번에
+def index_1(request):
+    # articles = Article.objects.order_by('-pk')
+    articles = Article.objects.annotate(comment_count=Count('comment')).order_by('-pk')
+    context = {
+        'articles': articles,
+    }
+    return render(request, 'articles/index_1.html', context)</pre>
+<pre class="formula">&lt;!-- index_1.html --&gt;
+&lt;p&gt;댓글개수 : {{ article.comment_count }}&lt;/p&gt;</pre>
+      <p>결과: "11 queries including 10 similar" → <b>"1 query"</b> (LEFT OUTER JOIN + GROUP BY).</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-6</span>select_related</h3>
+      <ul>
+        <li><b>ForeignKey 또는 OneToOne 관계</b>에서 사용되는 Django ORM 메서드</li>
+        <li>내부적으로 <b>SQL INNER JOIN</b>을 사용하여 관련 객체를 한 번에 불러옴</li>
+        <li>단일 쿼리로 관련 객체를 함께 가져와 성능을 향상</li>
+      </ul>
+<pre class="formula">Book.objects.select_related('publisher')</pre>
+      <p>Book과 연관된 Publisher 데이터를 함께 가져옵니다. ForeignKey 관계인 'publisher'를 JOIN해 단일 쿼리만으로 조회하므로 <code>book.publisher.name</code> 같은 접근을 추가 쿼리 없이 할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-7</span>② 게시글 작성자 — select_related 적용</h3>
+      <p>/articles/index-2/ : "11 queries including 10 similar and 8 duplicates". 각 게시글의 작성자를 확인하기 위해 추가로 DB에 요청하고, 같은 작성자의 여러 게시글도 각각 작성자 정보를 조회해 중복 쿼리가 발생합니다.</p>
+<pre class="formula">&lt;!-- index_2.html --&gt;
+{% for article in articles %}
+  &lt;h3&gt;작성자 : {{ article.user.username }}&lt;/h3&gt;
+  &lt;p&gt;제목 : {{ article.title }}&lt;/p&gt;
+  &lt;hr&gt;
+{% endfor %}</pre>
+<pre class="formula"># articles/views.py (해결) — 게시글을 조회하면서 유저 정보까지 한 번에
+def index_2(request):
+    # articles = Article.objects.order_by('-pk')
+    articles = Article.objects.select_related('user').order_by('-pk')
+    context = {
+        'articles': articles,
+    }
+    return render(request, 'articles/index_2.html', context)</pre>
+      <p>결과: "11 queries including 10 similar and 8 duplicates" → <b>"1 query"</b>.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-8</span>prefetch_related</h3>
+      <ul>
+        <li>SQL이 아닌 <b>Python을 사용한 JOIN</b>을 진행</li>
+        <li>관련 객체들을 미리 가져와 메모리에 저장하여 성능을 향상</li>
+        <li><b>M:N 또는 N:1 역참조 관계</b>에서 사용</li>
+        <li>ManyToManyField나 역참조 관계에 대해 별도의 쿼리를 실행</li>
+      </ul>
+<pre class="formula">Book.objects.prefetch_related('authors')</pre>
+      <p>Book과 Author가 ManyToMany 관계라고 가정하면, Book을 조회한 후 Django가 별도의 쿼리로 연관된 모든 Author를 미리 로드해 관계를 설정합니다. <code>for author in book.authors.all()</code> 같은 반복이 추가 쿼리 없이 실행됩니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-9</span>③ 게시글의 댓글 목록 — prefetch_related 적용</h3>
+      <p>/articles/index-3/ : "11 queries including 10 similar". 게시글마다 댓글 목록을 확인하기 위해 추가 요청이 발생하며, 게시글 수에 따라 쿼리 수가 늘어납니다.</p>
+<pre class="formula">&lt;!-- index_3.html --&gt;
+{% for article in articles %}
+  &lt;p&gt;제목 : {{ article.title }}&lt;/p&gt;
+  &lt;p&gt;댓글 목록&lt;/p&gt;
+  {% for comment in article.comment_set.all %}
+    &lt;p&gt;{{ comment.content }}&lt;/p&gt;
+  {% endfor %}
+  &lt;hr&gt;
+{% endfor %}</pre>
+<pre class="formula"># articles/views.py (해결) — 게시글을 조회하면서 참조된 댓글까지 한 번에
+def index_3(request):
+    # articles = Article.objects.order_by('-pk')
+    articles = Article.objects.prefetch_related('comment_set').order_by('-pk')
+    context = {
+        'articles': articles,
+    }
+    return render(request, 'articles/index_3.html', context)</pre>
+      <p>결과: "11 queries including 10 similar" → <b>"2 queries"</b> (게시글 1개 + <code>WHERE article_id IN (...)</code> 댓글 1개).</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">11-10</span>④ 게시글 + 댓글 목록 + 댓글 작성자 — 둘을 함께</h3>
+      <p>/articles/index-4/ : "111 queries including 110 similar and 100 duplicates". 게시글 목록을 가져올 때 각 게시글의 댓글 목록을 위해 쿼리를 보내고, 이때 댓글마다 작성자를 확인하기 위해 사용자 정보도 쿼리를 보냅니다 — "각 게시글의 댓글 목록" + "댓글의 작성자"를 단계적으로 평가.</p>
+<pre class="formula">&lt;!-- index_4.html --&gt;
+{% for article in articles %}
+  &lt;p&gt;제목 : {{ article.title }}&lt;/p&gt;
+  &lt;p&gt;댓글 목록&lt;/p&gt;
+  {% for comment in article.comment_set.all %}
+    &lt;p&gt;{{ comment.user.username }} : {{ comment.content }}&lt;/p&gt;
+  {% endfor %}
+  &lt;hr&gt;
+{% endfor %}</pre>
+<pre class="formula"># articles/views.py
+from django.db.models import Prefetch
+
+def index_4(request):
+    # articles = Article.objects.order_by('-pk')
+
+    # 1단계: prefetch_related로 댓글까지 → "102 queries including 100 similar and 100 duplicates"
+    # articles = Article.objects.prefetch_related('comment_set').order_by('-pk')
+
+    # 2단계: 댓글을 가져올 때 select_related로 작성자를 JOIN하고, Prefetch로 게시글과 함께 요청
+    articles = Article.objects.prefetch_related(
+        Prefetch('comment_set', queryset=Comment.objects.select_related('user'))
+    ).order_by('-pk')
+    context = {
+        'articles': articles,
+    }
+    return render(request, 'articles/index_4.html', context)</pre>
+      <p>결과: "102 queries ..." → <b>"2 queries"</b> — ① articles 조회 ② <code>articles_comment INNER JOIN accounts_user ... WHERE article_id IN (10, 9, ..., 1)</code>.</p>
+      <table class="compare">
+        <tr><th></th><th>annotate</th><th>select_related</th><th>prefetch_related</th></tr>
+        <tr><td class="k">쓰는 상황</td><td>각 객체에 집계 값(개수·합계)이 필요할 때</td><td>FK · OneToOne (정참조, 1쪽 객체)</td><td>M:N · N:1 역참조 (여러 객체 목록)</td></tr>
+        <tr><td class="k">방식</td><td>SQL GROUP BY</td><td>SQL INNER JOIN, 1개 쿼리</td><td>별도 쿼리 후 Python에서 JOIN</td></tr>
+        <tr><td class="k">실습 결과</td><td>11 → 1</td><td>11 → 1</td><td>11 → 2 / (Prefetch+select_related) 111 → 2</td></tr>
+      </table>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">11-11</span>섣부른 최적화는 악의 근원</h3>
+      <p>도널드 커누스(Donald E. Knuth, 튜링상 수상자, 『The Art of Computer Programming』 저자)는 작은 효율성에 대해서는 대략 97% 정도의 경우 잊어버리라고, 섣부른 최적화(premature optimization)는 모든 악의 근원이라고 말했습니다. 측정해서 문제가 확인된 곳(N+1처럼)을 최적화하라는 뜻입니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">12</div>
+    <div><h2>'exists' method · 참고</h2><p class="desc">.exists() · 좋아요·팔로우 적용 · 한꺼번에 dump 하기 · loaddata 인코딩 에러</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">12-1</span>.exists() 특징</h3>
+      <ul>
+        <li>QuerySet에 결과가 하나 이상 존재하는지 여부를 확인하는 메서드 — 결과가 있으면 True, 없으면 False 반환</li>
+        <li>데이터베이스에 최소한의 쿼리만 실행하여 효율적</li>
+        <li>전체 QuerySet을 평가하지 않고 결과의 존재 여부만 확인 — 해당 데이터를 불러오지 않고 DB 수준에서 빠르게 판단</li>
+        <li>→ 대량의 QuerySet에 있는 특정 객체 검색에 유용</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">12-2</span>exists 적용 예시</h3>
+<pre class="formula"># articles/views.py — 좋아요 기능
+def likes(request, article_pk):
+    article = Article.objects.get(pk=article_pk)
+    # if request.user in article.like_users.all():
+    if article.like_users.filter(pk=request.user.pk).exists():
+        article.like_users.remove(request.user)
+    else:
+        article.like_users.add(request.user)
+    return redirect('articles:index')</pre>
+<pre class="formula"># accounts/views.py — 팔로우 기능
+def follow(request, user_pk):
+    User = get_user_model()
+    person = User.objects.get(pk=user_pk)
+    if person != request.user:
+        # if request.user in person.followers.all():
+        if person.followers.filter(pk=request.user.pk).exists():
+            person.followers.remove(request.user)
+        else:
+            person.followers.add(request.user)
+    return redirect('accounts:profile', person.username)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">12-3</span>한꺼번에 dump 하기</h3>
+<pre class="formula"># 모델 3개를 json 파일 1개로 추출
+$ python manage.py dumpdata --indent 4 articles.article articles.comment accounts.user &gt; data.json
+
+# 모든 모델을 json 파일 1개로 추출
+$ python manage.py dumpdata --indent 4 &gt; data.json</pre>
+      <div class="note tip">모든 데이터를 한 파일로 추출하면 용량이 매우 커질 수 있으므로 필요한 앱·모델만 추출하거나 파일을 압축해 관리하는 방법을 고려합니다. 데이터베이스 변경이 잦다면 전체 추출보다 앱 또는 모델 단위로 관리하는 편이 유지보수에 용이합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">12-4</span>loaddata 인코딩 에러</h3>
+      <p>JSON 파일 생성·로딩 시 파일이 특정 문자 인코딩(예: UTF-8)으로 저장되지 않으면 한글 등 비ASCII 문자가 깨지거나 에러가 발생할 수 있습니다. 윈도우에서 생성한 파일을 리눅스에서 로딩할 때(혹은 반대) 빈번히 발생합니다.</p>
+<pre class="formula">UnicodeDecodeError: 'utf-8' codec can't decode byte 0xc0 in position ...</pre>
+      <div class="subhead">해결 방법</div>
+<pre class="formula"># dumpdata 시 추가 옵션 작성
+$ python -Xutf8 manage.py dumpdata [생략]</pre>
+      <p>이미 추출된 fixtures 파일이 있다면 에디터(메모장, VSCode 등)에서 파일 인코딩을 UTF-8로 지정한 뒤 다시 저장합니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">Q</div>
+    <div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">Part별 원본 확인문제 32개 · 문제를 먼저 풀고, 눌러서 정답과 해설을 확인하세요</p></div></div>
+  <div class="card-grid"><div class="card full">
+<div class="subhead">Many to Many Relationships 01 — 중개 모델과 좋아요 (11/04 오전, 슬라이드 75장)</div>
+<div class="quiz-q"><div class="qq">1. 다음 중 N:1 관계(로 M:N을 표현할 때)에서 발생할 수 있는 문제는?</div><ol class="opt" type="a"><li>데이터 중복 발생</li><li>외래키가 두 개 필요함</li><li>하나의 테이블만 생성됨</li><li>shell 명령어를 사용할 수 없음</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) 데이터 중복 발생</b> — N:1 관계에서는 동일한 객체(예: 환자)가 여러 상대(예: 의사)와 연결될 경우, 동일한 데이터가 여러 번 저장되어 중복 문제가 발생할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">2. 다음 중 Django에서 다대다 관계를 설정할 때 사용하는 필드는?</div><ol class="opt" type="a"><li>OneToOneField</li><li>ForeignKey</li><li>ManyToManyField</li><li>CharField</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) ManyToManyField</b> — 이 필드는 두 모델 간의 중간 테이블을 자동으로 생성해 관계를 관리한다.</div></details></div>
+<div class="quiz-q"><div class="qq">3. 중개 테이블에 추가 정보를 저장하기 위해 사용하는 ManyToManyField의 속성 이름은?</div><ol class="opt" type="a"><li>related_name</li><li>symmetrical</li><li>through</li><li>default</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) through</b> — 예약일, 증상 등 추가 필드를 저장하려면 ManyToManyField에 'through' 속성을 설정하여 사용자 정의 중개 모델을 연결해야 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">4. O/X — 중개 모델은 두 객체 간 관계 외에 추가 정보를 함께 저장할 수 있다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — 중개 모델은 단순히 객체 간의 연결뿐 아니라 예약 시간, 증상 등과 같은 부가 정보를 저장할 수 있어 복잡한 관계를 표현하는 데 유용하다.</div></details></div>
+<div class="quiz-q"><div class="qq">5. 다음 중 ManyToManyField에 연결된 데이터를 (대상 객체는 남기고) 관계만 삭제할 때 사용하는 메서드는?</div><ol class="opt" type="a"><li>.clear()</li><li>.add()</li><li>.remove()</li><li>.delete()</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) .remove()</b> — .remove() 메서드는 중개 테이블에서 특정 관계만 제거하며, 연결된 객체 자체는 삭제하지 않는다.</div></details></div>
+<div class="quiz-q"><div class="qq">6. related_name 속성의 역할은?</div><ol class="opt" type="a"><li>중복 데이터를 제거한다.</li><li>외래키의 on_delete 동작을 설정한다.</li><li>역참조 시 사용할 이름을 지정한다.</li><li>중개 테이블 이름을 설정한다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 역참조 시 사용할 이름을 지정한다.</b> — related_name은 역참조할 때 사용할 매니저 이름을 직접 설정하게 하여, 이름 충돌이나 가독성 문제를 해결하는 데 사용된다.</div></details></div>
+<div class="quiz-q"><div class="qq">7. 다음 중 symmetrical=True의 의미로 올바른 것은?</div><ol class="opt" type="a"><li>관계가 단방향이다.</li><li>중개 테이블을 비활성화한다.</li><li>서로 참조 시 자동으로 양방향 관계가 된다.</li><li>related_name을 무시한다.</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 서로 참조 시 자동으로 양방향 관계가 된다.</b> — 자기 자신을 참조하는 다대다 관계에서 한쪽이 참조하면 다른 쪽도 자동으로 참조하게 만드는 설정이다. 기본값은 True.</div></details></div>
+<div class="quiz-q"><div class="qq">8. 주관식 — Django에서 기본 ManyToManyField를 사용하면 생성되는 중개 테이블의 이름 형식은? ('앱이름', '모델명', '필드명'으로 작성)</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">앱이름_모델명_필드명</b> — 예: hospitals_patient_doctors, articles_article_like_users.</div></details></div>
+<div class="quiz-q"><div class="qq">9. 주관식 — 다대다(M:N) 관계가 적절하게 사용되는 예시를 하나 이상 작성하기</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">영화와 배우 / 사용자와 좋아요(게시글) / 환자와 의사</b> — 다대다 관계는 한 객체가 여러 객체와 연결되고, 그 반대도 가능한 상황에 사용된다. 예: 한 영화에 여러 배우, 한 배우가 여러 영화에 출연.</div></details></div>
+<div class="quiz-q"><div class="qq">10. 주관식 — add() 메서드로 중개 모델에 값을 저장할 때, 추가 필드 값을 전달하기 위해 사용하는 인자는?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">through_defaults</b> — 직접 정의한 중개 모델에 add()를 사용할 때 추가 필드의 값은 <code>through_defaults={'symptom': 'flu'}</code>처럼 전달한다.</div></details></div>
+<div class="quiz-q"><div class="qq">11. 다음 중 symmetrical 옵션을 사용할 수 있는 경우는?</div><ol class="opt" type="a"><li>서로 다른 모델 간 관계</li><li>ForeignKey 관계</li><li>자기 자신을 참조하는 다대다 관계</li><li>중개 모델이 있는 관계</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 자기 자신을 참조하는 다대다 관계</b> — symmetrical 옵션은 ManyToManyField가 'self'를 참조할 때만 사용할 수 있으며, 관계의 대칭 여부를 설정한다.</div></details></div>
+<div class="quiz-q"><div class="qq">12. 중개 테이블을 직접 정의할 때 얻을 수 있는 가장 큰 이점은?</div><ol class="opt" type="a"><li>테이블 이름을 자동으로 설정할 수 있음</li><li>관계 수를 줄일 수 있음</li><li>중복된 관계를 제거할 수 있음</li><li>추가적인 정보를 함께 저장할 수 있음</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) 추가적인 정보를 함께 저장할 수 있음</b> — 중개 모델을 직접 정의하면 예약 시간, 증상 등 추가 정보를 함께 저장해 현실 세계의 복잡한 관계를 정교하게 표현할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">13. 중개 모델 인스턴스를 직접 삭제할 때 사용하는 메서드는?</div><ol class="opt" type="a"><li>remove()</li><li>clear()</li><li>delete()</li><li>discard()</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) delete()</b> — 중개 모델 인스턴스는 일반 모델 객체이므로 delete()로 삭제한다. through로 등록한 경우 관계 쪽에서는 remove()로도 삭제할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">14. O/X — ManyToManyField는 두 모델 중 어느 쪽에 정의해도 관계에는 영향을 주지 않는다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — ManyToManyField는 양방향 관계이므로 어느 모델에 정의해도 기능은 동일하게 작동한다. 단, 필드 위치에 따라 참조/역참조 방향이 결정되므로 주의가 필요하다.</div></details></div>
+<div class="quiz-q"><div class="qq">15. O/X — 중개 모델을 정의할 때, 관계를 맺는 두 모델은 모두 ForeignKey로 연결해야 한다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — 중개 모델은 두 모델 간의 다대다 관계를 표현하기 위해 각각의 모델을 ForeignKey로 연결하는 방식으로 정의된다.</div></details></div>
+<div class="quiz-q"><div class="qq">16. 주관식 — 중개 모델에서 의사(Doctor)와 환자(Patient)를 연결하기 위해 사용하는 필드는?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">ForeignKey</b> — 중개 테이블에서는 각각의 모델(Doctor, Patient)을 ForeignKey로 연결하여 다대다 관계를 표현한다.</div></details></div>
+<div class="subhead">Many to Many Relationships 02 — 팔로우 · Fixtures · Improve query (11/04 오후, 슬라이드 100장)</div>
+<div class="quiz-q"><div class="qq">17. 유저가 다른 유저를 팔로우할 때 사용하는 필드는?</div><ol class="opt" type="a"><li>OneToOneField</li><li>ForeignKey</li><li>ManyToManyField</li><li>CharField</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) ManyToManyField</b> — 한 명의 유저가 여러 명을 팔로우할 수 있고, 여러 명에게 팔로우될 수도 있으므로 ManyToManyField를 사용한다.</div></details></div>
+<div class="quiz-q"><div class="qq">18. 주관식 — 유저가 유저를 팔로우하는 관계를 설정할 때, 자기 자신을 참조할 때 사용하는 키워드는?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">'self'</b> — ManyToManyField에서 자기 자신과의 관계를 만들기 위해 'self' 키워드를 사용한다.</div></details></div>
+<div class="quiz-q"><div class="qq">19. O/X — symmetrical=True로 설정하면 유저 A가 유저 B를 팔로우하면, 유저 B도 자동으로 유저 A를 팔로우한다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — symmetrical=True는 양방향 관계로, 한쪽에서 연결하면 반대쪽도 자동으로 연결된다. 단방향 팔로우는 False로 설정해야 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">20. related_name의 주된 역할은?</div><ol class="opt" type="a"><li>필드 이름을 자동 생성</li><li>모델 이름을 바꿔줌</li><li>역참조 시 사용할 이름 지정</li><li>데이터 삭제를 방지</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 역참조 시 사용할 이름 지정</b> — related_name은 ManyToManyField 등에서 역참조 시 사용할 이름을 지정하여 충돌을 방지하고 가독성을 높여준다.</div></details></div>
+<div class="quiz-q"><div class="qq">21. 주관식 — ManyToManyField를 사용하면 자동으로 생성되는 테이블은 무엇을 위한 테이블인가?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">중개 테이블</b> — ManyToMany 관계에서는 두 모델 간의 연결 정보를 저장하기 위해 Django가 자동으로 중개 테이블을 생성한다.</div></details></div>
+<div class="quiz-q"><div class="qq">22. O/X — ManyToManyField를 설정하면, 별도의 모델을 만들지 않아도 중개 테이블이 생성된다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — Django는 ManyToManyField를 설정하면 자동으로 중개 테이블을 생성하므로, 기본적으로 별도 모델을 정의할 필요는 없다.</div></details></div>
+<div class="quiz-q"><div class="qq">23. 팔로우 기능에서 상대 유저의 정보를 조회할 때 사용하는 함수는?</div><ol class="opt" type="a"><li>get_user_model</li><li>get_object_or_404</li><li>get_user_info</li><li>get_profile_data</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) get_user_model</b> — Django에서는 사용자 모델을 직접 import하지 않고 get_user_model() 함수를 사용하여 유저 모델 클래스를 가져온다.</div></details></div>
+<div class="quiz-q"><div class="qq">24. 주관식 — 유저가 이미 팔로우한 상태인지 확인하는 QuerySet 메서드는 무엇인가?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">exists()</b> — exists() 메서드는 QuerySet 결과가 존재하는지만 확인하므로, 효율적으로 팔로우 여부를 판단할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">25. O/X — related_name을 지정하지 않으면 Django는 기본적으로 '모델명_set' 형식으로 역참조 이름을 만든다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — related_name을 지정하지 않으면 Django는 기본적으로 '모델명소문자_set' 형식으로 역참조 이름을 생성한다. 예: user_set</div></details></div>
+<div class="quiz-q"><div class="qq">26. 이미 팔로우한 유저를 다시 팔로우하지 않기 위해 사용하는 조건은?</div><ol class="opt" type="a"><li>if request.user == person</li><li>if person in request.user.followings</li><li>if request.user in person.followers.all()</li><li>if person.followers.exists(request.user)</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) if request.user in person.followers.all()</b> — 이미 팔로우한 유저인지 확인하려면 person.followers.all()에 request.user가 포함되어 있는지 확인한다.</div></details></div>
+<div class="quiz-q"><div class="qq">27. 주관식 — ORM에서 반복 접근 시 과도한 쿼리를 발생시키는 문제를 무엇이라 하는가?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">N+1 Problem</b> — 기본 데이터 조회 후, 연결된 객체에 접근할 때 N개의 추가 쿼리가 발생하여 성능 저하를 유발하는 현상이다.</div></details></div>
+<div class="quiz-q"><div class="qq">28. O/X — annotate는 쿼리셋에 집계 값을 계산해서 새로운 필드를 추가할 수 있다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — annotate는 Count, Sum 등의 집계 함수를 이용해 각 객체에 계산된 값을 담은 필드를 추가한다.</div></details></div>
+<div class="quiz-q"><div class="qq">29. select_related는 어떤 관계에서 쿼리 최적화를 위해 사용되나요?</div><ol class="opt" type="a"><li>ManyToManyField</li><li>CharField</li><li>ForeignKey</li><li>DateField</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) ForeignKey</b> — select_related는 ForeignKey나 OneToOne 관계에서 JOIN을 사용해 연관 객체를 한 번에 조회하도록 최적화한다.</div></details></div>
+<div class="quiz-q"><div class="qq">30. 주관식 — ManyToManyField 관계에서 쿼리 최적화를 위해 사용하는 ORM 메서드는 무엇인가?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">prefetch_related</b> — ManyToManyField나 역참조 관계에서 관련 데이터를 미리 가져와 반복 쿼리를 줄이는 데 사용된다.</div></details></div>
+<div class="quiz-q"><div class="qq">31. O/X — loaddata 명령어는 JSON 파일을 DB에 불러오는 데 사용된다.</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">O</b> — loaddata는 dumpdata로 추출한 JSON 파일을 데이터베이스에 로드할 때 사용하는 명령어이다.</div></details></div>
+<div class="quiz-q"><div class="qq">32. dumpdata 명령어의 주된 기능은?</div><ol class="opt" type="a"><li>데이터 삭제</li><li>데이터 백업</li><li>앱 생성</li><li>마이그레이션 실행</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 데이터 백업</b> — dumpdata는 데이터베이스의 데이터를 JSON 등의 형식으로 추출하여 파일로 저장하는 백업 도구이다.</div></details></div>
+  </div>
+  <div class="card full"><h3>관련 실습 문제</h3><div class="subhead">Many to Many Relationships 01 — 중개 모델과 좋아요 (11/04 오전, 슬라이드 75장)</div><div class="pillrow"><span class="pill">2919. M:N 복습 - 모델 작성</span><span class="pill">3061. diary M:N 관계 추가</span><span class="pill">1910. 온라인 쇼핑몰 시스템 - M:N 모델 정의</span><span class="pill">1911. 온라인 쇼핑몰 시스템 - M:N 모델 개선</span><span class="pill">1912. 이벤트 참여자 목록 관리 서비스 - M:N 모델</span><span class="pill">1913. 이벤트 참여자 목록 관리 서비스 - 중개 모델</span><span class="pill">1914. 이벤트 참여자 목록 관리 서비스 - 모델 수정</span><span class="pill">1974. M:N 복습 - 좋아요 기능 구현</span><span class="pill">3062. diary M:N 기능 구현</span><span class="pill">3063. 추천 기능 구현</span></div><div class="subhead">Many to Many Relationships 02 — 팔로우 · Fixtures · Improve query (11/04 오후, 슬라이드 100장)</div><div class="pillrow"><span class="pill">2925. Auth M:N 복습 - 모델 작성</span><span class="pill">2926. Auth M:N 복습 - 팔로우 기능 구현</span><span class="pill">2607. 소설 연재 서비스 - 모델 정의</span><span class="pill">2384. 소설 연재 서비스 - 구독 서비스</span><span class="pill">2385. 소설 연재 서비스 - 작가 생성 기능 개선</span><span class="pill">3271. 구독 기능 모델 구성하기</span><span class="pill">3272. 구독 기능 구현하기</span></div></div></div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">★</div>
+    <div><h2>활동 정리 — 핵심 키워드</h2><p class="desc">Part별 핵심 개념 한눈에 보기</p></div></div>
+  <div class="card-grid"><div class="card full part-sum"><h3>Many to Many Relationships 01 — 중개 모델과 좋아요 (11/04 오전, 슬라이드 75장)</h3></div>
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">M:N 관계</td><td>여러 개의 인스턴스가 서로를 참조하는 관계</td><td>학생 ↔ 수업</td></tr>
+        <tr><td class="k">중개 모델</td><td>M:N 관계를 표현하면서 추가 정보를 포함시키는 중간 모델</td><td>예약 ↔ 예약 날짜, 예약 시간</td></tr>
+        <tr><td class="k">ManyToManyField</td><td>Django에서 M:N 관계를 정의하는 필드</td><td><code>like_users = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='like_articles')</code></td></tr>
+        <tr><td class="k">through</td><td>ManyToMany 관계에 사용자 정의 중개 모델을 지정할 때 사용</td><td><code>through='Reservation'</code></td></tr>
+        <tr><td class="k">related_name</td><td>역참조 시 사용할 이름 지정</td><td><code>related_name='like_articles'</code></td></tr>
+        <tr><td class="k">symmetrical</td><td>관계의 대칭성을 설정하는 속성</td><td>친구 관계는 대칭적, 팔로우는 비대칭</td></tr>
+        <tr><td class="k">역참조 충돌</td><td>같은 두 모델 사이에 관계가 둘 이상이면 기본 역참조 이름(article_set)이 겹침</td><td>작성자 FK와 좋아요 M2M → related_name으로 해결</td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <ul>
+        <li><b>N:1로는 M:N을 못 담는다</b>: 같은 환자를 중복 저장하게 되고, FK 칸에 '1, 2'는 넣을 수 없다(제1정규형) → 양쪽을 FK로 참조하는 <b>중개(예약) 테이블</b>을 만든다.</li>
+        <li><b>ManyToManyField</b>가 중개 테이블(앱이름_모델명_필드명)을 자동 생성하고 <code>add()</code> · <code>remove()</code>로 관계를 다룬다. 어느 모델에 둬도 되지만 참조/역참조 방향이 달라진다.</li>
+        <li><b>through</b>로 직접 만든 중개 모델을 등록하면 추가 필드(증상·예약일)를 저장하면서 add(through_defaults=...)·remove()를 그대로 쓸 수 있다.</li>
+        <li><b>related_name · symmetrical</b>: 역참조 이름 변경 / 'self' 관계의 대칭 여부(기본 True).</li>
+        <li><b>좋아요</b>: Article에 <code>like_users = ManyToManyField(User, related_name='like_articles')</code> — 소유(FK)는 기본 이름, 행위(M2M)에 새 이름. view는 "있으면 remove, 없으면 add".</li>
+      </ul>
+    </div>
+  <div class="card full part-sum"><h3>Many to Many Relationships 02 — 팔로우 · Fixtures · Improve query (11/04 오후, 슬라이드 100장)</h3></div>
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">self 관계</td><td>모델이 자기 자신을 참조하는 관계</td><td>유저 ↔ 유저 (팔로우)</td></tr>
+        <tr><td class="k">symmetrical</td><td>관계의 대칭 여부를 설정하는 속성</td><td>친구 관계: True / 팔로우 관계: False</td></tr>
+        <tr><td class="k">fixtures</td><td>JSON이나 YAML 파일로 데이터를 백업하거나 복원하는 Django 기능</td><td><code>python manage.py dumpdata</code></td></tr>
+        <tr><td class="k">annotate</td><td>집계 함수 결과를 QuerySet에 주석처럼 추가</td><td>댓글 개수, 좋아요 수 표시</td></tr>
+        <tr><td class="k">select_related</td><td>ForeignKey 관계의 객체를 미리 로드하여 성능 향상</td><td><code>select_related('user')</code></td></tr>
+        <tr><td class="k">prefetch_related</td><td>ManyToMany 또는 reverse 관계를 미리 로딩</td><td><code>prefetch_related('comment_set')</code></td></tr>
+        <tr><td class="k">exists()</td><td>QuerySet에 해당 객체가 존재하는지를 Boolean으로 반환</td><td><code>Comment.objects.filter(...).exists()</code></td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <ul>
+        <li><b>프로필</b>: username으로 유저를 찾고 <code>person.article_set · comment_set · like_articles</code>로 활동을 보여준다.</li>
+        <li><b>팔로우</b>: <code>followings = ManyToManyField('self', symmetrical=False, related_name='followers')</code> — 중개 테이블은 from_user_id(나) · to_user_id(상대). 본인은 팔로우 불가.</li>
+        <li><b>fixtures</b>: dumpdata로 추출, app/fixtures/에 두고 loaddata. 따로 load하면 user → article → comment 순서. 인코딩 문제는 <code>python -Xutf8</code>.</li>
+        <li><b>N+1 해결</b>: 집계는 annotate, FK 정참조는 select_related(JOIN), 역참조·M:N은 prefetch_related(별도 쿼리), 겹치면 <code>Prefetch(..., queryset=...select_related(...))</code>.</li>
+        <li><b>exists()</b>로 "이미 눌렀나/팔로우했나"를 데이터를 다 불러오지 않고 판단한다. 단, 측정 없는 섣부른 최적화는 피한다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「DB Many to Many Relationships 01·02」(2025-11-04, 175장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

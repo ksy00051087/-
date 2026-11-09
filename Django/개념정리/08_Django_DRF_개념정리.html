@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django REST Framework 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · Django 08 · 11/09 DRF 01 + 11/10 DRF 02</span>
+    <h1>Django REST Framework 개념정리</h1>
+    <p class="sub">Part 1 API · REST(URI · HTTP Method · JSON) · 상태 코드 · DRF · Serialization · ModelSerializer로 CRUD(GET · POST · DELETE · PUT/PATCH) → Part 2 N:1 댓글 API · read_only_fields · 중첩 Serializer · 역참조 데이터(댓글 목록 · 개수) · SerializerMethodField · API 문서화 · get_object_or_404까지, 강의 슬라이드 208장(109 + 99)을 한 페이지로 이어서 재구성했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 Part 2개</span>
+      <span>🧪 Postman · 게시글/댓글 API · Swagger 실습</span>
+      <span>❓ 확인문제 29개</span>
+      <span>🗂️ 활동 정리 표</span>
+    </div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·Tip·주의 박스를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 DRF 공식 동작 기준으로 바로잡았습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#part1" style="background:var(--navy);color:#fff">Part 1 · Django REST Framework 01 — REST API와 단일 모델 CRUD</a>
+    <a href="#p1-ch1">1. REST API</a>
+    <a href="#p1-ch2">2. 자원의 식별</a>
+    <a href="#p1-ch3">3. 자원의 행위</a>
+    <a href="#p1-ch4">4. 자원의 표현</a>
+    <a href="#p1-ch5">5. Django REST Framework · Serialization</a>
+    <a href="#p1-ch6">6. CRUD with ModelSerializer</a>
+    <a href="#part2" style="background:var(--navy);color:#fff">Part 2 · Django REST Framework 02 — N:1 관계 · 역참조 데이터 · API 문서화</a>
+    <a href="#p2-ch1">8. DRF with N:1 Relation</a>
+    <a href="#p2-ch2">9. 응답 데이터 재구성</a>
+    <a href="#p2-ch3">10. 역참조 데이터 구성</a>
+    <a href="#p2-ch4">11. API 문서화</a>
+    <a href="#p2-ch5">12. 올바르게 404 응답하기 · 참고</a>
+    <a href="#quiz">확인문제 (원본 슬라이드 수록)</a>
+    <a href="#sum">활동 정리</a>
+  </nav>
+</div>
+
+<main>
+<div class="part-banner" id="part1"><span>Part 1</span>Django REST Framework 01 — REST API와 단일 모델 CRUD (11/09, 슬라이드 109장)</div>
+<section class="section" id="p1-ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>학습 시작 — 서비스끼리 약속된 방법으로 대화하기</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"배달 앱으로 음식을 주문할 때, 우리는 가게에 직접 전화하지 않아도 됩니다!"</h3>
+      <ol>
+        <li>배달 앱이 <b>REST API</b>를 통해 가게에 주문 정보를 전달하고</li>
+        <li>가게는 그 정보를 받아서 <b>JSON</b> 형식으로 "주문 확인"을 응답합니다</li>
+        <li>우리는 어떤 메뉴를 주문했는지 <b>GET 요청</b>으로 다시 확인할 수도 있어요</li>
+      </ol>
+      <p>오늘은 이렇게 다양한 서비스들이 서로 약속된 방법으로 대화하는 방식, REST API를 배웁니다.</p>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>REST API의 개념과 구성 요소(URI, Method, 표현)를 이해한다.</li>
+        <li>HTTP 요청 방식(GET, POST, PUT, DELETE)의 역할을 설명할 수 있다.</li>
+        <li>Django REST Framework를 이용해 간단한 API 서버를 구축할 수 있다.</li>
+        <li>ModelSerializer를 사용하여 데이터를 JSON으로 변환하고 응답할 수 있다.</li>
+        <li>API 요청에 따른 응답 코드를 이해하고 적절하게 처리할 수 있다.</li>
+        <li>Postman을 이용해 API 서버를 테스트하고 응답 결과를 확인할 수 있다.</li>
+        <li>partial 인자 사용 등 실제 API 수정 요청에서 발생할 수 있는 상황을 처리할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>REST API</h2><p class="desc">API · 날씨 데이터 예시 · Web API · Open API · REST · RESTful · REST API 구성</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">1-1</span>API (Application Programming Interface)</h3>
+      <p><b>두 소프트웨어가 서로 통신할 수 있게 하는 메커니즘</b>. 클라이언트-서버처럼 서로 다른 프로그램에서 요청과 응답을 받을 수 있도록 만든 체계입니다. 서로 이해할 수 있는 공통된 규칙과 형식이 필요하고, 이 역할을 하는 것이 바로 API입니다.</p>
+      <div class="subhead">API 예시 — 날씨 데이터 받기</div>
+      <ol>
+        <li>기상청 서버에는 기상 데이터가 들어 있고, 스마트폰의 날씨 앱·웹 사이트의 날씨 정보 등 다양한 서비스가 이 서버에 데이터를 요청하고 응답받음</li>
+        <li>기상청 서버에는 "날씨 정보를 얻고 싶으면 이런 식으로 요청하라"는 지정된 형식(지역, 날짜, 조회할 내용 — 온도, 바람 등)을 제공하는 <b>매뉴얼</b>이 작성되어 있음</li>
+        <li>소프트웨어와 소프트웨어 간 지정된 정의(형식)로 소통하는 수단 → API. "이렇게 요청을 보내면, 이렇게 정보를 제공해 줄 것이다"라는 매뉴얼</li>
+      </ol>
+      <p>→ 스마트폰의 날씨 앱은 기상청이 제공하는 API를 통해 기상청 시스템과 대화하여 매일 최신 날씨 정보를 표시합니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-2</span>API 비유 — 콘센트</h3>
+      <p>우리 집 냉장고에 전기를 공급해야 한다고 가정하면, 우리는 그냥 냉장고의 플러그를 소켓에 꽂으면 제품이 작동합니다. 중요한 것은 <b>"전기를 공급하기 위해 직접 배선을 하지 않는다"</b>는 것 — 이는 매우 위험하면서도 비효율적인 일이기 때문입니다.</p>
+      <p>→ API는 <b>복잡한 코드를 추상화하여 대신 사용할 수 있는 몇 가지 더 쉬운 구문을 제공</b>합니다.</p>
+      <h3><span class="tag">1-3</span>Web API · Open API · Third Party</h3>
+      <table class="compare">
+        <tr><th>용어</th><th>의미</th></tr>
+        <tr><td class="k">Web API</td><td>웹 서버 또는 웹 브라우저를 위한 API</td></tr>
+        <tr><td class="k">Open API</td><td>누구나 접근할 수 있도록 공개된, 외부 소프트웨어와 통신하기 위한 인터페이스</td></tr>
+        <tr><td class="k">Third Party</td><td>직접 개발하지 않은 외부의 서비스나 소프트웨어를 제공하거나 활용하는 주체</td></tr>
+      </table>
+      <p>현대 웹 개발은 하나부터 열까지 직접 개발하기보다 여러 Open API를 활용하는 추세입니다. 대표적인 Third Party Open API: Youtube API, Google Map API, Naver Papago API, Kakao Map API.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-4</span>REST (Representational State Transfer)</h3>
+      <p><b>API Server를 개발하기 위한 일종의 소프트웨어 설계 방법론</b>. 엄격한 규칙을 의미하는 것은 아닙니다!</p>
+      <p>건축 설계 비유 — 지붕부터 만들고, 창문부터 만들고, 벽을 나중에 올리면 공사가 복잡해지겠죠? 그래서 집을 짓는 순서와 방식을 정해 두듯, API마다 제각각인 설계를 정리하고 누구나 예측 가능한 방식으로 사용할 수 있도록 설계 기준을 제안한 것이 바로 REST입니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">1-5</span>RESTful API</h3>
+      <p><b>REST 원리를 따르는 시스템을 RESTful하다고 부릅니다.</b> "자원을 정의"하고 "자원에 대한 주소를 지정"하는 전반적인 방법을 서술합니다.</p>
+      <p>"각각 API 서버 구조를 작성하는 모습이 너무 다르니 어느 정도 약속을 만들어서 다같이 통일해서 쓰자!"</p>
+      <div class="subhead">REST API 활용 예시</div>
+      <p>Naver Cloud API, Kakao Login API 등 — REST API는 시스템 간 표준화된 통신 방식을 제공함으로써, 서로 다른 기술 스택 간에도 연동이 가능합니다.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">1-6</span>REST API — REST라는 설계 디자인 약속을 지켜 구현한 API</h3>
+      <table class="compare">
+        <tr><th>REST에서 자원을 정의하고 주소를 지정하는 방법</th><th>무엇으로</th></tr>
+        <tr><td class="k">1. 자원의 "식별"</td><td>URI</td></tr>
+        <tr><td class="k">2. 자원의 "행위"</td><td>HTTP Methods</td></tr>
+        <tr><td class="k">3. 자원의 "표현"</td><td>JSON 데이터 (궁극적으로 표현되는 데이터 결과물)</td></tr>
+      </table>
+      <div class="note tip">URL만 보고도 무슨 데이터를, 어떤 방식으로 처리할지 예측할 수 있어야 합니다. 개발 시에는 항상 <b>"자원 중심 + 동작 명확화 + 일관된 응답 형식"</b>을 기준으로 설계하세요.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>자원의 식별 — URI</h2><p class="desc">자원 · URI · URL · Scheme · Domain Name · Port · Path · Parameters · Anchor</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">2-1</span>URI (Uniform Resource Identifier, 통합 자원 식별자)</h3>
+      <p><b>인터넷에서 리소스(자원)를 식별하는 문자열</b>.</p>
+      <p class="src">자원(Resource) — 웹에서 고유한 주소를 통해 접근할 수 있는 데이터나 기능의 단위</p>
+      <h3><span class="tag">2-2</span>URL (Uniform Resource Locator, 통합 자원 위치)</h3>
+      <p><b>웹에서 주어진 리소스의 주소</b>. 네트워크 상에 리소스가 어디 있는지를 알려주기 위한 약속입니다. 가장 일반적인 URI는 웹 주소로 알려진 URL입니다.</p>
+<pre class="formula">http://  www.example.com  :80  /path/to/myfile.html  ?key1=value1&amp;key2=value2  #SomewhereInTheDocument
+Scheme   Domain Name      Port Path to the file      Parameters                 Anchor</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">2-3</span>URL 구성 요소</h3>
+      <table class="compare">
+        <tr><th>요소</th><th>설명</th></tr>
+        <tr><td class="k">Scheme (Protocol)</td><td>브라우저가 리소스를 요청하는 데 사용해야 하는 규약. URL의 첫 부분은 어떤 규약을 사용하는지 나타냄. 기본적으로 웹은 http(s)를 요구하며, 메일을 열기 위한 mailto:, 파일을 전송하기 위한 ftp: 등 다른 프로토콜도 존재</td></tr>
+        <tr><td class="k">Domain Name</td><td>요청 중인 웹 서버를 나타냄. 직접 IP 주소를 사용하는 것도 가능하지만 사람이 외우기 어렵기 때문에 주로 Domain Name을 사용. 예) google.com의 IP 주소는 142.251.42.142</td></tr>
+        <tr><td class="k">Port</td><td>웹 서버의 리소스에 접근하는 데 사용되는 기술적인 문(Gate). HTTP 프로토콜의 표준 포트 — HTTP 80, HTTPS 443. 표준 포트만 작성 시 생략 가능</td></tr>
+        <tr><td class="k">Path</td><td>웹 서버의 리소스 경로. 초기에는 실제 파일의 물리적 위치였지만, 오늘날은 실제 위치가 아닌 추상화된 형태의 구조를 표현. 예) /articles/create/가 실제 articles 폴더 안의 create 폴더를 뜻하는 것은 아님</td></tr>
+        <tr><td class="k">Parameters</td><td>웹 서버에 제공하는 추가적인 데이터. '&amp;' 기호로 구분되는 key-value 쌍 목록. 서버는 리소스를 응답하기 전에 이 파라미터로 추가 작업을 수행할 수 있음</td></tr>
+        <tr><td class="k">Anchor</td><td>일종의 "북마크"를 나타내며 브라우저에 해당 지점의 콘텐츠를 표시. '#'(fragment identifier, 부분 식별자) 이후 부분은 <b>서버에 전송되지 않음</b>. 예) https://docs.djangoproject.com/en/5.2/intro/install/#quick-install-guide 에서 #quick-install-guide는 서버에 전달되지 않고 브라우저가 해당 지점으로 이동하도록 함</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>자원의 행위 — HTTP Methods · Status Codes</h2><p class="desc">HTTP Request Methods 4가지 · HTTP response status codes 5분류</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">3-1</span>HTTP Request Methods</h3>
+      <p><b>리소스에 대한 행위, 즉 수행하고자 하는 동작을 정의</b>.</p>
+      <p>택배 비유 — "이 주소로 물건 좀 보내주세요"(POST) · "방금 보낸 물건 도착했나요?"(GET) · "그 물건 취소할게요"(DELETE) · "받는 사람 정보를 통째로 새로 적을게요"(PUT)</p>
+      <table class="compare">
+        <tr><th>메서드</th><th>역할</th></tr>
+        <tr><td class="k">GET</td><td>서버에 리소스의 표현을 요청. GET을 사용하는 요청은 데이터만 검색해야 함</td></tr>
+        <tr><td class="k">POST</td><td>데이터를 지정된 리소스에 제출. 서버의 상태를 변경</td></tr>
+        <tr><td class="k">PUT</td><td>요청한 주소의 리소스를 수정</td></tr>
+        <tr><td class="k">DELETE</td><td>지정된 리소스를 삭제</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3><span class="tag">3-2</span>HTTP response status codes</h3>
+      <p><b>특정 HTTP 요청이 성공적으로 완료되었는지 여부를 나타냄</b>. 클라이언트가 서버에 요청을 보내면, 서버는 요청이 성공했는지 실패했는지를 숫자로 알려주고, 클라이언트는 이 코드를 보고 어떤 일이 일어났는지 판단합니다.</p>
+      <table class="compare">
+        <tr><th>범위</th><th>분류</th><th>의미</th></tr>
+        <tr><td class="k">100-199</td><td>Informational responses</td><td>계속 진행 중이라는 중간 응답</td></tr>
+        <tr><td class="k">200-299</td><td>Successful responses</td><td>정상적으로 처리되었음</td></tr>
+        <tr><td class="k">300-399</td><td>Redirection messages</td><td>리소스가 다른 위치로 이동했을 때</td></tr>
+        <tr><td class="k">400-499</td><td>Client error responses</td><td>클라이언트 요청에 문제가 있을 때</td></tr>
+        <tr><td class="k">500-599</td><td>Server error responses</td><td>서버 내부의 문제로 요청을 처리하지 못했을 때</td></tr>
+      </table>
+      <div class="note tip">이 장에서 쓰는 코드 — 200 OK · 201 Created · 204 No Content · 400 Bad Request · 404 Not Found · 405 Method Not Allowed</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch4" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>자원의 표현 — JSON 데이터 응답</h2><p class="desc">응답 데이터 타입의 변화 · 사전 준비 · Python으로 JSON 처리하기</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">4-1</span>그동안 서버가 응답(자원을 표현)했던 것</h3>
+      <ul>
+        <li>지금까지 Django 서버는 사용자에게 페이지(HTML)만 응답하고 있었음</li>
+        <li>하지만 서버가 응답할 수 있는 것은 페이지뿐 아니라 다양한 데이터 타입이며, REST API는 이 중에서도 <b>JSON 타입으로 응답하는 것을 권장</b></li>
+      </ul>
+      <p class="src">JSON — 데이터를 구조화된 텍스트 형태로 표현하는 형식. 데이터만을 전달하기 위한 최소한의 형식이라 어떤 클라이언트와도 언어와 플랫폼에 독립적으로 통신할 수 있음</p>
+      <div class="subhead">응답 데이터 타입의 변화 (1~4/4)</div>
+      <ol>
+        <li><b>페이지(HTML)만을 응답하는 서버</b> — 사용자가 웹 브라우저로 요청하면 서버가 HTML 페이지를 만들어 응답</li>
+        <li><b>JSON 데이터를 응답하는 REST API 서버로의 변환</b> — 서버는 HTML 페이지를 만들지 않고 JSON 데이터만 응답. HTML 대신 JSON을 전달하므로 응답 용량이 줄고, 화면을 그리는 일은 클라이언트가 맡게 됨</li>
+        <li><b>Django는 더 이상 화면(Template)을 그리는 역할을 하지 않음</b> — 대신 오직 데이터(JSON)만을 응답. 화면은 Vue 같은 Front-end 프레임워크가 전담하며, 전통적인 MTV 구조(서버가 화면까지 그리는 방식)에서 <b>'Front-end / Back-end 분리'</b> 구조로의 전환을 의미</li>
+        <li>이제부터 Django를 사용해 RESTful API 서버를 구축</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-2</span>사전 준비 (1~4/4)</h3>
+<pre class="formula"># 사전 제공된 99-json-response-practice 기반 시작
+$ python -m venv venv
+$ source venv/Scripts/activate
+$ pip install -r requirements.txt
+$ python manage.py migrate        # 모델 구조를 데이터베이스에 반영
+
+# 준비된 fixtures 파일을 load하여 초기 데이터 입력
+$ python manage.py loaddata articles.json
+Installed 20 object(s) from 1 fixture(s)
+
+# 서버 실행 (VSCode 터미널 분할 후 다른 터미널에서 파이썬 코드 실행)
+$ python manage.py runserver</pre>
+      <div class="note">migrate·fixture 작업 진행 시 데이터가 모두 올바르게 처리되었는지 반드시 확인하세요.</div>
+<pre class="formula"># drf/urls.py
+urlpatterns = [
+    path("admin/", admin.site.urls),
+    path('api/v1/', include('articles.urls')),
+]</pre>
+      <p>http://127.0.0.1:8000/api/v1/articles/ 로 요청하면 JSON 응답을 확인할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">4-3</span>Python으로 JSON 데이터 처리하기</h3>
+<pre class="formula"># python-request-sample.py
+import requests
+from pprint import pprint
+
+response = requests.get('http://127.0.0.1:8000/api/v1/articles/')
+
+# json을 python 타입으로 변환
+result = response.json()
+
+print(type(result))
+pprint(result)
+pprint(result[0])
+pprint(result[0].get('title'))</pre>
+<pre class="formula"># 서버가 실행되어 있는 상태에서 2번째 터미널에서 실행
+$ python python-request-sample.py</pre>
+      <div class="note tip">브라우저가 아니어도 같은 주소로 요청하면 같은 데이터를 받을 수 있습니다 — 화면 없이 데이터만 주고받는 것이 API 서버입니다.</div>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>Django REST Framework · Serialization</h2><p class="desc">DRF · 프로젝트 준비 · Postman · Serialization · Serializer · ModelSerializer</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">5-1</span>Django REST framework (DRF)</h3>
+      <p><b>Django에서 RESTful API 서버를 쉽게 구축할 수 있도록 도와주는 오픈소스 라이브러리</b>.</p>
+      <p>가구를 직접 만들려면 톱, 망치, 설계도, 재료가 모두 필요하지만, 조립식 가구는 드라이버 하나만 있으면 누구나 간단히 완성할 수 있습니다. DRF는 이처럼 복잡한 API 서버 개발 과정을 표준화하고 자동화하여, 초보자도 빠르고 안정적으로 RESTful API를 구현할 수 있도록 도와주는 개발 도구 세트입니다.</p>
+<pre class="formula"># 프로젝트 준비 (사전 제공된 01 프로젝트)
+# djangorestframework 설치와 INSTALLED_APPS 등록은 이미 되어 있음
+$ pip install djangorestframework
+$ python manage.py migrate
+$ python manage.py loaddata articles.json</pre>
+<pre class="formula"># settings.py
+INSTALLED_APPS = [
+    'articles',
+    'rest_framework',
+    ...
+]</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-2</span>Postman</h3>
+      <p><b>API 개발 및 테스트를 위한 서비스</b>. 요청 데이터 구성, 응답 확인, 환경 설정, 자동화 테스트 등 다양한 기능을 제공합니다.</p>
+      <ul>
+        <li>설치: https://www.postman.com/downloads/</li>
+        <li>Workspaces → My workspace에서 요청 생성</li>
+        <li>화면 구성: 메서드 선택(GET/POST/…) + URL 입력 → Send / 요청 Body(form-data 등) / 아래에 응답 Body·상태 코드</li>
+      </ul>
+      <div class="note tip">브라우저 주소창으로는 GET만 보낼 수 있으므로, POST·PUT·DELETE 요청 테스트에는 Postman을 사용합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-3</span>Serialization (직렬화)</h3>
+      <p><b>여러 시스템에서 활용하기 위해 데이터 구조나 객체 상태를 나중에 재구성할 수 있는 포맷으로 변환하는 과정</b>.</p>
+      <ul>
+        <li>Python 객체 → (Serialization) → Serialized data(JSON 등)</li>
+        <li>변환된 데이터는 다른 프로그램, 다른 언어, 다른 컴퓨터에서도 다시 원래의 형태로 복원할 수 있음</li>
+        <li>즉, 직렬화는 데이터를 "어디서든 읽고 사용할 수 있게 만드는 공통 언어로의 번역"</li>
+        <li>직렬화 결과는 JSON, XML 등 여러 형식이 될 수 있지만, <b>수업에서는 JSON 변환에만 집중</b></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">5-4</span>Serialization vs Serializer</h3>
+      <table class="compare">
+        <tr><th></th><th>Serialization</th><th>Serializer</th></tr>
+        <tr><td class="k">정체</td><td>과정 (동작)</td><td>도구 (클래스)</td></tr>
+        <tr><td class="k">비유</td><td>번역</td><td>번역가</td></tr>
+        <tr><td class="k">코드에서</td><td><code>serializer.data</code>를 꺼내는 순간 일어나는 일</td><td>serializers.py에 작성하는 클래스</td></tr>
+      </table>
+      <p>Django 프로젝트에서는 Serializer Class가 직렬화를 담당하며, <b>serializers.py 파일을 생성하여 작성</b>합니다.</p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">5-5</span>ModelSerializer</h3>
+      <p><b>Django 모델과 연결된 Serializer 클래스</b> → 모델 정보를 바탕으로 자동으로 필드를 생성 (Form과 ModelForm의 관계와 같음).</p>
+      <div class="note tip">Serializer는 단순히 JSON 변환 도구가 아니라 값 검증, 데이터 구조 정의, 모델 연동까지 담당합니다. ModelForm을 사용하는 Django 웹 개발과 동일하게, API 기반 개발에서는 Serializer가 데이터 입출력, 유효성 검사, 저장(create/update) 기능을 자동으로 만들어 줍니다.</div>
+<pre class="formula"># articles/forms.py (Django Form 수업)
+class ArticleForm(forms.ModelForm):
+    class Meta:
+        model = Article
+        fields = '__all__'
+
+# articles/serializers.py (오늘) — Article 모델을 토대로 직렬화를 수행하는 ArticleSerializer
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = '__all__'</pre>
+      <p>Form은 HTML용, Serializer는 JSON 데이터용. 두 클래스가 하는 일(필드 정의, 유효성 검사, 저장)도 거의 같습니다. Meta의 fields가 곧 <b>"응답 JSON의 모양"</b>을 결정합니다. (실제 작성은 이어지는 CRUD 실습에서 진행)</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p1-ch6" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">6</div>
+    <div><h2>CRUD with ModelSerializer</h2><p class="desc">URL 설계 · GET List/Detail · many · api_view · POST · DELETE · PUT · partial · PATCH · raise_exception</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">6-1</span>URL과 HTTP request methods 설계</h3>
+      <table class="compare">
+        <tr><th></th><th>GET</th><th>POST</th><th>PUT</th><th>DELETE</th></tr>
+        <tr><td class="k">articles/</td><td>전체 글 조회</td><td>글 작성</td><td>.</td><td>.</td></tr>
+        <tr><td class="k">articles/1/</td><td>1번 글 조회</td><td>.</td><td>1번 글 수정</td><td>1번 글 삭제</td></tr>
+      </table>
+      <div class="note tip"><b>TIP</b> — URL에 동작명(get, create)을 넣지 말고, 자원 중심으로 설계하세요. 복수형/단수형 혼용은 혼란을 주니 일관되게 사용하세요. 깊은 중첩 구조는 피하고, 필요한 경우 관계를 명확히 표현하세요. 기능이 아닌 자원의 위치만 URL로 표현하고, 동작은 HTTP 메서드로 구분하세요.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-2</span>GET - List (1~3/3) — 게시글 목록 조회</h3>
+<pre class="formula"># articles/serializers.py
+from rest_framework import serializers
+from .models import Article
+
+class ArticleListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = ('id', 'title', 'content',)</pre>
+<pre class="formula"># articles/urls.py
+urlpatterns = [
+    path('articles/', views.article_list),
+]
+
+# articles/views.py
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from .models import Article
+from .serializers import ArticleListSerializer
+
+@api_view(['GET'])
+def article_list(request):
+    articles = Article.objects.all()
+    serializer = ArticleListSerializer(articles, many=True)
+    return Response(serializer.data)</pre>
+      <p>http://127.0.0.1:8000/api/v1/articles/ 응답 확인 — 브라우저(DRF 화면)와 Postman 모두에서 JSON 목록이 출력됩니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-3</span>왜 Serializer를 하나 더 만들까?</h3>
+      <p><b>"목록 화면과 상세 화면은 보여줄 정보가 다르다"</b> — 쇼핑몰의 상품 목록에는 이름과 가격만, 상품 상세에는 모든 정보가 나오듯, API도 용도마다 fields가 다른 Serializer를 따로 만듭니다.</p>
+      <table class="compare">
+        <tr><th>용도</th><th>Serializer</th><th>fields</th><th>URL</th></tr>
+        <tr><td class="k">목록 조회</td><td>ArticleListSerializer</td><td>id, title, content</td><td>articles/</td></tr>
+        <tr><td class="k">상세·생성·수정</td><td>ArticleSerializer</td><td>'__all__'</td><td>articles/1/</td></tr>
+      </table>
+      <h3><span class="tag">6-4</span>ModelSerializer의 인자 및 속성</h3>
+      <ul>
+        <li><b>many 옵션</b> — Serialize 대상이 QuerySet인 경우 입력 (<code>many=True</code>). 지정하지 않으면 단일 객체로 처리</li>
+        <li><b>data 속성</b> — serializer 객체에서 직렬화된 결과 데이터를 꺼냄 (<code>serializer.data</code>)</li>
+      </ul>
+      <p class="src">QuerySet — Django ORM을 통해 모델에서 조회된 객체들의 집합. 반복문으로 순회하거나 필터링 등 다양한 연산이 가능</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-5</span>과거 view 함수와의 응답 데이터 비교</h3>
+<pre class="formula"># 과거) HTML에 출력되도록 페이지와 함께 응답했던 view
+def index(request):
+    articles = Article.objects.all()
+    context = {
+        'articles': articles,
+    }
+    return render(request, 'articles/index.html', context)
+
+# 현재) JSON 데이터로 serialization하여 페이지 없이 응답하는 view
+@api_view(['GET'])
+def article_list(request):
+    articles = Article.objects.all()
+    serializer = ArticleListSerializer(articles, many=True)
+    return Response(serializer.data)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-6</span>'api_view' decorator</h3>
+      <ul>
+        <li>DRF view 함수에서는 <b>필수로 작성</b>되며 view 함수를 실행하기 전 HTTP 메서드를 확인</li>
+        <li>허용하도록 지시한 메서드에 대해서만 올바르게 답변하며, 목록에 추가하지 않은 다른 메서드 요청에 대해서는 <b>405 Method Not Allowed</b>로 응답</li>
+        <li>DRF view 함수가 응답해야 하는 HTTP 메서드 목록을 작성</li>
+      </ul>
+      <div class="note">@api_view 데코레이터를 빠뜨리면 함수가 단순한 Django 뷰로 인식되어 API 요청이 제대로 처리되지 않습니다. 생략할 경우 응답 에러나 HTML 응답이 반환되는 등 원인을 찾기 어려운 오류가 발생하므로, 요청이 실패할 땐 데코레이터 누락 여부부터 확인하세요.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-7</span>GET - Detail (1~3/3) — 단일 게시글 조회</h3>
+<pre class="formula"># articles/serializers.py — 각 게시글의 상세 정보를 제공하는 Serializer
+class ArticleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = '__all__'</pre>
+<pre class="formula"># articles/urls.py
+urlpatterns = [
+    path('articles/', views.article_list),
+    path('articles/&lt;int:article_pk&gt;/', views.article_detail),
+]
+
+# articles/views.py
+from .serializers import ArticleListSerializer, ArticleSerializer
+
+@api_view(['GET'])
+def article_detail(request, article_pk):
+    article = Article.objects.get(pk=article_pk)
+    serializer = ArticleSerializer(article)
+    return Response(serializer.data)</pre>
+      <p>http://127.0.0.1:8000/api/v1/articles/1/ 응답 확인 (id, title, content, created_at, updated_at).</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-8</span>POST (1~4/4) — 게시글 생성</h3>
+      <ul>
+        <li>데이터 생성이 성공했을 경우 <b>201 Created</b> 응답</li>
+        <li>데이터 생성이 실패했을 경우 <b>400 Bad request</b> 응답</li>
+      </ul>
+      <div class="note tip">POST 요청에서 에러가 발생하면 Serializer의 is_valid() → errors를 먼저 확인하세요. 어떤 필드가 누락되었는지, 형식이 잘못되었는지 정확한 원인을 알려줍니다. 400 오류는 대부분 입력 데이터 문제입니다.</div>
+<pre class="formula"># articles/views.py — article_list view 함수 구조 변경 (method에 따른 분기처리)
+from rest_framework import status
+
+@api_view(['GET', 'POST'])
+def article_list(request):
+    if request.method == 'GET':
+        articles = Article.objects.all()
+        serializer = ArticleListSerializer(articles, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        serializer = ArticleSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)</pre>
+      <p>생성할 때는 입력받을 필드를 검사하고, 저장된 결과를 전체 정보로 돌려주어야 하므로 ArticleSerializer를 사용합니다. Postman에서 POST http://127.0.0.1:8000/api/v1/articles/ 에 form-data(title, content)로 요청 후, 새로 생성된 게시글을 GET으로 확인합니다 (article pk는 상황마다 다를 수 있음).</p>
+      <p class="src">form-data — 폼 형식으로 전송되는 요청 본문 데이터로, 파일 업로드나 key-value 입력에 사용</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-9</span>DELETE (1~2/2) — 게시글 삭제</h3>
+      <p>요청에 대한 데이터 삭제가 성공했을 경우 <b>204 No Content</b> 응답 (요청은 성공했지만, 클라이언트에게 보낼 콘텐츠가 없음을 나타내는 상태 코드).</p>
+<pre class="formula"># articles/views.py
+@api_view(['GET', 'DELETE'])
+def article_detail(request, article_pk):
+    article = Article.objects.get(pk=article_pk)
+    if request.method == 'GET':
+        serializer = ArticleSerializer(article)
+        return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        article.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)</pre>
+      <div class="subhead">DELETE 응답 시 Response 구성 방식</div>
+      <ul>
+        <li><code>Response()</code>는 기본적으로 data 인자를 필수로 하지 않음 (data=None, status=None, ...)</li>
+        <li>아무런 데이터도 넘기지 않을 경우엔 응답 상태 코드만으로 결과를 전달</li>
+        <li>첫 번째 인자를 비운 상태로 두 번째 인자에 값을 전달할 수 없으므로 <b>status= 키워드</b>로 작성</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-10</span>DELETE 후 데이터를 반환하는 방법</h3>
+      <ul>
+        <li>일반적으로 DELETE 요청은 204 No Content로 <b>본문 없이 응답</b>하는 것이 RESTful한 설계방식</li>
+        <li>하지만 클라이언트에서 삭제 대상 데이터를 확인하거나, UI에서 알림 메시지로 활용할 경우(예: "게시글 'Django 소개'가 삭제되었습니다.") 삭제된 객체의 정보를 함께 반환해야 할 수도 있음</li>
+        <li>DELETE에서도 응답이 필요한 경우엔 204 대신 <b>200 OK</b> 상태 코드와 함께 데이터를 반환. 단, REST 원칙상 기본은 응답 없음(204)이므로 목적이 명확할 때만 사용</li>
+      </ul>
+<pre class="formula">@api_view(['GET', 'DELETE'])
+def article_detail(request, article_pk):
+    article = Article.objects.get(pk=article_pk)
+    ...
+    elif request.method == 'DELETE':
+        # 1. 반환할 데이터를 삭제 전에 미리 변수로 저장
+        pk = article.pk
+        title = article.title
+        article.delete()
+        data = {
+            'delete': f'{pk}번 게시글 "{title}"이 삭제되었습니다.',
+        }
+        # 2. Response의 첫 번째 인자로 전달
+        return Response(data, status=status.HTTP_200_OK)</pre>
+      <div class="note">delete() 실행 시 해당 객체는 데이터베이스에서 삭제되므로, 필요한 값은 삭제 전에 미리 변수로 저장해 두고 삭제 이후에는 변수만 사용하는 것이 더 안정적입니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-11</span>PUT (1~3/3) — 게시글 수정</h3>
+      <p>요청에 대한 데이터 수정이 성공했을 경우 <b>200 OK</b> 응답.</p>
+<pre class="formula"># articles/views.py
+@api_view(['GET', 'DELETE', 'PUT'])
+def article_detail(request, article_pk):
+    article = Article.objects.get(pk=article_pk)
+    ...
+    elif request.method == 'PUT':
+        serializer = ArticleSerializer(article, data=request.data)
+        # serializer = ArticleSerializer(instance=article, data=request.data, partial=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)</pre>
+      <p>PUT http://127.0.0.1:8000/api/v1/articles/1/ 에 form-data로 title·content(제목 수정! / 내용 수정!)를 보낸 뒤 GET으로 수정된 데이터를 확인합니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">6-12</span>'partial' argument · PATCH</h3>
+      <ul>
+        <li>"부분 업데이트"를 허용하기 위한 인자. 기본 값은 <b>False</b></li>
+        <li>partial=False이면 게시글의 title만 수정하려 해도 content 같은 다른 필수 필드들도 함께 전송해야 함 — serializer가 기본적으로 모든 필수 필드에 대한 값이 전달되었는지 확인하기 때문</li>
+        <li>일부 필드만 수정하고 싶다면 <code>partial=True</code>로 설정</li>
+      </ul>
+<pre class="formula"># PATCH 메서드 — 리소스의 일부 필드만 수정하기
+@api_view(['GET', 'DELETE', 'PATCH'])
+def article_detail(request, article_pk):
+    ...
+    elif request.method == 'PATCH':
+        serializer = ArticleSerializer(article, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)</pre>
+      <table class="compare">
+        <tr><th>항목</th><th>PUT</th><th>PATCH</th></tr>
+        <tr><td class="k">수정 대상</td><td>전체 리소스</td><td>리소스의 일부 필드</td></tr>
+        <tr><td class="k">요청 데이터 요구</td><td>모든 필수 필드 포함</td><td>수정할 필드만 포함 가능</td></tr>
+        <tr><td class="k">사용 목적</td><td>전체 덮어쓰기 (교체)</td><td>부분 수정 (일부 필드만 갱신)</td></tr>
+        <tr><td class="k">DRF 설정</td><td>기본 (partial=False)</td><td>반드시 partial=True 필요</td></tr>
+      </table>
+      <div class="note">부분 수정할 땐 반드시 PATCH를 사용해야 RESTful한 설계입니다. PUT 요청에서 partial=True를 사용하는 것은 편의상 허용되기도 하지만, REST 원칙에는 어긋납니다.</div>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">6-13</span>raise_exception</h3>
+      <ul>
+        <li><code>is_valid()</code>의 선택 인자</li>
+        <li>유효성 검사를 통과하지 못할 경우 <b>ValidationError</b> 예외를 발생시킴</li>
+        <li>DRF에서 제공하는 기본 예외 처리기에 의해 자동으로 처리되며 기본적으로 <b>HTTP 400</b> 응답을 반환</li>
+      </ul>
+<pre class="formula"># articles/views.py
+@api_view(['GET', 'POST'])
+def article_list(request):
+    ...
+    elif request.method == 'POST':
+        serializer = ArticleSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  ← 생략 가능해짐</pre>
+    </div>
+  </div>
+</section>
+<div class="part-banner" id="part2"><span>Part 2</span>Django REST Framework 02 — N:1 관계 · 역참조 데이터 · API 문서화 (11/10, 슬라이드 99장)</div>
+<section class="section" id="p2-ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">7</div>
+    <div><h2>학습 시작 — 가게와 리뷰를 API로 잇기</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"배달 앱의 한 가게에는 리뷰가 몇 개나 달릴까요?"</h3>
+      <p>치킨집 하나에는 리뷰가 수십 개 달리지만, 리뷰 하나는 반드시 한 가게에만 속해요.</p>
+      <ol>
+        <li>가게와 리뷰는 <b>N(리뷰):1(가게)</b> 관계입니다.</li>
+        <li>리뷰 쪽에 <b>ForeignKey</b>를 두어 "이 리뷰는 어느 가게의 것인지"를 기록합니다.</li>
+        <li>리뷰를 작성할 때 어느 가게의 리뷰인지는 주소(URL)로 정해지므로, <b>read_only_fields</b>로 클라이언트가 직접 바꾸지 못하게 보호할 수 있어요.</li>
+        <li>가게 상세 정보를 조회할 때 <b>역참조</b>를 활용해 그 가게의 리뷰 목록을 함께 보여줄 수 있어요.</li>
+        <li><b>SerializerMethodField</b>로 가공된 데이터(예: 총 리뷰 수)를 함께 제공할 수도 있습니다.</li>
+      </ol>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>DRF에서 N:1 관계를 표현하는 방법을 이해한다.</li>
+        <li>외래 키(ForeignKey)를 사용하는 모델 구조를 설계할 수 있다.</li>
+        <li>댓글 데이터를 조회(GET), 생성(POST), 수정(PUT), 삭제(DELETE)하는 API를 구현할 수 있다.</li>
+        <li>read_only_fields를 활용해 클라이언트의 수정이 불가능한 필드를 설정할 수 있다.</li>
+        <li>SerializerMethodField를 사용해 응답에 추가적인 정보를 포함하는 방법을 익힌다.</li>
+        <li>역참조를 통해 부모 객체에서 자식 객체 목록 또는 개수를 응답에 포함하는 방법을 사용할 수 있다.</li>
+        <li>annotate를 사용해 모델 데이터를 집계하고, Serializer에서 이를 활용할 수 있다.</li>
+        <li>get_object_or_404, get_list_or_404를 활용해 예외 처리를 구현할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">8</div>
+    <div><h2>DRF with N:1 Relation</h2><p class="desc">사전 준비 · URL 구성 · GET · POST · 읽기 전용 필드 · DELETE &amp; PUT</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">8-1</span>사전 준비 (1~3/3)</h3>
+<pre class="formula"># articles/models.py — Comment 모델 클래스 정의
+class Comment(models.Model):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    content = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</pre>
+<pre class="formula">$ python manage.py makemigrations
+Migrations for 'articles':
+  articles\migrations\0001_initial.py
+    + Create model Article
+    + Create model Comment
+
+$ python manage.py migrate
+$ python manage.py loaddata articles.json comments.json
+Installed 40 object(s) from 2 fixture(s)</pre>
+      <div class="note">각 명령 실행 후 실행 결과 확인이 필수입니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-2</span>URL 및 HTTP request method 구성</h3>
+      <table class="compare">
+        <tr><th>URL</th><th>GET</th><th>POST</th><th>PUT</th><th>DELETE</th></tr>
+        <tr><td class="k">comments/</td><td>댓글 목록 조회</td><td></td><td></td><td></td></tr>
+        <tr><td class="k">comments/1/</td><td>단일 댓글 조회</td><td></td><td>단일 댓글 수정</td><td>단일 댓글 삭제</td></tr>
+        <tr><td class="k">articles/1/comments/</td><td></td><td>댓글 생성</td><td></td><td></td></tr>
+      </table>
+      <div class="note tip">댓글 생성만 <code>articles/1/comments/</code> — "어느 게시글의 댓글인지"가 URL에 들어 있어야 하기 때문입니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-3</span>GET - List (1~3/3)</h3>
+<pre class="formula"># articles/serializers.py
+from .models import Article, Comment
+
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = '__all__'</pre>
+<pre class="formula"># articles/urls.py
+urlpatterns = [
+    ...,
+    path('comments/', views.comment_list),
+]
+
+# articles/views.py
+from .models import Article, Comment
+from .serializers import ArticleListSerializer, ArticleSerializer, CommentSerializer
+
+@api_view(['GET'])
+def comment_list(request):
+    comments = Comment.objects.all()
+    serializer = CommentSerializer(comments, many=True)
+    return Response(serializer.data)</pre>
+      <p>GET http://127.0.0.1:8000/api/v1/comments/ 응답 확인 — 각 댓글에 <code>"article": 20</code>처럼 게시글 번호가 담겨 옵니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-4</span>GET - Detail (1~2/2)</h3>
+<pre class="formula"># articles/urls.py
+urlpatterns = [
+    ...,
+    path('comments/&lt;int:comment_pk&gt;/', views.comment_detail),
+]
+
+# articles/views.py
+@api_view(['GET'])
+def comment_detail(request, comment_pk):
+    # 특정 댓글 데이터를 조회
+    comment = Comment.objects.get(pk=comment_pk)
+    serializer = CommentSerializer(comment)
+    return Response(serializer.data)</pre>
+      <p>GET http://127.0.0.1:8000/api/v1/comments/1/ 응답 확인.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-5</span>POST (1~2/6) — 단일 댓글 생성</h3>
+<pre class="formula"># articles/urls.py
+urlpatterns = [
+    ...,
+    path('articles/&lt;int:article_pk&gt;/comments/', views.comment_create),
+]
+
+# articles/views.py
+@api_view(['POST'])
+def comment_create(request, article_pk):
+    # 어떤 게시글에 작성되는 댓글인지 단일 게시글을 조회
+    article = Article.objects.get(pk=article_pk)
+    serializer = CommentSerializer(data=request.data)
+    if serializer.is_valid(raise_exception=True):
+        # 추가 데이터를 save 메서드의 인자로 작성
+        serializer.save(article=article)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)</pre>
+      <p>serializer 인스턴스의 <b>save() 메서드는 특정 Serializer 인스턴스를 저장하는 과정에서 추가 데이터를 받을 수 있음</b> — ModelForm의 <code>save(commit=False)</code> 후 직접 넣던 과정을 한 줄로.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-6</span>POST (3~6/6) — 400 응답과 해결</h3>
+      <p>POST http://127.0.0.1:8000/api/v1/articles/1/comments/ 에 content만 보내면 → <b>상태 코드 400</b>, <code>"article": ["This field is required."]</code></p>
+      <ul>
+        <li>CommentSerializer에서 외래 키에 해당하는 article field 또한 사용자로부터 입력받도록 설정되어 있어, 서버 측에서는 누락되었다고 판단한 것</li>
+        <li>→ 유효성 검사 목록에서 제외 필요 → <b>article field를 읽기 전용 필드로 설정</b></li>
+      </ul>
+      <p class="src">읽기 전용 필드 — "데이터를 전송받은 시점에 유효성 검사에서 제외시키고, 데이터 조회 시에는 출력"하는 필드</p>
+<pre class="formula"># articles/serializers.py
+class CommentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        read_only_fields = ('article',)</pre>
+      <p>재요청 → <b>201 Created</b>, 응답에 <code>"article": 1</code>이 포함됩니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-7</span>읽기 전용 필드 (read_only_fields)</h3>
+      <p><b>서버가 조회 요청에 대한 응답 시에만 값을 표시하는 필드</b>.</p>
+      <div class="note tip">read_only_fields는 클라이언트가 입력해서는 안 되는 필드를 응답 전용 필드로 지정할 때 사용합니다. view에서 값을 직접 주입할 필드는 반드시 read_only_fields로 지정해 주세요. 그렇지 않으면 DRF는 해당 필드 값이 빠졌다고 판단해 400 에러를 발생시킵니다.</div>
+      <div class="subhead">사용 목적</div>
+      <ul>
+        <li>클라이언트 측에서 직접 수정하면 안 되는 경우</li>
+        <li>서버 로직에 의해 자동 생성·관리되는 값 활용</li>
+        <li>입력은 받지 않지만 정보를 제공해야 하는 경우</li>
+        <li>새로운 필드 값(추가 계산, 가공)을 만들어 제공해야 하는 경우</li>
+      </ul>
+      <div class="subhead">특징 및 주의사항</div>
+      <ul>
+        <li><b>유효성 검사에서 제외됨</b> — 클라이언트가 보내는 요청 데이터에서 고려되지 않으므로, 클라이언트가 해당 필드에 값을 넣어도 무시되며 검증 오류를 일으키지 않음</li>
+        <li><b>생성·수정 요청 모두에서 적용 가능</b> — 생성(POST) 단계에서만 의미 있는 것이 아니라, 수정(PUT) 요청에서도 해당 필드는 여전히 클라이언트 입력을 받지 않고 응답 시에만 노출됨</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">8-8</span>DELETE &amp; PUT (1~3/3)</h3>
+<pre class="formula"># articles/views.py
+@api_view(['GET', 'PUT', 'DELETE'])
+def comment_detail(request, comment_pk):
+    comment = Comment.objects.get(pk=comment_pk)
+    if request.method == 'GET':
+        serializer = CommentSerializer(comment)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = CommentSerializer(comment, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data)
+
+    elif request.method == 'DELETE':
+        comment.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)</pre>
+      <p>PUT http://127.0.0.1:8000/api/v1/comments/{{ comment_pk }}/ 에 content("댓글 수정")를 보내 200 응답 확인, DELETE 요청으로 204 No Content 확인 (comment pk는 상황마다 다를 수 있음). article은 read_only이므로 PUT에서도 보낼 필요가 없습니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">9</div>
+    <div><h2>응답 데이터 재구성</h2><p class="desc">댓글 조회 시 게시글 제목 출력 · 중첩 Serializer · read_only_fields vs read_only</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">9-1</span>댓글 조회 시 게시글 출력 내역 변경 (1~3/5)</h3>
+      <p>목표: 댓글 조회 시 게시글 번호만 제공하는 것이 아니라 <b>'게시글의 제목'까지 제공</b>하기. <code>"article": 20</code> → <code>"article": { "title": "..." }</code></p>
+      <ul>
+        <li>Comment는 Article과 N:1 관계를 맺고 있고, DRF의 ModelSerializer는 외래 키 필드를 기본적으로 <b>id(PrimaryKeyRelatedField)</b>로 표현함</li>
+        <li>Serializer는 DRF에서 응답 구조를 결정하는 주체 — 어떤 필드를 포함할지(<code>fields = ('id', 'title', 'content',)</code>) 지정할 수 있고, 특정 필드를 어떤 형식으로 보여줄지도 지정할 수 있음. 즉 article 필드가 "id가 아닌 게시글의 제목"을 보여주도록 지정할 수도 있음</li>
+        <li>하지만 CommentSerializer는 Comment의 정보만 가지고 있을 뿐 Article에 대한 정보는 없음 → Article의 정보를 포함하고, 그 중 title 필드만 담는 Serializer를 <b>별도로 정의</b>해야 함</li>
+      </ul>
+<pre class="formula"># articles/serializers.py
+class ArticleTitleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Article
+        fields = ('title',)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">9-2</span>댓글 조회 시 게시글 출력 내역 변경 (4~5/5)</h3>
+      <p><b>ArticleTitleSerializer는 어디에 정의해야 할까?</b> CommentSerializer에서만 사용할 용도라면 굳이 독립적으로 선언할 필요가 없습니다. 코드의 응집도를 높이고 명확한 범위를 지정하기 위해 <b>CommentSerializer 내부에 정의</b>합니다.</p>
+<pre class="formula"># articles/serializers.py
+class CommentSerializer(serializers.ModelSerializer):
+    class ArticleTitleSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Article
+            fields = ('title',)
+
+    # Comment 모델의 article 필드를 ArticleTitleSerializer로 재정의
+    article = ArticleTitleSerializer(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = '__all__'
+        # read_only_fields = ('article',)</pre>
+      <p>이제 article 필드는 게시글의 title 필드만 포함한 구조로 응답합니다. GET http://127.0.0.1:8000/api/v1/comments/1/ → <code>"article": { "title": "Water behavior return interesting ..." }</code></p>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">9-3</span>읽기 전용 필드 지정 주의사항</h3>
+      <ul>
+        <li><b>특정 필드를 재정의 혹은 추가한 경우 read_only_fields는 동작하지 않음</b></li>
+        <li>이런 경우 새로운 필드에 <b>read_only 키워드 인자</b>로 작성해야 함 (위 코드의 <code>ArticleTitleSerializer(read_only=True)</code>)</li>
+      </ul>
+      <table class="compare">
+        <tr><th>방식</th><th>쓰는 경우</th></tr>
+        <tr><td class="k">read_only_fields 속성 (Meta 안)</td><td>기존 외래 키 필드 값을 <b>그대로</b> 응답 데이터에 제공하기 위해 지정하는 경우</td></tr>
+        <tr><td class="k">read_only 인자 (필드 선언 시)</td><td>기존 외래 키 필드 값의 결과를 <b>다른 값으로 덮어쓰는</b> 경우 / <b>새로운</b> 응답 데이터 값을 제공하는 경우</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">10</div>
+    <div><h2>역참조 데이터 구성</h2><p class="desc">단일 게시글 + 댓글 목록 · 단일 게시글 + 댓글 개수 · annotate · SerializerMethodField · related_name</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3><span class="tag">10-1</span>Article → Comment 간 역참조 관계를 활용한 JSON 데이터 재구성</h3>
+      <ol>
+        <li>단일 게시글 조회 시 해당 게시글에 작성된 <b>댓글 목록</b>도 함께 붙여서 응답</li>
+        <li>단일 게시글 조회 시 해당 게시글에 작성된 <b>댓글 개수</b>도 함께 붙여서 응답</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-2</span>1. 단일 게시글 + 댓글 목록 (1~2/2) — Nested relationships</h3>
+      <ul>
+        <li>모델 관계상으로 참조하는 대상(N)은 참조되는 대상(1)의 표현에도 포함되거나 중첩될 수 있음</li>
+        <li>Comment가 Article에 대한 참조를 article field로 표현했듯, Article도 자신을 참조하고 있는 Comment들에 대한 정보를 <b>역참조 매니저</b>를 통해 표현할 수 있음</li>
+      </ul>
+<pre class="formula"># articles/serializers.py
+class ArticleSerializer(serializers.ModelSerializer):
+    class CommentDetailSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Comment
+            fields = ('id', 'content',)
+
+    comment_set = CommentDetailSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Article
+        fields = '__all__'</pre>
+      <div class="note">필드 이름을 역참조 매니저 이름('comment_set')과 똑같이 작성해야 DRF가 해당 데이터를 찾아옵니다.</div>
+      <p>GET http://127.0.0.1:8000/api/v1/articles/2/ → <code>"comment_set": [ { "id": 14, "content": "..." }, ... ]</code></p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-3</span>2. 단일 게시글 + 댓글 개수 — 문제 상황</h3>
+      <ul>
+        <li>기본적으로 게시글(Article)을 조회하면 참조 중인 댓글(Comment)의 개수는 알 수 없음</li>
+        <li>Comment 모델과의 관계는 Article.comment_set으로 연결되지만, 댓글의 개수를 저장하는 별도 필드는 Article 모델에 정의한 적이 없기 때문</li>
+        <li>따라서 댓글 수를 응답하려면 <b>직접 계산해서 응답에 포함</b>시켜야 함</li>
+      </ul>
+      <h3><span class="tag">10-4</span>View 로직 개선: annotate 사용</h3>
+      <p>annotate는 Django ORM 함수로, SQL의 집계 함수를 활용하여 쿼리 단계에서 데이터 가공을 수행합니다. view에서 Article 객체를 조회할 때 annotate로 <code>num_of_comments</code> 필드를 추가합니다.</p>
+<pre class="formula"># articles/views.py
+from django.db.models import Count
+
+@api_view(['GET', 'DELETE', 'PUT'])
+def article_detail(request, article_pk):
+    article = Article.objects.annotate(num_of_comments=Count('comment')).get(pk=article_pk)
+    ...</pre>
+      <ul>
+        <li>조회와 동시에 댓글 수를 세어 num_of_comments라는 필드를 추가</li>
+        <li>이제 serializer.data가 반환하는 article 객체에는 num_of_comments라는 <b>"주석(annotation) 필드"</b>가 포함되어 있음</li>
+      </ul>
+      <div class="note"><code>Count('comment')</code>의 'comment'는 Article을 참조하고 있는 모델 Comment의 소문자 표기입니다 (역참조 매니저 이름 'comment_set'과 다름).</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-5</span>annotate 필드를 serializer에 추가하려면?</h3>
+      <ul>
+        <li>단순히 <code>fields = '__all__'</code>만으로는 annotate된 필드가 포함되지 않음</li>
+        <li>annotate()는 실제 모델 필드를 생성하지 않음 — <b>쿼리 시점에만 존재하는 임시 필드</b>를 추가하는 기능. 즉 Article 모델 클래스에는 num_of_comments라는 필드가 실제로 존재하지 않음</li>
+        <li><code>__all__</code>은 모델의 필드 기준으로 작동하기 때문에 annotate로 만들어진 필드는 포함되지 않음</li>
+        <li>이런 동적으로 계산된 필드를 응답에 포함하려면 <b>SerializerMethodField</b>를 사용할 수 있음 (또는 <code>num_of_comments = serializers.IntegerField(read_only=True)</code>로 작성)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-6</span>Serializer 개선: SerializerMethodField 사용 (1~2/2)</h3>
+<pre class="formula"># articles/serializers.py
+class ArticleSerializer(serializers.ModelSerializer):
+    ...
+    num_of_comments = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Article
+        fields = '__all__'
+
+    def get_num_of_comments(self, obj):
+        # obj: 지금 직렬화 중인 Article 인스턴스
+        # 1. view에서 annotate로 개수를 미리 계산했다면 그 값을 사용
+        if hasattr(obj, 'num_of_comments'):
+            return obj.num_of_comments
+        # 2. annotate 없이 들어온 경우(예: 게시글 생성)
+        return obj.comment_set.count()</pre>
+      <ul>
+        <li>SerializerMethodField는 읽기 전용 필드를 커스터마이징하는 데 사용</li>
+        <li>이 필드를 선언한 뒤 <code>get_&lt;필드명&gt;</code> 메서드를 정의하면, 해당 메서드의 반환 값이 직렬화 결과에 포함됨</li>
+        <li>view에서 data를 딕셔너리로 변환하거나 수정할 필요 없이 serializer.data를 바로 반환해도 최종 JSON에 num_of_comments 값이 반영됨</li>
+      </ul>
+      <div class="note tip"><b>왜 hasattr로 먼저 확인할까?</b> 같은 ArticleSerializer를 게시글 생성(POST)에서도 사용합니다. 새로 만든 게시글은 annotate를 거치지 않아 num_of_comments가 없기 때문에, 그대로 꺼내면 AttributeError가 발생합니다.</div>
+      <p>GET http://127.0.0.1:8000/api/v1/articles/3/ → 응답에 <code>"num_of_comments": 3</code> 포함 확인.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-7</span>SerializerMethodField</h3>
+      <p><b>Serializer에서 추가적인 데이터 가공을 하고 싶을 때 사용</b>. 예를 들어 특정 필드 값을 조합해 새로운 문자열 필드를 만들거나 부가적인 계산(비율, 합계, 평균)을 하는 경우에 활용합니다.</p>
+      <div class="subhead">동작 원리</div>
+      <p>SerializerMethodField를 Serializer 클래스 내에서 필드로 선언하면, DRF는 <code>get_&lt;필드명&gt;</code>이라는 이름을 가진 메서드를 자동으로 찾습니다. 예를 들어 <code>full_name = serializers.SerializerMethodField()</code>라고 선언하면 DRF는 <code>get_full_name(self, obj)</code> 메서드를 찾아 해당 값을 직렬화 결과에 넣어 줍니다. obj는 현재 직렬화 중인 모델 인스턴스이며, 이 메서드에서 obj의 필드나 annotate된 필드를 활용해 값을 만듭니다.</p>
+<pre class="formula">class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'full_name', 'email',)
+
+    def get_full_name(self, obj):
+        return f'{obj.first_name} {obj.last_name}'</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">10-8</span>SerializerMethodField 주의사항 · 사용 목적</h3>
+      <div class="subhead">주의사항</div>
+      <ul>
+        <li><b>읽기 전용</b> — 생성(POST), 수정(PUT) 요청 시에는 사용되지 않음</li>
+        <li><b>get_ 메서드</b> — 메서드는 반드시 <code>(self, obj)</code> 형태로 정의해야 하며, obj는 현재 직렬화 중인 모델 인스턴스를 의미</li>
+        <li>메서드 안에서 obj에 없을 수도 있는 값(annotate 결과 등)을 사용할 때는 hasattr로 먼저 확인</li>
+      </ul>
+      <div class="subhead">사용 목적</div>
+      <ul>
+        <li>다양한 계산 로직을 손쉽게 추가 가능 — 데이터 변환 로직을 Serializer 내부 메서드로 명확히 분리</li>
+        <li>표현(응답 모양)과 관련된 가공은 Serializer에 모아 관리 — view에서 별도로 data 수정 없이도 직렬화 결과를 제어</li>
+      </ul>
+    </div>
+    <div class="card full">
+      <h3><span class="tag">10-9</span>역참조 데이터 구성 참고 — related_name을 바꿨다면</h3>
+<pre class="formula"># articles/models.py
+class Comment(models.Model):
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments')
+    ...
+
+# articles/serializers.py — Serializer에서도 변경
+class ArticleSerializer(serializers.ModelSerializer):
+    class CommentDetailSerializer(serializers.ModelSerializer):
+        ...
+    comments = CommentDetailSerializer(many=True, read_only=True)
+    ...
+
+# articles/views.py — annotate에서도 변경
+@api_view(['GET', 'DELETE', 'PUT'])
+def article_detail(request, article_pk):
+    article = Article.objects.annotate(num_of_comments=Count('comments')).get(pk=article_pk)</pre>
+      <p>응답 JSON의 키도 <code>"comments": [ ... ]</code>로 바뀝니다. 역참조 매니저명을 변경하였다면 Serializer의 필드 이름과 annotate의 Count 대상 모두 새 이름으로 바꿔야 합니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch4" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">11</div>
+    <div><h2>API 문서화</h2><p class="desc">OpenAPI Specification · Swagger · ReDoc · drf-spectacular · 설계 우선 접근법</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">11-1</span>OpenAPI Specification (OAS)</h3>
+      <p><b>RESTful API를 설명하고 시각화하는 표준화된 방법</b> → API에 대한 세부사항을 기술할 수 있는 공식 표준.</p>
+      <p>OAS 기반 API에 대한 문서를 생성하는 데 도움을 주는 오픈소스 프레임워크: <b>Swagger</b>, <b>Redoc</b>.</p>
+      <h3><span class="tag">11-2</span>"설계 우선" 접근법 — OAS의 핵심 이점</h3>
+      <ul>
+        <li>API를 먼저 설계하고 명세를 작성한 후, 이를 기반으로 코드를 구현하는 방식</li>
+        <li>OAS를 사용하면 API가 어떻게 작동하는지를 시각적으로 보여주는 문서를 생성할 수 있으며, 이는 API를 이해하고 테스트하는 데 매우 유용 — 이런 목적으로 사용되는 도구가 Swagger-UI 또는 ReDoc</li>
+      </ul>
+      <div class="note tip">OAS는 설계를 먼저 하는 방식(Design First)에도, 코드에서 문서를 만드는 방식(Code First)에도 쓰입니다. 오늘 쓰는 drf-spectacular는 <b>Code First</b> 방식입니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">11-3</span>drf-spectacular 라이브러리 (1~4/4)</h3>
+      <p>DRF를 위한 OpenAPI 3.0 구조 생성을 도와주는 라이브러리입니다. (공식 문서 https://drf-spectacular.readthedocs.io 참고 필수!)</p>
+<pre class="formula">$ pip install drf-spectacular</pre>
+<pre class="formula"># settings.py
+INSTALLED_APPS = [
+    ...,
+    'drf_spectacular',
+]
+
+# OpenAPI 구조 자동 생성 코드
+REST_FRAMEWORK = {
+    # YOUR SETTINGS
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}</pre>
+<pre class="formula"># drf/urls.py — swagger, redoc 페이지 제공을 위한 url
+from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+
+urlpatterns = [
+    ...,
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+]</pre>
+      <p>http://127.0.0.1:8000/api/schema/swagger-ui/ 와 /api/schema/redoc/ 페이지에서 작성한 API 목록과 요청·응답 형식을 확인합니다.</p>
+    </div>
+  </div>
+</section>
+<section class="section" id="p2-ch5" style="--accent:var(--orange)">
+  <div class="section-head">
+    <div class="section-num">12</div>
+    <div><h2>올바르게 404 응답하기 · 참고</h2><p class="desc">get_object_or_404 · get_list_or_404 · 왜 사용해야 할까 · View와 Serializer의 역할 · DRF 학습 이유</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3><span class="tag">12-1</span>Django shortcuts — get_object_or_404()</h3>
+      <p>Django shortcuts: <code>render()</code> · <code>redirect()</code> · <code>get_object_or_404()</code> · <code>get_list_or_404()</code></p>
+      <p><b>get_object_or_404()</b> — 모델 manager objects에서 get()을 호출하지만, 해당 객체가 없을 땐 기존 DoesNotExist 예외 대신 <b>Http404를 raise</b>함.</p>
+<pre class="formula"># articles/views.py
+from django.shortcuts import get_object_or_404
+
+# 기존 — 조회 대상이 없는 경우 500 Server Error 반환
+article = Article.objects.get(pk=article_pk)
+comment = Comment.objects.get(pk=comment_pk)
+
+# 적용 — 조회 대상이 없는 경우 404 Not Found 반환
+article = get_object_or_404(Article, pk=article_pk)
+article = get_object_or_404(
+    Article.objects.annotate(num_of_comments=Count('comment')),
+    pk=article_pk,
+)
+comment = get_object_or_404(Comment, pk=comment_pk)</pre>
+    </div>
+    <div class="card">
+      <h3><span class="tag">12-2</span>get_list_or_404()</h3>
+      <p>모델 manager objects에서 <b>filter()의 결과를 반환</b>하고, 해당 객체 목록이 없을 땐 Http404를 raise함.</p>
+<pre class="formula"># articles/views.py
+from django.shortcuts import get_list_or_404
+
+# 기존 — 조회 대상 목록이 없어도 200 OK 반환
+articles = Article.objects.all()
+comments = Comment.objects.all()
+
+# 적용 — 조회 대상이 없는 경우 404 Not Found 반환
+articles = get_list_or_404(Article)
+comments = get_list_or_404(Comment)</pre>
+      <div class="note">전체 목록 조회에서 결과가 없으면 <b>200 + []</b>가 일반적입니다. get_list_or_404()는 "이 조건의 데이터는 반드시 있어야 하는 상황"(예: 존재하지 않는 게시글의 댓글 목록 요청)에 사용합니다.</div>
+    </div>
+    <div class="card">
+      <h3><span class="tag">12-3</span>왜 사용해야 할까?</h3>
+      <ul>
+        <li><b>get_object_or_404()를 사용하지 않은 경우</b> — 클라이언트에게 "서버에 오류가 발생하여 요청을 수행할 수 없다(500)"라는 원인이 정확하지 않은 에러를 제공하게 되어, 클라이언트의 요청이 올바르지 않았음에도 서버의 문제로 오해할 수 있음</li>
+        <li><b>get_list_or_404()를 사용하지 않은 경우</b> — 조건에 맞는 데이터가 하나도 없는데도 단순히 빈 리스트를 응답받으면, 클라이언트는 요청이 올바르지 않았는지 진짜 데이터가 없는 건지 명확하게 판단하기 어려움</li>
+      </ul>
+      <p>적절한 예외 처리를 통해 클라이언트에게 보다 정확한 에러 내용을 전달하는 것은 매우 중요한 개발 요소입니다. 조건에 맞는 객체가 하나도 없을 경우 명확하게 404를 반환해야 "해당 조건에 맞는 리소스가 존재하지 않는다"는 정확한 상황을 전달할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <h3><span class="tag">12-4</span>View와 Serializer의 역할</h3>
+      <ul>
+        <li><b>view와 queryset 로직</b>에서는 비즈니스 로직(데이터 가공, annotate, 필터링)을 처리</li>
+        <li><b>serializer</b>는 그 결과물을 직렬화하는 역할에 집중하는 것이 일반적인 권장사항</li>
+        <li>복잡한 query나 로직은 View 함수에서 진행 — 여러 모델을 조인하거나 복잡한 집계가 필요한 경우 View 함수에서 처리</li>
+        <li>필요한 경우 View 함수에서 <code>select_related()</code>나 <code>prefetch_related()</code>로 query를 최적화</li>
+      </ul>
+      <h3><span class="tag">12-5</span>왜 DRF를 배웠을까?</h3>
+      <ul>
+        <li><b>백엔드와 프론트엔드의 분리 경험</b> — 기존 Django 템플릿 기반의 서버 렌더링 방식을 벗어나, 백엔드(데이터·로직)와 프론트엔드(화면)를 명확히 분리하는 방식을 간접적으로 체험</li>
+        <li><b>표준화된 API 구축 역량 확보</b> — DRF로 RESTful API를 손쉽게 만들고 관리하는 방법을 학습했고, 이는 다양한 클라이언트(웹, 모바일 앱, 외부 서비스)와 연동하는 데 필수적인 능력</li>
+        <li><b>프론트엔드 기술과의 연결 고리</b> — JavaScript·Vue는 주로 API를 통해 데이터를 받아와 화면을 구성하며, DRF로 구축한 일관된 API는 Vue 등 프론트엔드 프레임워크와 매끄럽게 호환됨</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">Q</div>
+    <div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">Part별 원본 확인문제 29개 · 문제를 먼저 풀고, 눌러서 정답과 해설을 확인하세요</p></div></div>
+  <div class="card-grid"><div class="card full">
+<div class="subhead">Django REST Framework 01 — REST API와 단일 모델 CRUD (11/09, 슬라이드 109장)</div>
+<div class="quiz-q"><div class="qq">1. 다음 중 REST API에서 '자원'을 식별하는 방법으로 가장 알맞은 것은?</div><ol class="opt" type="a"><li>HTTP Method</li><li>JSON</li><li>URI</li><li>Template</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) URI</b> — REST에서 자원은 URI를 통해 식별된다.</div></details></div>
+<div class="quiz-q"><div class="qq">2. API의 역할로 적절한 설명은?</div><ol class="opt" type="a"><li>사용자 인터페이스 디자인</li><li>데이터베이스 설계 도구</li><li>HTML을 웹 브라우저에 출력</li><li>두 소프트웨어 간 통신을 가능하게 하는 중간 매개</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) 두 소프트웨어 간 통신을 가능하게 하는 중간 매개</b> — API는 Application Programming Interface의 약자로, 서로 다른 소프트웨어가 정해진 규칙에 따라 요청하고 응답하며 통신할 수 있도록 해주는 매개체이다.</div></details></div>
+<div class="quiz-q"><div class="qq">3. REST API에서 데이터를 가져오는 HTTP Method는?</div><ol class="opt" type="a"><li>POST</li><li>GET</li><li>PUT</li><li>DELETE</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) GET</b> — GET은 서버로부터 데이터를 조회(읽기)할 때 사용하는 메서드이다. 반대로 POST, PUT, DELETE는 각각 생성, 수정, 삭제에 사용된다.</div></details></div>
+<div class="quiz-q"><div class="qq">4. 다음 중 JSON의 특징으로 올바르지 않은 것은?</div><ol class="opt" type="a"><li>텍스트 기반의 데이터 포맷이다</li><li>Python에서만 사용된다</li><li>키-값 구조를 가진다</li><li>다양한 시스템 간 데이터 전달에 적합하다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) Python에서만 사용된다</b> — JSON은 JavaScript Object Notation의 약자로 언어에 독립적인 포맷이다. Python뿐만 아니라 JavaScript, Java, Go 등 다양한 언어에서 사용 가능하다.</div></details></div>
+<div class="quiz-q"><div class="qq">5. HTTP 응답 코드 중 자원이 성공적으로 생성되었음을 의미하는 코드는?</div><ol class="opt" type="a"><li>200</li><li>201</li><li>204</li><li>400</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 201</b> — 201 Created는 서버가 요청을 받아 새 리소스를 성공적으로 생성했을 때 사용되는 상태 코드이다.</div></details></div>
+<div class="quiz-q"><div class="qq">6. Django REST framework에서 직렬화를 담당하는 클래스는?</div><ol class="opt" type="a"><li>ModelForm</li><li>ModelViewSet</li><li>ModelSerializer</li><li>JSONParser</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) ModelSerializer</b> — ModelSerializer는 Django 모델을 기반으로 자동으로 필드를 구성해, 데이터를 JSON 등으로 직렬화하거나 입력 데이터를 역직렬화할 때 사용된다.</div></details></div>
+<div class="quiz-q"><div class="qq">7. Serializer의 many=True 옵션은 어떤 경우에 사용하는가?</div><ol class="opt" type="a"><li>QuerySet 등 다수의 객체를 직렬화할 때</li><li>HTML로 데이터를 변환할 때</li><li>단일 객체를 직렬화할 때</li><li>JSON 응답을 수신할 때</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) QuerySet 등 다수의 객체를 직렬화할 때</b> — many=True는 여러 개의 객체(QuerySet 등)를 직렬화할 때 필요하다. 단일 객체일 경우는 생략하거나 many=False로 처리한다.</div></details></div>
+<div class="quiz-q"><div class="qq">8. 다음 중 RESTful 설계에 부합하지 않는 URL은?</div><ol class="opt" type="a"><li>/articles/</li><li>/articles/1/</li><li>/deleteArticle/1</li><li>/users/12/</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) /deleteArticle/1</b> — URL에 동작명(delete)이 들어가 있다. 자원의 위치만 URL로 표현하고, 삭제라는 동작은 DELETE 메서드로 구분해야 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">9. 주관식 — DELETE 성공 후 본문 없이 응답할 때의 상태 코드는?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">204</b> — HTTP 204 No Content는 클라이언트의 요청이 서버에서 성공적으로 처리되었지만, 응답 본문(Response Body)에 보낼 데이터가 없음을 나타내는 성공(2xx) 상태 코드이다.</div></details></div>
+<div class="quiz-q"><div class="qq">10. 주관식 — 인터넷에서 자원을 식별하기 위한 문자열을 무엇이라고 하는가?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">URI</b> — URI(Uniform Resource Identifier)는 인터넷 상에서 특정 자원(리소스)의 위치나 이름을 식별하기 위한 문자열이다.</div></details></div>
+<div class="quiz-q"><div class="qq">11. 주관식 — 클라이언트가 요청한 데이터를 서버가 찾지 못했을 때 사용하는 HTTP 상태 코드는?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">404</b> — 404 Not Found는 요청한 리소스를 서버에서 찾을 수 없을 때 반환하는 클라이언트 오류(4xx) 코드이다.</div></details></div>
+<div class="quiz-q"><div class="qq">12. 주관식 — DRF에서 함수형 뷰에 HTTP 메서드를 명시할 때 사용하는 데코레이터는?</div><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">@api_view</b> — @api_view는 Django REST framework에서 함수형 뷰에 사용할 수 있는 HTTP 메서드 목록(GET, POST 등)을 지정하는 데코레이터이다.</div></details></div>
+<div class="quiz-q"><div class="qq">13. 다음 코드 중 여러 개의 Article 객체를 직렬화하기 위한 코드로 적절한 것은? <code>articles = Article.objects.all()</code> / <code>serializer = ArticleSerializer(articles, ___)</code></div><ol class="opt" type="a"><li>context=True</li><li>data=True</li><li>partial=True</li><li>many=True</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) many=True</b> — Article.objects.all()은 여러 개의 Article 객체를 포함하는 QuerySet이다. 이처럼 다수의 객체를 Serializer에 넘길 때는 many=True를 지정해야 DRF가 이를 리스트 형태로 처리할 수 있다. 생략하면 DRF는 단일 객체로 처리하려고 하며, 타입 오류가 발생할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">14. 다음 view 함수에서 개선해야 할 점으로 가장 적절한 것은? <code>@api_view(['POST'])</code> <code>def article_create(request): serializer = ArticleSerializer(data=request.data); if serializer.is_valid(): serializer.save(); return Response(serializer.data)</code></div><ol class="opt" type="a"><li>status 인자를 지정하지 않아 응답 코드가 명확하지 않음</li><li>data가 아니라 instance를 전달해야 함</li><li>POST 요청이므로 GET으로 변경해야 함</li><li>is_valid() 뒤에 ()가 빠져서 작동하지 않음</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) status 인자를 지정하지 않아 응답 코드가 명확하지 않음</b> — 코드 자체는 정상 동작하지만, Response()에 상태 코드를 명시하지 않으면 기본값인 200 OK가 반환된다. POST 요청에서 새 데이터를 생성한 경우에는 201 Created를 반환하는 것이 RESTful한 설계이므로 <code>return Response(serializer.data, status=status.HTTP_201_CREATED)</code>로 작성하는 것이 권장된다. is_valid의 괄호는 있으므로 d는 해당 사항이 아니다.</div></details></div>
+<div class="subhead">Django REST Framework 02 — N:1 관계 · 역참조 데이터 · API 문서화 (11/10, 슬라이드 99장)</div>
+<div class="quiz-q"><div class="qq">15. 다음 중 댓글(Comment)이 게시글(Article)과 N:1 관계를 나타내는 모델 필드 정의는?</div><ol class="opt" type="a"><li>article = models.OneToOneField(Article, ...)</li><li>article = models.ManyToManyField(Article)</li><li>article = models.ForeignKey(Article, on_delete=models.CASCADE)</li><li>article = models.TextField()</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) ForeignKey</b> — ForeignKey는 다대일(N:1) 관계를 정의하는 Django 필드이다. 댓글 여러 개가 하나의 게시글을 참조해야 하므로 ForeignKey가 적절하다. a, b는 각각 1:1, M:N 관계를 나타낸다.</div></details></div>
+<div class="quiz-q"><div class="qq">16. CommentSerializer에서 article 필드를 title만 출력하도록 커스터마이징하려면 어떤 구조가 필요할까?</div><ol class="opt" type="a"><li>article = serializers.StringRelatedField()</li><li>article = ArticleSerializer()</li><li>article = serializers.PrimaryKeyRelatedField(read_only=True)</li><li>article = 사용자 정의 Serializer(read_only=True)</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) article = 사용자 정의 Serializer(read_only=True)</b> — 게시글 전체가 아니라 title만 응답에 포함하려면 article 필드를 사용자 정의 중첩 serializer로 덮어써야 하며, 입력이 아니라 출력만 원하므로 read_only=True를 설정해야 한다.</div></details></div>
+<div class="quiz-q"><div class="qq">17. read_only_fields에 대한 설명으로 올바른 것은?</div><ol class="opt" type="a"><li>유효성 검사에 반드시 포함되어야 한다</li><li>클라이언트 입력값에 따라 값이 저장된다</li><li>응답에는 포함되지 않는다</li><li>생성 및 수정 요청 모두에서 입력을 허용하지 않는다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) 생성 및 수정 요청 모두에서 입력을 허용하지 않는다</b> — read_only_fields에 포함된 필드는 POST나 PUT 요청 시 클라이언트가 값을 제공해도 무시되며, 응답에만 포함된다.</div></details></div>
+<div class="quiz-q"><div class="qq">18. 다음 중 SerializerMethodField에 대한 설명으로 올바른 것은?</div><ol class="opt" type="a"><li>사용자 입력을 받아 저장하는 필드이다</li><li>실제 모델 필드가 반드시 존재해야 한다</li><li>응답용 계산 데이터를 포함할 수 있다</li><li>Meta 클래스의 fields에 포함할 수 없다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 응답용 계산 데이터를 포함할 수 있다</b> — SerializerMethodField는 모델에 없는 필드를 응답 결과에 포함시킬 때 사용한다(예: 댓글 수, 비율 계산, 이름 합치기). 저장용 필드가 아니며, get_&lt;필드명&gt;() 메서드를 통해 동작한다.</div></details></div>
+<div class="quiz-q"><div class="qq">19. annotate()를 사용하는 목적은 무엇인가?</div><ol class="opt" type="a"><li>모델을 생성하기 위해</li><li>쿼리 결과에 계산된 필드를 추가하기 위해</li><li>URL을 라우팅하기 위해</li><li>serializer를 초기화하기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 쿼리 결과에 계산된 필드를 추가하기 위해</b> — annotate()는 SQL의 집계 함수처럼 쿼리 결과에 Count, Sum, Avg 등을 통해 임시 필드를 추가한다. 이를 serializer에서 가공하거나 응답에 포함할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">20. 다음 중 <code>Count('comment')</code>에서 'comment'는 무엇을 의미하는가?</div><ol class="opt" type="a"><li>댓글의 모델명</li><li>ForeignKey 필드명</li><li>역참조할 때 사용하는 이름 (기본값: 소문자 모델명)</li><li>serializer의 필드 이름</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 역참조할 때 사용하는 이름 (기본값: 소문자 모델명)</b> — Article에서 Comment를 거꾸로 조회할 때 쓰는 이름이며, 기본값은 소문자 모델명이다. (매니저 이름인 'comment_set'과 다름에 주의) related_name을 지정하면 둘 다 그 이름으로 바뀐다.</div></details></div>
+<div class="quiz-q"><div class="qq">21. get_object_or_404()를 사용하는 이유로 적절한 것은?</div><ol class="opt" type="a"><li>무조건 200 OK 응답을 보장하기 위해</li><li>모델 객체가 없을 때 404로 처리하기 위해</li><li>클라이언트가 보낸 데이터의 유효성을 검사하기 위해</li><li>여러 객체를 한 번에 반환하기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 모델 객체가 없을 때 404로 처리하기 위해</b> — get_object_or_404()는 객체가 존재하지 않을 경우 Http404를 발생시킨다. 이를 통해 API는 500 오류가 아닌, 클라이언트가 이해할 수 있는 404 상태 코드를 반환할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">22. get_list_or_404()의 특징으로 옳지 않은 것은?</div><ol class="opt" type="a"><li>조건에 맞는 객체가 없으면 404 응답을 반환한다</li><li>내부적으로 filter()를 사용한다</li><li>항상 빈 리스트를 반환한다</li><li>목록 응답에서도 404 처리를 적용할 수 있다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 항상 빈 리스트를 반환한다</b> — get_list_or_404()는 filter() 결과가 비어 있을 경우, 빈 리스트가 아닌 404 예외를 발생시킨다. 클라이언트는 리소스가 없음을 명확하게 인식할 수 있다.</div></details></div>
+<div class="quiz-q"><div class="qq">23. 다음 중 SerializerMethodField의 특징으로 적절하지 않은 것은?</div><ol class="opt" type="a"><li>읽기 전용 필드이다</li><li>get_&lt;필드명&gt;() 형태의 메서드가 필요하다</li><li>annotate 없이도 모델 필드처럼 저장된다</li><li>응답 데이터에 동적으로 생성된 값을 추가할 수 있다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) annotate 없이도 모델 필드처럼 저장된다</b> — SerializerMethodField는 읽기 전용이며, 모델 필드처럼 저장되거나 DB에 존재하는 값이 아니다. view나 다른 로직에서 annotate로 값을 제공하거나, 메서드 내부에서 계산해 반환해야 한다. annotate 없이 그대로 참조하면 오류가 난다.</div></details></div>
+<div class="quiz-q"><div class="qq">24. 다음 중 읽기 전용 필드를 정의하는 방식으로 옳은 것은?</div><ol class="opt" type="a"><li>title = serializers.CharField(read_only=True)</li><li>read_only_fields = ('title')</li><li>fields = ['id'], read_only = True</li><li>fields = '__all__', required=False</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) title = serializers.CharField(read_only=True)</b> — read_only_fields는 Meta에서 필드명을 나열하는 방식이고, 필드를 명시적으로 정의했다면 직접 read_only=True를 설정해야 한다. 특히 재정의 필드나 중첩 serializer에서 이 방식이 필요하다. (b는 쉼표가 없어 튜플이 아니라 문자열이다.)</div></details></div>
+<div class="quiz-q"><div class="qq">25. 다음 코드 실행 결과로 올바른 응답 형태는? (CommentSerializer 안에 <code>ArticleTitleSerializer</code>(fields = ('title',))를 정의하고 <code>article = ArticleTitleSerializer(read_only=True)</code>, Meta는 Comment / '__all__')</div><ol class="opt" type="a"><li>"article": { "title": "..." }</li><li>"article": { "id": 3 }</li><li>"article": 3</li><li>"article": "게시글 제목"</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) "article": { "title": "..." }</b> — article 필드를 중첩 serializer로 정의했기 때문에 응답 결과에서 article은 숫자가 아닌 JSON 객체로 출력된다. 이 객체에는 'title' 필드만 포함되도록 설정했으므로 { "title": "..." } 형태로 응답된다.</div></details></div>
+<div class="quiz-q"><div class="qq">26. 다음 코드에서 유효성 검사 오류가 발생하는 원인은? <code>@api_view(['POST'])</code> <code>def comment_create(request, article_pk): serializer = CommentSerializer(data=request.data); if serializer.is_valid(raise_exception=True): serializer.save(); return Response(serializer.data, status=201)</code></div><ol class="opt" type="a"><li>article 필드가 read_only로 되어 있어서</li><li>article 값을 클라이언트가 누락했기 때문에</li><li>article을 serializer.save()에 전달하지 않았기 때문에</li><li>CommentSerializer가 존재하지 않기 때문에</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) article을 serializer.save()에 전달하지 않았기 때문에</b> — Comment 모델의 필수 필드인 article이 read_only_fields로 지정되어 있어 클라이언트 요청에서는 입력되지 않는다. 따라서 view에서 <code>serializer.save(article=article)</code>처럼 명시적으로 값을 넘겨주지 않으면 누락된 필드 오류가 발생한다.</div></details></div>
+<div class="quiz-q"><div class="qq">27. 다음 코드에서 get_object_or_404를 사용하는 목적은? <code>article = get_object_or_404(Article, pk=article_pk)</code></div><ol class="opt" type="a"><li>article이 존재하지 않으면 빈 리스트를 반환하기 위해</li><li>존재하지 않는 article에 대한 요청을 404로 응답하기 위해</li><li>article이 없을 경우 자동으로 500 오류를 발생시키기 위해</li><li>article 모델을 serializer에 자동 등록하기 위해</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) 존재하지 않는 article에 대한 요청을 404로 응답하기 위해</b> — get_object_or_404()는 get()처럼 객체를 가져오되, 대상이 없을 경우 Http404 예외를 발생시켜 클라이언트에게 명확한 "리소스를 찾을 수 없음(404)" 상태를 전달한다. 서버 오류(500)가 아닌 정확한 응답 처리를 위한 도구이다.</div></details></div>
+<div class="quiz-q"><div class="qq">28. 다음 serializer 정의에 대한 설명으로 옳은 것은? (<code>num_of_comments = serializers.SerializerMethodField()</code>, <code>def get_num_of_comments(self, obj): return obj.num_of_comments</code>)</div><ol class="opt" type="a"><li>num_of_comments는 모델 필드로 저장된다.</li><li>annotate() 없이도 항상 응답에 포함된다.</li><li>view에서 annotate가 누락되면 오류가 발생할 수 있다.</li><li>SerializerMethodField는 클라이언트로부터 입력을 받는다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) view에서 annotate가 누락되면 오류가 발생할 수 있다.</b> — 응답 시 get_num_of_comments()가 호출되어 obj.num_of_comments를 참조하는데, 이는 annotate로 추가한 필드이므로 view에서 <code>annotate(num_of_comments=Count(...))</code>를 하지 않으면 해당 속성이 없어 AttributeError가 발생한다. (그래서 강의 코드는 hasattr로 먼저 확인한다.)</div></details></div>
+<div class="quiz-q"><div class="qq">29. 다음 코드 실행 결과로 올바른 설명은? (단, Comment 모델에서 related_name='comments'로 설정된 경우) <code>Article.objects.annotate(num_of_comments=Count('comments'))</code></div><ol class="opt" type="a"><li>댓글 개수를 계산할 수 없다</li><li>annotate된 필드는 serializer에 자동으로 포함된다</li><li>Article 모델의 필드가 추가된다</li><li>num_of_comments 필드는 쿼리 결과에만 존재한다</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) num_of_comments 필드는 쿼리 결과에만 존재한다</b> — annotate로 추가된 필드는 모델 정의에는 존재하지 않고 쿼리 결과에만 임시로 붙는 필드이다. 저장되지 않으며, serializer에서 사용하려면 SerializerMethodField 등을 통해 수동으로 포함해야 한다.</div></details></div>
+  </div>
+  <div class="card full"><h3>관련 실습 문제</h3><div class="subhead">Django REST Framework 01 — REST API와 단일 모델 CRUD (11/09, 슬라이드 109장)</div><div class="pillrow"><span class="pill">2939 ~ 2940. 도서 관리 API 만들기</span><span class="pill">2941 ~ 2945. 가수 정보 제공 API 만들기</span><span class="pill">3064. DRF 서버 프로젝트와 app 생성</span><span class="pill">3065. DRF 서버 모델 설정</span><span class="pill">3066. DRF serializer 생성하기</span></div><div class="subhead">Django REST Framework 02 — N:1 관계 · 역참조 데이터 · API 문서화 (11/10, 슬라이드 99장)</div><div class="pillrow"><span class="pill">2946. 도서 관리 API 만들기 - 도서 리뷰 모델 정의</span><span class="pill">2948~2952. 충전소 관리 API 서비스 만들기</span><span class="pill">3067. DRF 서버에 POSTMAN으로 요청 보내기</span><span class="pill">3068. DRF에서 CRUD 구현하기</span><span class="pill">2947. 도서 관리 API 만들기 - 제공 정보 개선</span><span class="pill">3069. DRF에서 1:N 모델 구축하기</span></div></div></div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">★</div>
+    <div><h2>활동 정리 — 핵심 키워드</h2><p class="desc">Part별 핵심 개념 한눈에 보기</p></div></div>
+  <div class="card-grid"><div class="card full part-sum"><h3>Django REST Framework 01 — REST API와 단일 모델 CRUD (11/09, 슬라이드 109장)</h3></div>
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">API</td><td>소프트웨어가 데이터를 주고받을 수 있게 해주는 인터페이스</td><td>날씨 앱 ↔ 기상청 API</td></tr>
+        <tr><td class="k">REST API</td><td>자원을 URI로 식별하고 HTTP 메서드로 동작을 수행하는 API 설계 방식</td><td>/articles/1/에 GET 요청 → 게시글 조회</td></tr>
+        <tr><td class="k">URI</td><td>인터넷 자원을 식별하는 고유한 문자열 주소</td><td>/users/10/, /articles/3/</td></tr>
+        <tr><td class="k">HTTP Method</td><td>자원에 대한 행위를 지정하는 요청 방식</td><td>GET, POST, PUT, DELETE</td></tr>
+        <tr><td class="k">JSON</td><td>시스템 간 데이터 교환에 사용되는 경량 구조의 데이터 포맷</td><td><code>{ "title": "Django", "content": "..." }</code></td></tr>
+        <tr><td class="k">HTTP Status Code</td><td>서버가 요청에 대해 어떤 결과를 반환했는지 알려주는 코드</td><td>200 OK, 201 Created, 400 Bad Request, 404 등</td></tr>
+        <tr><td class="k">Serialization</td><td>Python 객체를 JSON 등 외부 시스템과 통신 가능한 형태로 변환하는 과정</td><td>Article 모델 → JSON 응답</td></tr>
+        <tr><td class="k">ModelSerializer</td><td>Django 모델을 기반으로 직렬화를 자동 처리해주는 DRF 클래스</td><td>ArticleSerializer</td></tr>
+        <tr><td class="k">@api_view</td><td>함수형 뷰에서 허용할 HTTP Method를 지정하는 데코레이터</td><td><code>@api_view(['GET', 'POST'])</code></td></tr>
+        <tr><td class="k">Response</td><td>DRF에서 응답 데이터를 감싸서 반환하는 객체</td><td><code>Response(serializer.data, status=201)</code></td></tr>
+        <tr><td class="k">partial</td><td>전체 필드가 아닌 일부 필드만 업데이트할 수 있도록 허용하는 인자</td><td><code>partial=True</code></td></tr>
+        <tr><td class="k">204 No Content</td><td>DELETE 성공 후 본문 없이 응답할 때 사용하는 상태 코드</td><td><code>return Response(status=204)</code></td></tr>
+        <tr><td class="k">fixtures · migrate · QuerySet</td><td>초기 데이터 JSON 로드 / 모델 변경사항 DB 반영 / DB에서 조회된 객체들의 집합</td><td><code>loaddata articles.json</code> · <code>migrate</code> · <code>Article.objects.all()</code></td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <ul>
+        <li><b>API</b>는 소프트웨어끼리 약속된 형식으로 대화하는 창구이고, <b>REST</b>는 그 약속을 통일하자는 설계 방법론이다.</li>
+        <li><b>REST API = 식별(URI) + 행위(HTTP Method) + 표현(JSON)</b>. URL에는 자원의 위치만, 동작은 메서드로 구분한다. 결과는 상태 코드(2xx 성공 · 4xx 클라이언트 · 5xx 서버)로 알린다.</li>
+        <li>Django는 화면 대신 <b>JSON만 응답</b>하는 서버가 되고, 화면은 프론트엔드가 맡는다(Front/Back 분리).</li>
+        <li><b>DRF</b>: Serializer(=JSON용 ModelForm)로 직렬화·검증·저장 → <code>@api_view</code>로 메서드 제한 → <code>Response(data, status=...)</code>로 응답.</li>
+        <li><b>CRUD 응답 코드</b>: GET 200 · POST 201(실패 400) · PUT/PATCH 200 · DELETE 204. 부분 수정은 <code>partial=True</code>+PATCH, 검증 실패 응답은 <code>is_valid(raise_exception=True)</code>로 줄일 수 있다.</li>
+      </ul>
+    </div>
+  <div class="card full part-sum"><h3>Django REST Framework 02 — N:1 관계 · 역참조 데이터 · API 문서화 (11/10, 슬라이드 99장)</h3></div>
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">ForeignKey</td><td>다른 모델을 참조하여 관계를 설정하는 필드</td><td><code>article = models.ForeignKey(Article, ...)</code></td></tr>
+        <tr><td class="k">역참조 (related name)</td><td>참조된 모델에서 역으로 연결된 데이터를 조회할 수 있게 하는 속성</td><td><code>article.comment_set</code>, <code>related_name='comments'</code></td></tr>
+        <tr><td class="k">read_only_fields</td><td>클라이언트가 수정할 수 없는 필드, 응답에만 포함</td><td><code>read_only_fields = ('article',)</code></td></tr>
+        <tr><td class="k">annotate</td><td>쿼리 단계에서 집계 계산 필드를 동적으로 생성하는 ORM 함수</td><td><code>annotate(num_of_comments=Count('comment'))</code></td></tr>
+        <tr><td class="k">SerializerMethodField</td><td>메서드를 통해 응답 필드를 생성하는 읽기 전용 필드</td><td><code>num_of_comments = SerializerMethodField()</code></td></tr>
+        <tr><td class="k">get_object_or_404</td><td>객체가 없을 경우 404 예외를 발생시키는 함수</td><td><code>get_object_or_404(Article, pk=1)</code></td></tr>
+        <tr><td class="k">get_list_or_404</td><td>필터 결과가 비어 있으면 404 예외를 발생시키는 함수</td><td><code>get_list_or_404(Comment, article=article)</code></td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <ul>
+        <li><b>N:1 API</b>: 댓글 생성은 <code>articles/&lt;pk&gt;/comments/</code>로 받고, 외래 키는 클라이언트가 아니라 view가 <code>serializer.save(article=article)</code>로 넣는다. 그래서 article은 <code>read_only_fields</code>(안 하면 400).</li>
+        <li><b>응답 모양 바꾸기</b>: article을 중첩 Serializer(<code>ArticleTitleSerializer(read_only=True)</code>)로 재정의하면 id 대신 제목이 나온다. 재정의·추가한 필드에는 read_only_fields가 안 먹으므로 <code>read_only=True</code> 인자를 쓴다.</li>
+        <li><b>역참조 데이터</b>: 목록은 <code>comment_set = CommentDetailSerializer(many=True, read_only=True)</code>(이름을 매니저명과 같게), 개수는 view의 <code>annotate(Count('comment'))</code> + <code>SerializerMethodField</code>(hasattr로 방어).</li>
+        <li><b>문서화</b>: drf-spectacular로 OAS 스키마를 만들고 Swagger-UI·ReDoc으로 본다(Code First).</li>
+        <li><b>정확한 에러</b>: <code>get_object_or_404</code>로 500 대신 404. 가공·집계·최적화는 View, 표현은 Serializer.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「Django REST Framework 01·02」(2025-11-09·10, 208장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

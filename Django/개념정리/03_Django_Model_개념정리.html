@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django Model 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · Django 03 · 10/14</span>
+    <h1>Django Model 개념정리</h1>
+    <p class="sub">Model을 통한 DB 관리 → Model class와 상속 → Field types · Field options → Migrations(makemigrations · migrate · 추가 필드) → Admin site → DB 초기화 · SQLite까지, 강의 슬라이드 77장을 개념 중심으로 재구성했습니다.</p>
+    <div class="hero-meta">
+      <span>📚 5개 장 + 참고 + 확인문제</span>
+      <span>🧪 Article 모델 · 추가 migration · admin CRUD 실습</span>
+      <span>❓ 확인문제 12개</span>
+      <span>🗂️ 활동 정리 표</span>
+    </div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·Tip·주의 박스를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 Django 공식 동작 기준으로 바로잡았습니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc">
+    <a href="#ch0">0. 학습 시작</a>
+    <a href="#ch1">1. Model</a>
+    <a href="#ch2">2. Model Field</a>
+    <a href="#ch3">3. Migrations</a>
+    <a href="#ch4">4. Admin site</a>
+    <a href="#ch5">5. 참고</a>
+    <a href="#quiz">확인문제 (원본 슬라이드 수록)</a>
+    <a href="#sum">활동 정리</a>
+  </nav>
+</div>
+
+<main>
+
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head">
+    <div class="section-num">0</div>
+    <div><h2>학습 시작 — 파이썬으로 테이블 만들기</h2><p class="desc">Onboarding · 학습 목표</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <h3>"Django는 파이썬 문법으로 테이블을 만들고 관리합니다."</h3>
+      <p>SQL을 몰라도 Model 클래스로 테이블을 설계하고, Migration으로 DB에 안전하게 반영하며, Admin Site를 통해 코드 한 줄 작성 없이 데이터 CRUD를 수행할 수 있습니다.</p>
+      <div class="subhead">학습 목표</div>
+      <ul>
+        <li>Django Model 클래스를 이용해 데이터베이스 테이블 구조를 설계하고 "설계도(blueprint)" 개념을 설명할 수 있다.</li>
+        <li>다양한 Field type과 Field option을 지정해 컬럼의 데이터 유형과 제약 조건을 정의할 수 있다.</li>
+        <li><code>python manage.py makemigrations</code> / <code>migrate</code> 두 단계로 모델 변경 사항을 안전하게 데이터베이스에 반영할 수 있다.</li>
+        <li><code>admin.site.register()</code>로 모델을 Django Admin에 등록하여 웹 UI에서 게시글을 생성, 조회, 수정, 삭제(CRUD)할 수 있다.</li>
+        <li>Django 기본 DB 엔진인 SQLite의 특성과 db.sqlite3를 Git에서 제외해야 하는 이유를 설명할 수 있다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head">
+    <div class="section-num">1</div>
+    <div><h2>Model</h2><p class="desc">Model을 통한 DB 관리 · Model class · 상속으로 받는 기능 · 프레임워크 사고</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">1-1</span>Django Model</h3>
+      <p><b>DB의 테이블을 정의하고 데이터를 조작할 수 있는 기능</b>들을 제공합니다. 데이터베이스와 Python 클래스(객체)로 소통합니다.</p>
+      <ul>
+        <li><b>개발 생산성 향상</b> — SQL을 몰라도, 데이터베이스에 대한 깊은 지식 없이도 쉽게 데이터 관리 가능</li>
+        <li><b>유지보수 및 확장성 증대</b> — 데이터베이스 구조 변경 시에도 코드 수정 최소화, 재사용성 향상</li>
+      </ul>
+      <div class="subhead">Model을 통한 DB(데이터베이스) 관리</div>
+      <table class="compare">
+        <tr><th>파일</th><th>역할</th></tr>
+        <tr><td class="k">urls.py</td><td>사용자 요청의 시작점</td></tr>
+        <tr><td class="k">views.py</td><td>요청을 처리하고 models.py를 통해 데이터를 다룸</td></tr>
+        <tr><td class="k">models.py</td><td>데이터 구조를 정의하고, 데이터베이스와 상호작용</td></tr>
+        <tr><td class="k">templates</td><td>views.py로부터 받은 데이터를 사용자에게 보여줄 화면을 구성</td></tr>
+      </table>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-2</span>Model class</h3>
+      <p>Model class는 <b>데이터베이스 테이블의 구조를 설계하는 '청사진(blueprint)'</b> 역할을 합니다. 어떤 데이터(컬럼)를 저장할지, 그 데이터의 형태는 어떠할지(타입, 길이 등)를 Python 코드로 정의합니다.</p>
+<pre class="formula"># articles/models.py
+from django.db import models
+
+class Article(models.Model):
+    title = models.CharField(max_length=10)
+    content = models.TextField()</pre>
+      <p>작성한 모델 클래스는 최종적으로 DB에 다음과 같은 테이블 구조를 만듭니다. <b>"모델 클래스 == 테이블 설계도"</b></p>
+      <table class="compare">
+        <tr><th>id</th><th>title</th><th>content</th></tr>
+        <tr><td>…</td><td>…</td><td>…</td></tr>
+      </table>
+      <div class="note"><b>id 필드는 Django가 자동 생성</b>합니다. (실제 테이블 이름은 <code>앱이름_클래스이름</code> = <code>articles_article</code>)</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">1-3</span>Model 클래스 살펴보기 — 상속</h3>
+      <ul>
+        <li><code>django.db.models</code> 모듈의 <b>Model이라는 부모 클래스를 상속</b>받음</li>
+        <li>Model은 model에 관련된 모든 코드가 이미 작성되어 있는 클래스</li>
+        <li>개발자는 가장 중요한 <b>테이블 구조를 어떻게 설계할지</b>에 대한 코드만 작성하도록 하기 위함 ("상속"을 활용한 프레임워크의 기능 제공)</li>
+        <li>"약 2000줄짜리 클래스"를 한 줄로 상속 → "우리가 추가로 쓴 건 단 몇 줄, Django가 써둔 건 수천 줄"</li>
+      </ul>
+      <p><b>models.Model(Django가 만들어둔 부모 클래스)이 제공하는 것</b>: 테이블 자동 생성(Migrations) · SQL 자동 변환 · 데이터 저장/조회/수정/삭제 · 필드 유효성 검사 · id 필드 자동 생성</p>
+      <p class="src">https://github.com/django/django/blob/main/django/db/models/base.py</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">1-4</span>프레임워크 없이 직접 만든다면?</h3>
+<pre class="formula"># 순수 Python으로 작성하려면
+import sqlite3
+conn = sqlite3.connect('db.sqlite3')
+cursor = conn.cursor()
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS article (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title VARCHAR(10) NOT NULL,
+    content TEXT NOT NULL
+)
+''')
+conn.commit()
+conn.close()
+
+# 프레임워크의 도움을 받으면
+class Article(models.Model):
+    title = models.CharField(max_length=10)
+    content = models.TextField()</pre>
+      <p>"DB 연결, SQL 작성, 저장은 <code>models.Model</code>이 대신. 개발자는 테이블 구조 설계에만 집중" — 이것이 프레임워크입니다.</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-5</span>코드 한 줄에 담긴 두 가지 "가져다 쓰기"</h3>
+<pre class="formula">class Article(models.Model):                   # 1) 클래스를 "상속"받아 기능을 물려받음
+    title = models.CharField(max_length=10)    # 2) 만들어진 클래스를 "가져다 씀"</pre>
+      <ul>
+        <li><code>models.Model</code> 상속으로 테이블 관련 기능 전체를 물려받음</li>
+        <li><code>models.CharField</code> — 이것도 Django가 만들어둔 클래스. "문자열이고 최대 10자"라고 선언만 하면, DB 타입 결정·길이 검사는 CharField가 처리</li>
+      </ul>
+      <div class="note tip"><b>사고의 전환</b> — 알고리즘 사고: "이 기능을 어떻게 직접 만들까?" → 프레임워크 사고: "이 기능은 이미 있다. 내 상황에 맞게 어떻게 조합하지?" 앞으로 배울 Form 등 여러 기능들도 모두 Django가 제공하는 클래스를 상속받는 같은 구조입니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">1-6</span>Model 클래스 구성 요소</h3>
+      <table class="compare">
+        <tr><th>코드 위치</th><th>의미</th></tr>
+        <tr><td class="k"><code>class Article</code> (클래스 이름)</td><td>테이블 (테이블 이름이 됨)</td></tr>
+        <tr><td class="k"><code>title</code>, <code>content</code> (클래스 변수명)</td><td>테이블의 각 <b>필드(열) 이름</b></td></tr>
+        <tr><td class="k"><code>models.CharField(...)</code> (Model Field)</td><td>데이터베이스 테이블의 <b>열(column)</b>을 나타내는 중요한 구성 요소. <b>"데이터의 유형"</b>과 <b>"제약 조건"</b>을 정의</td></tr>
+      </table>
+      <div class="note"><b>Tip</b> — CharField의 max_length 지정은 <b>SQLite에서는 선택 사항</b>입니다. SQLite는 문자열 길이를 DB 차원에서 강제하지 않기 때문에, 길이 검사는 Django의 Form 등에서 처리합니다. 다른 DB(MySQL 등)에서는 필수이므로, <b>항상 명시하는 습관</b>을 들이세요.</div>
+      <p class="src">유효성 검사 — 수집한 데이터가 정확하고 유효한지 확인하는 과정 (특정 규칙이나 조건에 따라 데이터의 정확성을 확인)</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head">
+    <div class="section-num">2</div>
+    <div><h2>Model Field</h2><p class="desc">Field types · CharField vs TextField · 주요 필드 유형 · Field options · 제약 조건</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">2-1</span>Model Field란?</h3>
+      <p>DB 테이블의 <b>필드(열)를 정의</b>하며, 해당 필드에 저장되는 <b>데이터 타입(Field types)</b>과 <b>제약 조건(Field options)</b>을 정의합니다. Django는 이러한 필드 정의를 바탕으로 데이터베이스 컬럼을 만들고, 유효성 검사 등 필요한 기능을 제공합니다. 정확한 필드 정의는 애플리케이션의 안정성과 직결됩니다.</p>
+      <ol>
+        <li><b>Field types (필드 유형)</b> — 데이터베이스에 저장될 <b>"데이터의 종류"</b>를 정의</li>
+        <li><b>Field options (필드 옵션)</b> — 필드의 <b>"동작"과 "제약 조건"</b>을 정의</li>
+      </ol>
+<pre class="formula">title = models.CharField(max_length=10)
+#              └ Field type ┘ └ Field option ┘</pre>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-2</span>Field types</h3>
+      <p>CharField, TextField도 Django가 만들어둔 클래스입니다. 우리는 클래스를 가져다 쓰면서 옵션(max_length 등)만 지정합니다.</p>
+      <ul>
+        <li><b>CharField()</b> — <b>제한된 길이의 문자열</b>을 저장. max_length는 SQLite에서는 생략 가능하지만 명시 권장. 예: 이름, 제목, 이메일처럼 짧고 길이를 예상할 수 있는 값</li>
+        <li><b>TextField()</b> — <b>길이 제한이 없는 대용량 텍스트</b>를 저장 (무한대는 아니며 사용하는 시스템에 따라 달라짐)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">2-3</span>CharField vs TextField, 언제 무엇을 쓸까?</h3>
+      <table class="compare">
+        <tr><th>구분</th><th>CharField</th><th>TextField</th></tr>
+        <tr><td class="k">길이</td><td>짧고 예상 가능</td><td>길거나 예상하기 어려움</td></tr>
+        <tr><td class="k">max_length</td><td>지정 (권장)</td><td>지정하지 않음</td></tr>
+        <tr><td class="k">예시</td><td>이름, 제목, 이메일</td><td>게시글 본문, 상품 설명</td></tr>
+      </table>
+      <div class="note tip"><b>Tip</b> — 값이 <b>255자를 넘을 것 같다면</b> TextField를 먼저 고려하세요.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-4</span>주요 필드 유형</h3>
+      <table class="compare">
+        <tr><th>분류</th><th>필드</th></tr>
+        <tr><td class="k">문자열 필드</td><td>CharField, TextField</td></tr>
+        <tr><td class="k">숫자 필드</td><td>IntegerField, FloatField</td></tr>
+        <tr><td class="k">날짜/시간 필드</td><td>DateField, TimeField, DateTimeField</td></tr>
+        <tr><td class="k">파일 관련 필드</td><td>FileField, ImageField</td></tr>
+      </table>
+      <p class="src">https://docs.djangoproject.com/en/5.2/ref/models/fields/#field-types</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">2-5</span>Field options</h3>
+      <p>필드의 <b>"동작"과 "제약 조건"</b>을 정의합니다. (<code>max_length=10</code>처럼 필드 클래스의 인자로 전달)</p>
+      <p><b>제약 조건이란?</b> — 특정 규칙을 강제하기 위해 테이블의 열이나 행에 적용되는 규칙이나 제한사항. 숫자만 저장되도록 제한을 두거나, 문자가 100자까지만 저장되도록 하는 등의 제한 조건을 의미합니다.</p>
+      <table class="compare">
+        <tr><th>옵션</th><th>의미</th><th>기본값</th></tr>
+        <tr><td class="k">null</td><td>데이터베이스에서 <b>NULL 값을 허용할지</b> 여부를 결정</td><td>False</td></tr>
+        <tr><td class="k">blank</td><td><b>form에서 빈 값을 허용할지</b> 여부를 결정</td><td>False</td></tr>
+        <tr><td class="k">default</td><td>필드의 <b>기본값</b>을 설정</td><td>—</td></tr>
+      </table>
+      <p class="src">DB에서 제약조건을 설정하는 방법은 DB 수업에서 학습 · https://docs.djangoproject.com/en/5.2/ref/models/fields/#field-options</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head">
+    <div class="section-num">3</div>
+    <div><h2>Migrations</h2><p class="desc">model 변경사항을 DB에 반영 · makemigrations · migrate · 미적용 경고 · 추가 필드 migration</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">3-1</span>Migrations</h3>
+      <p><b>model 클래스의 변경사항(필드 생성, 수정, 삭제 등)을 DB에 최종 반영하는 방법</b>입니다.</p>
+      <div class="flow"><span>model class (설계도 초안)</span><i>— makemigrations →</i><span>migration 파일 0001_initial.py (최종 설계도)</span><i>— migrate →</i><span>db.sqlite3 테이블</span></div>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-2</span>모델 정의부터 migration 파일 생성까지</h3>
+<pre class="formula">$ python manage.py makemigrations
+Migrations for 'articles':
+  articles/migrations/0001_initial.py
+    + Create model Article</pre>
+      <ul>
+        <li><b>모델 클래스 작성/수정</b> — Django에서는 Python 클래스로 정의 (CharField: 제한된 길이의 문자열 저장, TextField: 길이 제한 없는 대용량 텍스트)</li>
+        <li><b>마이그레이션 파일 생성 명령어</b> — Python 코드로 된 migration 파일(설계도)을 만드는 방법. 모델 변경을 감지하고 migration 파일을 생성하는 명령</li>
+        <li>migration 파일 == <b>최종 설계도</b></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">3-3</span>migration 파일을 DB에 반영하기</h3>
+<pre class="formula">$ python manage.py migrate</pre>
+      <ul>
+        <li>마이그레이션 파일은 <b>모델 변경사항을 기록한 Python 코드</b>. DB 테이블 변경 내역을 순차적으로 저장하여 추적 관리합니다</li>
+        <li>migrate 명령은 마이그레이션 파일의 Python 코드를 <b>SQL 문으로 자동 변환</b>: Python 코드 → SQL 쿼리문 → 데이터베이스 실행</li>
+        <li>결과: <code>articles_article</code> 테이블 생성 (id, title, content)</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-4</span>Migrations 핵심 명령어 2가지</h3>
+      <table class="compare">
+        <tr><th>명령어</th><th>역할</th></tr>
+        <tr><td class="k"><code>python manage.py makemigrations</code></td><td>model class를 기반으로 <b>최종 설계도(migration)를 작성</b></td></tr>
+        <tr><td class="k"><code>python manage.py migrate</code></td><td>최종 설계도를 <b>DB에 전달하여 반영</b></td></tr>
+      </table>
+      <div class="note"><b>Tip</b> — 마이그레이션 파일은 <b>되도록이면 직접 건드리지 마세요!</b> migrations 폴더에 자동으로 생성된 파일들은 직접 수정하거나 삭제하지 않는 것이 원칙입니다.</div>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-5</span>Migration 경고 메시지</h3>
+      <p>Django 서버를 시작할 때 출력되는 migration 관련 경고입니다. 프로젝트 실행 시 <b>미적용 마이그레이션 파일이 있을 때</b> 나타납니다.</p>
+<pre class="formula">You have 18 unapplied migration(s). Your project may not work properly until you apply the
+migrations for app(s): admin, auth, contenttypes, sessions.
+Run 'python manage.py migrate' to apply them.</pre>
+      <ul>
+        <li>경고 메시지에 명시된 대로 <code>python manage.py migrate</code> 명령을 실행</li>
+        <li>최신 모델 변경 사항이 데이터베이스에 반영되지 않아 프로젝트가 제대로 작동하지 않을 수 있음</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-6</span>추가 Migrations — 이미 생성된 테이블에 필드를 추가해야 한다면?</h3>
+      <ul>
+        <li>이미 기존 테이블이 존재하는 경우, 새 필드를 추가할 때 문제가 발생</li>
+        <li>기존에 레코드가 있는 테이블에 새로운 필드를 추가하면 <b>기존 레코드는 어떤 값으로 채울지</b> 결정해야 함</li>
+        <li>Django는 makemigrations 실행 시 <b>기본값 설정을 요구하는 프롬프트</b>를 띄움</li>
+      </ul>
+<pre class="formula"># articles/models.py
+class Article(models.Model):
+    title = models.CharField(max_length=10)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)</pre>
+      <table class="compare">
+        <tr><th>DateTimeField 옵션 (optional)</th><th>동작</th></tr>
+        <tr><td class="k">auto_now</td><td>데이터가 <b>저장될 때마다</b> 자동으로 현재 날짜시간을 저장</td></tr>
+        <tr><td class="k">auto_now_add</td><td>데이터가 <b>처음 생성될 때만</b> 자동으로 현재 날짜시간을 저장</td></tr>
+      </table>
+<pre class="formula">$ python manage.py makemigrations
+It is impossible to add the field 'created_at' with 'auto_now_add=True' to article without
+providing a default. This is because the database needs something to populate existing rows.
+ 1) Provide a one-off default now which will be set on all existing rows
+ 2) Quit and manually define a default value in models.py.
+Select an option: 1
+
+Please enter the default value as valid Python.
+Accept the default 'timezone.now' by pressing 'Enter' or provide another value.
+The datetime and django.utils.timezone modules are available, so it is possible to
+provide e.g. timezone.now as a value.
+Type 'exit' to exit this prompt
+[default: timezone.now] &gt;&gt;&gt;          ← 아무것도 입력하지 않고 Enter
+
+Migrations for 'articles':
+  articles/migrations/0002_article_created_at_article_updated_at.py
+    + Add field created_at to article
+    + Add field updated_at to article</pre>
+      <ul>
+        <li><b>1번</b>은 현재 대화를 유지하면서 직접 기본 값을 입력하는 방법, <b>2번</b>은 현재 대화에서 나간 후 models.py에 기본 값 관련 설정을 하는 방법</li>
+        <li>입력한 기본값은 <b>기존의 모든 데이터 행에 적용</b>됩니다</li>
+        <li>날짜 데이터이기 때문에 직접 입력하기보다 <b>Django가 제안하는 기본 값</b>을 사용하는 것을 권장 (Enter → timezone.now)</li>
+        <li>migrations 과정 종료 후 <b>2번째 migration 파일</b>이 생성됨. Django는 설계도를 쌓아가면서 추후 문제가 생겼을 시 복구하거나 되돌릴 수 있도록 함 (마치 'git commit'과 유사)</li>
+        <li><code>migrate</code> 후 테이블: id, title varchar(10), content TEXT, created_at datetime, updated_at datetime</li>
+      </ul>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">3-7</span>언제 Migration이 필요할까?</h3>
+      <p>model class에 <b>변경사항(1)</b>이 생겼다면, 반드시 <b>새로운 설계도를 생성(2)</b>하고, 이를 <b>DB에 반영(3)</b>해야 한다.</p>
+      <div class="flow"><span>(1) model class 생성/수정</span><i>→</i><span>(2) makemigrations</span><i>→</i><span>(3) migrate</span></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head">
+    <div class="section-num">4</div>
+    <div><h2>Admin site</h2><p class="desc">Automatic admin interface · createsuperuser · 모델 등록 · 데이터 생성·수정·삭제</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card full">
+      <h3><span class="tag">4-1</span>Automatic admin interface</h3>
+      <p>Django가 <b>추가 설치 및 설정 없이 자동으로 제공</b>하는 관리자 인터페이스입니다.</p>
+      <ul>
+        <li>추가 설정 없이 자동 생성되는 웹 기반 관리 도구</li>
+        <li>주요 기능: 데이터베이스 모델의 CRUD(생성, 읽기, 업데이트, 삭제) 작업을 간편하게 수행</li>
+        <li>활용: 빠른 프로토타이핑, 비개발자 데이터 관리, 내부 시스템 구축에 이상적</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-2</span>1~2. admin 계정 생성</h3>
+<pre class="formula"># manage.py 파일이 있는 위치에서 진행
+$ python manage.py createsuperuser
+Username: admin            # 관리자 페이지에 로그인할 때 사용할 아이디
+Email address:             # 선택 사항 → 입력하지 않고 Enter
+Password:                  # 입력해도 콘솔 화면에 아무것도 나타나지 않는 것이 정상
+Password (again):          # 비밀번호를 한 번 더 입력해서 확인
+Superuser created successfully.</pre>
+      <p>DB의 <code>auth_user</code> 테이블에 생성된 admin 계정을 확인할 수 있습니다. (password 컬럼은 암호화된 값, is_superuser = 1)</p>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">4-3</span>3~5. 관리자 페이지 접속과 모델 등록</h3>
+      <ul>
+        <li>웹 브라우저에서 <code>http://127.0.0.1:8000/admin</code> 이동 → 생성한 관리자 계정으로 로그인</li>
+        <li>처음에는 AUTHENTICATION AND AUTHORIZATION(Groups, Users)만 보이는 것이 정상. 우리 모델을 관리하려면 추가 설정이 필요</li>
+      </ul>
+<pre class="formula"># articles/admin.py
+from django.contrib import admin
+from .models import Article
+
+admin.site.register(Article)</pre>
+      <p><b>admin.py에 작성한 모델 클래스를 등록해야만</b> admin site에서 확인 가능합니다. 등록 후 ARTICLES 섹션에 Articles가 나타납니다.</p>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">4-4</span>6. 데이터 생성, 수정, 삭제 테스트</h3>
+      <ol>
+        <li>Articles 클릭 → Article에 대한 CRUD 페이지로 이동</li>
+        <li><b>ADD ARTICLE</b> → Title, Content 입력 후 SAVE (created_at, updated_at은 자동 입력이라 form에 나오지 않음)</li>
+        <li>"The article "Article object (1)" was added successfully." 성공 메시지와 함께 등록된 Article이 모두 조회됨. 데이터베이스(articles_article)에서도 확인 가능</li>
+        <li>상세 페이지 내에서 원하는 데이터를 <b>수정 또는 삭제</b>할 수 있음 (SAVE / Delete)</li>
+      </ol>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="ch5" style="--accent:var(--green)">
+  <div class="section-head">
+    <div class="section-num">5</div>
+    <div><h2>참고</h2><p class="desc">데이터베이스 초기화 · Migrations 기타 명령어 · 최초 migrate 출력 · SQLite</p></div>
+  </div>
+  <div class="card-grid">
+
+    <div class="card">
+      <h3><span class="tag">5-1</span>데이터베이스 초기화</h3>
+      <ol>
+        <li><b>migration 파일 삭제</b> — makemigrations 명령어로 생성되는 파일들 (<code>0001_initial.py</code>, <code>0002_...py</code>)</li>
+        <li><b>db.sqlite3 파일 삭제</b></li>
+      </ol>
+      <div class="note"><b>삭제 금지</b> — <code>migrations</code> 폴더 자체와 <code>__init__.py</code> 파일은 지우면 안 됩니다.</div>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">5-2</span>Migrations 기타 명령어</h3>
+<pre class="formula"># migrations 파일들이 migrate 됐는지 안됐는지 여부를 확인 ([X] 표시 = migrate 완료)
+$ python manage.py showmigrations
+
+# 해당 migrations 파일이 SQL 언어(DB에서 사용하는 언어)로 어떻게 번역되어 DB에 전달되는지 확인
+# python manage.py sqlmigrate &lt;앱 이름&gt; &lt;마이그레이션 이름&gt;
+$ python manage.py sqlmigrate articles 0001</pre>
+    </div>
+
+    <div class="card full">
+      <h3><span class="tag">5-3</span>최초 migrate 시 출력 내용이 많은 이유는?</h3>
+      <p>Django 프로젝트가 동작하기 위해 미리 작성되어 있는 <b>기본 내장 앱들(INSTALLED_APPS의 admin, auth, contenttypes, sessions …)에 대한 migration 파일들이 함께 migrate</b> 되기 때문입니다.</p>
+<pre class="formula">Operations to perform:
+  Apply all migrations: admin, articles, auth, contenttypes, sessions
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying auth.0001_initial... OK
+  Applying admin.0001_initial... OK
+  Applying articles.0001_initial... OK
+  ... (auth.0002 ~ auth.0012, sessions.0001 등)</pre>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">5-4</span>SQLite란?</h3>
+      <p>데이터베이스 관리 시스템 중 하나이며 <b>Django의 기본 데이터베이스</b>로 사용됩니다.</p>
+      <ul>
+        <li><b>파일 기반</b> — 데이터베이스가 하나의 파일로 저장되어, 설치/설정 없이 간편하게 복사/이동/백업 가능</li>
+        <li><b>가볍고 빠름</b> — 별도 서버 없이 파일로 직접 데이터 처리. 소규모 서비스나 모바일 환경에 최적화</li>
+        <li><b>호환성</b> — 다양한 운영체제와 프로그래밍 언어에서 폭넓게 사용 가능</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3><span class="tag">5-5</span>SQLite 주의사항 — .gitignore</h3>
+      <ul>
+        <li><code>db.sqlite3</code> 파일은 Git 등 버전 관리 시스템에서 <b>관리하지 않는 것이 원칙</b>
+          <ul><li>데이터가 변경될 때마다 파일 전체가 변경됨</li><li>SQLite 파일은 로컬 컴퓨터에 저장된 데이터 기록</li></ul></li>
+        <li><code>.gitignore</code> 파일에 <code>db.sqlite3</code>를 추가하여 Git 버전 관리에서 제외해야 함</li>
+        <li><b>.gitignore</b> — Git이 특정 파일이나 폴더를 추적하지 않도록 설정하는 파일</li>
+        <li><b>gitignore.io</b> — 개발자들이 .gitignore 파일을 쉽게 만들 수 있도록 도와주는 웹 서비스. Django를 기술하면 db.sqlite3가 자동으로 포함됨</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head">
+    <div class="section-num">Q</div>
+    <div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">문제를 먼저 풀고, 눌러서 정답과 해설을 확인하세요</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <div class="quiz-q"><div class="qq">1. Django에서 모델 클래스는 어떤 클래스의 서브클래스로 정의되어야 하는가?</div><ol class="opt" type="a"><li>forms.Form</li><li>views.View</li><li>models.Model</li><li>admin.ModelAdmin</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) models.Model</b> — Django의 모델은 models.Model 클래스를 상속받아 정의되어야 한다.</div></details></div>
+      <div class="quiz-q"><div class="qq">2. 사용자의 이름을 저장하기에 가장 적절한 필드 타입은?</div><ol class="opt" type="a"><li>IntegerField</li><li>CharField</li><li>BooleanField</li><li>DateTimeField</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) CharField</b> — CharField는 문자열 데이터를 저장하는 데 사용되며, 이름과 같은 짧은 텍스트에 적합하다.</div></details></div>
+      <div class="quiz-q"><div class="qq">3. 필드를 필수 입력 항목으로 설정하려면 어떤 옵션을 사용해야 하는가?</div><ol class="opt" type="a"><li>null=True</li><li>blank=True</li><li>blank=False</li><li>default=None</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) blank=False</b> — blank=False는 해당 필드가 빈 값일 수 없음을 의미하여 폼에서 필수로 입력하도록 만든다. (기본값이 False라 따로 쓰지 않아도 필수)</div></details></div>
+      <div class="quiz-q"><div class="qq">4. 모델 필드에 기본값을 지정하는 옵션은 무엇인가?</div><ol class="opt" type="a"><li>default</li><li>unique</li><li>choices</li><li>max_length</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">a) default</b> — default 옵션은 객체를 생성할 때 필드에 지정된 기본값을 자동으로 설정해준다.</div></details></div>
+      <div class="quiz-q"><div class="qq">5. 날짜와 시간을 모두 저장해야 할 경우 적합한 필드 타입은 무엇인가?</div><ol class="opt" type="a"><li>DateField</li><li>TimeField</li><li>DateTimeField</li><li>DurationField</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) DateTimeField</b> — 날짜와 시간을 모두 저장할 수 있는 필드이다.</div></details></div>
+      <div class="quiz-q"><div class="qq">6. 모델 변경 사항을 반영하여 migration 파일을 생성하는 명령어는?</div><ol class="opt" type="a"><li>python manage.py runserver</li><li>python manage.py makemigrations</li><li>python manage.py migrate</li><li>python manage.py startapp</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) makemigrations</b> — 모델의 변경 사항을 기반으로 migration 파일을 생성한다.</div></details></div>
+      <div class="quiz-q"><div class="qq">7. migration 파일을 실제 데이터베이스에 적용하려면 어떤 명령어를 사용해야 하는가?</div><ol class="opt" type="a"><li>makemigrations</li><li>startproject</li><li>migrate</li><li>collectstatic</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) migrate</b> — migrate 명령어는 migration 파일을 바탕으로 데이터베이스를 실제로 변경해준다.</div></details></div>
+      <div class="quiz-q"><div class="qq">8. 모델 필드 CharField를 정의할 때 입력 값 길이 제한을 위해 반드시 지정해야 하는 옵션은?</div><ol class="opt" type="a"><li>null</li><li>max_length</li><li>unique</li><li>default</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">b) max_length</b> — CharField는 문자열 길이를 제한하기 위해 max_length 옵션을 지정할 수 있다.</div></details></div>
+      <div class="quiz-q"><div class="qq">9. Django의 기본 데이터베이스 엔진으로 설정되어 있는 것은?</div><ol class="opt" type="a"><li>MySQL</li><li>PostgreSQL</li><li>Oracle</li><li>SQLite</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) SQLite</b> — Django는 기본 설정으로 SQLite를 데이터베이스 엔진으로 사용한다.</div></details></div>
+      <div class="quiz-q"><div class="qq">10. Django 모델 클래스 안에서 정의된 각 필드는 어떤 의미를 가지는가?</div><ol class="opt" type="a"><li>HTML 입력 필드</li><li>Python 함수</li><li>데이터베이스 컬럼</li><li>URL 라우팅</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) 데이터베이스 컬럼</b> — 모델 클래스의 각 필드는 실제 데이터베이스 테이블의 컬럼에 해당한다.</div></details></div>
+      <div class="quiz-q"><div class="qq">11. Admin 사이트에 모델을 등록하려면 어떤 함수를 사용해야 하는가?</div><ol class="opt" type="a"><li>admin.add()</li><li>register()</li><li>admin.site.register()</li><li>admin.model()</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">c) admin.site.register()</b> — admin.site.register() 함수를 사용하여 모델을 Admin 사이트에 등록할 수 있다.</div></details></div>
+      <div class="quiz-q"><div class="qq">12. Django에서 객체가 생성된 시점을 자동으로 기록하려면 DateTimeField에 어떤 옵션을 설정해야 하는가?</div><ol class="opt" type="a"><li>auto_add=True</li><li>auto_now=True</li><li>auto_created=True</li><li>auto_now_add=True</li></ol><details class="quiz-a"><summary>정답 · 해설 보기</summary><div class="ans"><b class="ok">d) auto_now_add=True</b> — 객체가 처음 생성될 때의 시각을 자동으로 기록한다. (auto_now는 저장될 때마다 갱신)</div></details></div>
+    </div>
+    <div class="card full">
+      <h3>관련 실습 문제</h3>
+      <div class="pillrow"><span class="pill">2665·2666. 장고 model 만들기 예제</span><span class="pill">3229. 상품 관리 시스템 만들기 - Model class</span><span class="pill">3230. 상품 관리 시스템 만들기 - 데이터 생성과 Admin</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head">
+    <div class="section-num">★</div>
+    <div><h2>활동 정리 — 핵심 키워드</h2><p class="desc">이번 시간의 핵심 개념 한눈에 보기</p></div>
+  </div>
+  <div class="card-grid">
+    <div class="card full">
+      <table class="compare">
+        <tr><th>개념</th><th>설명</th><th>예시</th></tr>
+        <tr><td class="k">Model 클래스</td><td>DB 테이블 구조를 설계 및 조작하는 청사진 역할의 Python 클래스</td><td><code>class Article(models.Model): ...</code></td></tr>
+        <tr><td class="k">Model Field</td><td>테이블의 열(column)을 정의하며 데이터 유형·제약을 명시</td><td><code>title = models.CharField(max_length=10)</code></td></tr>
+        <tr><td class="k">Field Type</td><td>DB에 저장될 데이터 종류를 지정하는 클래스</td><td>CharField — 짧은 문자열, TextField — 대용량 텍스트</td></tr>
+        <tr><td class="k">Field Option</td><td>필드의 동작·제약 조건을 설정</td><td><code>max_length=10</code>, <code>null=False</code>, <code>default='-'</code></td></tr>
+        <tr><td class="k">Migration</td><td>모델 변경 사항을 DB에 반영하는 단계적 작업 이력</td><td>모델 수정 → makemigrations → migrate 흐름</td></tr>
+        <tr><td class="k">makemigrations / migrate</td><td>설계도 생성 / DB 적용</td><td><code>$ python manage.py makemigrations</code> · <code>$ python manage.py migrate</code></td></tr>
+        <tr><td class="k">Admin Site</td><td>모델을 등록하면 웹 UI로 CRUD를 즉시 수행 가능</td><td><code>admin.site.register(Article)</code> 후 /admin 접속</td></tr>
+      </table>
+    </div>
+    <div class="card full summary-box">
+      <h4>이 문서의 큰 줄기</h4>
+      <ul>
+        <li><b>Model 클래스 = DB 설계도</b>. models.Model을 상속해 필드를 파이썬 코드로 정의하면 그 코드가 곧 테이블 청사진. DB 연결·SQL 작성은 Django가 대신하고 개발자는 테이블 구조 설계에만 집중한다 — 이것이 프레임워크의 기능 제공 방식.</li>
+        <li><b>Field type &amp; option</b>으로 컬럼의 데이터 형태와 규칙을 명확히 지정.</li>
+        <li><b>마이그레이션 두 단계</b>: 모델 변경 → makemigrations(설계도 생성) → migrate(DB 적용). 변경 이력은 파일로 관리된다.</li>
+        <li><b>Admin Site로 즉시 CRUD</b>: admin.site.register(Article) 후 /admin에서 게시글 생성·조회·수정·삭제.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>SSAFY 16기 「Django Model」(2025-10-14) 강의 슬라이드 77장 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>
