@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>String 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 02 · 09/07 String</span>
+    <h1>String 개념정리</h1>
+    <p class="sub">문자 표현(ASCII·유니코드·UTF-8·Endian) → 문자열의 분류와 언어별 처리 → 뒤집기·회문·비교·변환 → 패턴 매칭(고지식한 방법·KMP·보이어-무어) → 암호화·압축까지, 강의 슬라이드 76장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 5개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 12개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 문자 표현</a><a href="#ch2">2. 문자열</a><a href="#ch3">3. 문자열 처리</a><a href="#ch4">4. 패턴 매칭</a><a href="#ch5">5. 암호화·압축</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 왜 글자가 깨질까?</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">0-1</span>"잘못된 접근입니다" 가 깨져서 보이는 이유</h3>
+
+<p>웹페이지에서 한글이 <code>ìëª»ë...</code> 처럼 깨져 보이는 경험이 있을 겁니다. 이유는 <b>저장할 때 UTF-8로 저장하고, 읽을 때 다른 인코딩(예: EUC-KR, Latin-1)으로 읽었기 때문</b>입니다. 웹페이지라면 <code>&lt;meta charset="UTF-8"&gt;</code> 지정이 필요합니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">인코딩이 다르면 글자가 깨진다</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">text = '잘못된 접근입니다.'
+data = text.encode('utf-8')          # 저장할 때: UTF-8 바이트
+print(data)
+print(data.decode('latin-1'))         # 읽을 때 다른 인코딩으로 → 깨짐
+print(data.decode('utf-8'))           # 같은 인코딩으로 읽어야 정상
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>컴퓨터에서의 문자 표현(코드 체계·ASCII·유니코드·UTF-8)을 이해한다.</li><li>언어별 문자열 저장 방식과 파이썬 문자열의 특징(시퀀스·immutable)을 설명할 수 있다.</li><li>문자열 뒤집기·회문·비교·숫자 변환을 직접 구현할 수 있다.</li><li>패턴 매칭(고지식한 방법·KMP·보이어-무어)의 원리를 이해하고 고지식한 방법을 구현한다.</li><li>문자열 암호화(시저·단일 치환)와 압축(RLE)의 방법에 대해 이해한다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>컴퓨터에서의 문자 표현</h2><p class="desc">코드 체계 · ASCII · 확장 아스키 · 유니코드 · Endian · UTF-8/16/32 · 줄바꿈</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>메모리는 숫자만을 저장할 수 있습니다</h3>
+
+<p>그래서 A라는 글자의 모양 그대로 비트맵으로 저장하는 방법을 사용하지 않는 한(이 방법은 메모리 낭비가 심합니다), 각 문자에 대해서 <b>대응되는 숫자를 정해 놓고 이것을 메모리에 저장</b>하는 방법이 사용됩니다.</p>
+<p>영어가 대소문자 합쳐서 52자이므로 6비트(64가지 경우)면 저장할 수 있습니다. 예: 'a' → 000000(0), 'b' → 000001(1), 'c' → 000010(2) 같이 6비트 이진수를 배정합니다. 이를 <b>코드 체계</b>라고 합니다.</p>
+<p><b>코드 체계</b> — 컴퓨터가 처리할 수 있도록 문자에 고유한 숫자를 부여하는 것.</p>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>코드체계의 문제와 개선 — ASCII</h3>
+<ul><li>네트워크가 발전되기 전 미국의 각 지역 별로 코드체계를 정해 놓고 사용.</li><li>네트워크가 발전하면서 서로 정보를 주고 받을 때 정보를 달리 해석한다는 문제가 생김.</li><li>그래서 혼동을 피하기 위해 표준안을 만들기로 함.</li><li>1967년, 미국에서 <b>ASCII(American Standard Code for Information Interchange)</b>라는 문자 인코딩 표준이 제정됨.</li><li>ASCII는 <b>7-bit 인코딩으로 128문자</b>를 표현하며, 33개의 출력 불가능한 제어 문자들과 공백을 비롯한 95개의 출력 가능한 문자들로 이루어짐.</li></ul><table class="compare"><tr><th>문자</th><th>ASCII</th><th>문자</th><th>ASCII</th></tr><tr><td class="k">공백</td><td>32</td><td>0</td><td>48</td></tr><tr><td class="k">A</td><td>65</td><td>Z</td><td>90</td></tr><tr><td class="k">a</td><td>97</td><td>z</td><td>122</td></tr><tr><td class="k">=</td><td>61</td><td>}</td><td>125</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">1-3</span>확장 아스키 (Extended ASCII)</h3>
+<ul><li>표준 문자 이외의 악센트 문자, 도형 문자, 특수 문자, 특수 기호 등 부가적인 문자를 128개 추가할 수 있게 하는 부호.</li><li>표준 아스키는 7-bit를 사용하여 문자를 표현, 확장 아스키는 1B 내의 <b>8-bit를 모두 사용</b>함으로써 추가적인 문자를 표현할 수 있음.</li><li>컴퓨터 생산자와 소프트웨어 개발자가 여러 가지 다양한 문자에 할당할 수 있도록 하고 있음. 이렇게 할당된 확장 부호는 표준 아스키와 같이 서로 다른 프로그램이나 컴퓨터 사이에 교환되지 못함.</li><li>표준 아스키는 마이크로컴퓨터 하드웨어 및 소프트웨어 사이에서 세계적으로 통용되는 데 비해, 확장 아스키는 프로그램이나 컴퓨터 또는 프린터가 그것을 해독할 수 있도록 설계되어 있어야만 올바르게 해독될 수 있음.</li></ul>
+</div>
+<div class="card full">
+<h3><span class="tag">1-4</span>유니코드 — 다국어 처리를 위한 표준</h3>
+<ul><li>컴퓨터가 발전하면서 미국뿐 아니라 각 나라에서 컴퓨터가 발전함. 각 국가들은 자국의 문자를 표현하기 위하여 코드 체계를 만들어서 사용하게 됨.</li><li>우리나라도 한글 코드체계를 만들어 사용했고 <b>조합형, 완성형</b> 두 종류를 가지고 있었습니다.</li><li>인터넷이 전 세계로 발전하면서 ASCII를 만들기 전과 같은 문제가 국가 사이에 정보를 주고받을 때 발생 — 자국의 코드체계를 타 국가가 가지고 있지 않으면 정보를 잘못 해석할 수밖에 없음.</li><li>다국어 처리를 위해 표준인 <b>유니코드</b>를 만듦. 비영리 단체인 유니코드 컨소시엄(https://home.unicode.org)에서 관리합니다.</li><li>이모지(emoji)도 유니코드 문자입니다.</li><li>'A'의 유니코드는 16진수(10진수)로 0041(65)입니다. '€'의 유니코드는 16진수로 20AC(10진수 8364) — <code>print('\u20AC')</code> 또는 <code>chr(8364)</code>로 출력할 수 있습니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">ord()와 chr() — 문자 ↔ 코드</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">for ch in ['A', 'a', '가', '€', '😀']:
+    print(ch, ord(ch), hex(ord(ch)))
+print(chr(65), chr(44032), chr(8364))
+print('\u20AC', '\uAC00')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-5</span>유니코드의 Character Set 분류와 바이트 순서</h3>
+<ul><li>UCS-2 (Universal Character Set 2), UCS-4 (Universal Character Set 4) — 유니코드를 저장하는 변수의 크기를 정의함.</li><li>그러나, <b>바이트 순서</b>에 대해서는 표준화하지 못했습니다.</li><li>파일을 읽을 때 이 파일이 UCS-2, UCS-4인지 인식하고 각 경우를 구분해서 모두 다르게 구현해야 하는 문제가 발생.</li><li>그래서 유니코드의 적당한 외부 인코딩이 필요하게 되었습니다.</li></ul><div class="subhead">바이트 단위 저장 순서 — big-endian과 little-endian</div><ul><li>여러 바이트로 이루어진 데이터를 바이트 단위로 저장하는 방식을 <b>Endian</b>이라고 합니다.</li><li><b>big-endian</b>: 상위 바이트(MSB, Most Significant Byte)를 가장 낮은 주소에 저장합니다.</li><li><b>little-endian</b>: 하위 바이트(LSB, Least Significant Byte)를 가장 낮은 주소에 저장합니다.</li><li>바이트 단위 저장 순서가 정해지지 않은 경우 잘못된 해석 가능성이 있습니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">Endian 확인</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">n = 0x12345678
+print('big   :', n.to_bytes(4, 'big').hex(' '))      # 12 34 56 78
+print('little:', n.to_bytes(4, 'little').hex(' '))   # 78 56 34 12
+print('가'.encode('utf-16-be').hex(' '), '/', '가'.encode('utf-16-le').hex(' '))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-6</span>유니코드 인코딩 (UTF: Unicode Transformation Format)</h3>
+<table class="compare"><tr><th>인코딩</th><th>크기</th><th>특징</th></tr><tr><td class="k">UTF-8</td><td>1~4 Byte (가변)</td><td>in web. 영어(ASCII)는 1바이트, 한글은 3바이트. MIN 8bit, MAX 32bit(1 Byte × 4)</td></tr><tr><td class="k">UTF-16</td><td>2 or 4 Byte</td><td>in windows, java. MIN 16bit, MAX 32bit(2 Byte × 2)</td></tr><tr><td class="k">UTF-32</td><td>4 Byte (고정)</td><td>in unix. 고정 길이 인코딩</td></tr></table><div class="ide">
+  <div class="ide-bar"><span class="ide-title">인코딩별 바이트 수</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">for s in ['A', '가', '😀']:
+    print(s, len(s.encode('utf-8')), len(s.encode('utf-16-le')), len(s.encode('utf-32-le')))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-7</span>인코딩 방식 확인과 줄 바꿈 문자</h3>
+<ul><li>에디터 하단 상태 표시줄(예: <code>UTF-8 · 4 spaces · Python 3.x</code>)에서 인코딩 방식을 확인할 수 있습니다.</li><li>Python 3.x 버전은 UTF-8 방식이 기본이므로 표시 생략 가능. 다른 인코딩 방식으로 처리 시 첫 줄에 작성하는 인코딩 정보: <code># -*- coding: utf-8 -*-</code></li><li>인코딩과 상관없지만 OS에 따라 줄 바꿈을 표시하는 문자(코드)가 다릅니다. <b>Windows는 CR(13)과 LF(10) 두 글자</b>를 사용합니다. <b>Unix와 macOS는 LF(10) 한 글자</b>를 사용합니다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>문자열 (String)</h2><p class="desc">정의 · 분류(fixed/variable, length-controlled/delimited) · C · Java · Python의 문자열</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>문자열이란?</h3>
+
+<p><b>문자들이 순서대로 나열된 데이터</b>로, 텍스트 표현이나 처리에 사용됩니다. 문자를 차례대로 모아 놓은 것으로, 텍스트(문장, 단어, 기호 등)를 표현하거나 처리할 때 사용됩니다.</p>
+<div class="subhead">문자열의 분류</div><table class="compare"><tr><th>분류</th><th>설명</th></tr><tr><td class="k">fixed length</td><td>고정 길이 문자열</td></tr><tr><td class="k">variable length — Length controlled</td><td>java 언어 등. 문자열의 길이 정보를 함께 저장해서, 그 길이만큼 문자 데이터를 읽는 방식입니다.</td></tr><tr><td class="k">variable length — Delimited</td><td>C 언어. 문자열의 끝을 나타내는 특정 문자(구분자)를 넣어서, 구분자가 나올 때까지 문자를 읽는 방식. C언어는 널문자(NULL, '\0')를 사용합니다.</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>파이썬 문자열 객체의 내부 구조 (CPython)</h3>
+<ul><li><b>PyObject_HEAD</b>: 모든 Python 객체가 공통으로 갖는 정보(참조 횟수, 타입)</li><li><b>length</b>: 문자열의 길이</li><li><b>hash</b>: 문자열의 해시값으로, 딕셔너리 키로 쓸 때 사용됩니다.</li><li><b>interned</b>: 같은 문자열을 관리하는 플래그입니다.</li><li><b>kind</b>: 문자열 인코딩의 크기(1·2·4바이트)입니다.</li><li><b>data</b>: 문자열이 저장된 실제 메모리 주소를 가리키는 포인터입니다.</li></ul><p>→ 길이 정보를 함께 저장하므로 <b>Length controlled</b> 방식이며, <code>len()</code>은 O(1)입니다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">2-3</span>C · Java에서의 문자열</h3>
+
+<div class="subhead">C언어에서 문자열 처리</div><ul><li>문자열은 문자들의 배열 형태로 구현된 응용 자료형.</li><li>문자배열에 문자열을 저장할 때는 항상 마지막에 끝을 표시하는 널문자('\0')를 넣어줘야 함.</li><li><code>char ary[] = {'a', 'b', 'c', '\0'};</code> // 또는 <code>char ary[] = "abc";</code></li><li>문자열 처리에 필요한 연산을 함수 형태로 제공함 — strlen(), strcpy(), strcmp() 등</li><li>C는 아스키 코드로 저장: 한글을 출력할 수 있으나 콘솔의 도움을 받아야 합니다. <code>char* name = "홍길동"; strlen(name)</code> → 6(바이트 수)</li></ul><div class="subhead">Java에서 String 클래스에 대한 메모리 배치 예</div><ul><li>문자열 데이터를 저장, 처리해주는 클래스를 제공함 — <code>String str = "abc"; // 또는 String str = new String("abc");</code></li><li>문자열 처리에 필요한 연산을 연산자, 메소드 형태로 제공 — +, length(), replace(), split(), substring() …</li><li>Java는 유니코드(UTF-16, 2-Byte)로 저장: <code>"홍길동".length()</code> → 3</li></ul>
+</div>
+<div class="card full">
+<h3><span class="tag">2-4</span>Python에서의 문자열 처리</h3>
+<ul><li>char 타입 없음 — 텍스트 데이터의 취급 방법이 통일되어 있음.</li><li>Python은 문자 하나도 길이 1인 문자열입니다(문자열과 unicode 구분이 없습니다).</li><li>유니코드(UTF-8) 기반이라 어떤 언어나 기호도 동일한 방식으로 처리됩니다. <code>len("홍길동")</code> → 3</li><li>문자열 기호: <code>'</code>(홑따옴표), <code>"</code>(쌍따옴표), <code>'''</code>(홑따옴표 3개), <code>"""</code>(쌍따옴표 3개)</li><li><b>+ 연결(Concatenation)</b> — 문자열 + 문자열: 이어 붙여주는 역할</li><li><b>* 반복</b> — 문자열 * 수: 수만큼 문자열이 반복</li><li>문자열은 <b>시퀀스 자료형</b>으로 분류되고, 시퀀스 자료형에서 사용할 수 있는 인덱싱, 슬라이싱 연산들을 사용할 수 있음.</li><li>문자열 클래스에서 제공되는 메소드: replace(), split(), isalpha(), find() …</li><li>문자열은 튜플과 같이 요소값을 변경할 수 없음(<b>immutable</b>).</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">파이썬 문자열 연산</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">s = 'Python'
+print(s[0], s[-1], s[1:4], s[::-1])
+print('ab' + 'cd', 'ab' * 3, len('홍길동'))
+print('a,b,c'.split(','), 'hello'.replace('l', 'L'), 'abc'.isalpha(), 'banana'.find('n'))
+try:
+    s[0] = 'J'            # immutable!
+except TypeError as e:
+    print('TypeError:', e)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-5</span>문자열 입력 받기 — input()</h3>
+<ul><li><code>text = input()</code> — Hello Python을 입력하면 빈칸을 포함해 한 행을 읽어 들입니다. (C언어의 scanf()와 달리 공백도 읽음)</li><li><code>text = list(input())</code> 사용하면 각 글자가 리스트의 원소로 저장됩니다. → ['P', 'y', 't', 'h', 'o', 'n'] 원소별로 다른 글자로 바꿀 수 있습니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">한 줄 입력 / 글자 리스트</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">text = input()
+print(repr(text))
+chars = list(input())
+chars[0] = 'J'
+print(chars, ''.join(chars))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">Hello Python
+Python
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-6</span>여러 줄의 문자열 입력 예 — 같은 입력 형식, 다양한 문제</h3>
+<table class="compare"><tr><th>문제</th><th>입력 형태</th></tr><tr><td class="k">두 개의 문자열 S1과 S2. S1의 각 글자가 S2에 모두 존재하는가?</td><td>S1 = input(); S2 = input()  또는 list(input())</td></tr><tr><td class="k">첫 줄에 N, 다음에 N줄 문자열. 'A'가 존재하는가?</td><td>text = [input() for _ in range(N)]</td></tr><tr><td class="k">첫 줄에 N, 다음에 NxN 지도, # 집중호우 피해구역. 피해구역 수는?</td><td>text = [list(input()) for _ in range(N)]</td></tr><tr><td class="k">첫 줄에 N, 다음에 NxN 문자열. abc 패턴이 존재하는가?</td><td>〃</td></tr><tr><td class="k">첫 줄에 N, 다음에 N줄 미로. 0 통로, 1 벽, # 로봇. 상하좌우로 모두 이동할 수 있는 칸 수는?</td><td>〃</td></tr></table><div class="ide">
+  <div class="ide-bar"><span class="ide-title">N줄 지도 입력</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">N = int(input())
+grid = [list(input()) for _ in range(N)]
+cnt = 0
+for i in range(N):
+    for j in range(N):
+        if grid[i][j] == '#':
+            cnt += 1
+print('# 개수:', cnt)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">4
+..#.
+.##.
+....
+#...
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>문자열 처리 문제</h2><p class="desc">뒤집기 · 회문 · is vs == · 비교(strcmp) · 문자열 ↔ 정수 변환</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>문자열 뒤집기</h3>
+<ul><li>자기 문자열에서 뒤집는 방법이 있고, 새로운 빈 문자열을 만들어 소스의 뒤에서부터 읽어서 타겟에 쓰는 방법이 있겠습니다.</li><li>자기 문자열을 이용할 경우는 swap을 위한 임시 변수가 필요하며 반복 수행을 문자열 길이의 반만을 수행해야 합니다.</li><li>Python에서는 문자열이 immutable이므로 리스트로 바꾼 뒤 처리하거나, 슬라이싱 <code>s[::-1]</code> 또는 <code>s.reverse()</code>(리스트)를 사용합니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">문자열 뒤집기 3가지</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">s = 'Reverse this strings'
+print(s[::-1])                 # 슬라이싱
+
+arr = list(s)                  # 리스트로 변환 후 절반만 swap
+n = len(arr)
+for i in range(n // 2):
+    arr[i], arr[n - 1 - i] = arr[n - 1 - i], arr[i]
+print(''.join(arr))
+
+r = ''                          # 새 문자열에 뒤에서부터 쓰기
+for i in range(len(s) - 1, -1, -1):
+    r += s[i]
+print(r)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>회문 (Palindrome)</h3>
+
+<p>"기러기", "토마토", "스위스"와 같이 <b>똑바로 읽어도 거꾸로 읽어도 똑같은</b> 문장이나 낱말. 문자열 길이의 반만 비교하면 됩니다.</p><pre class="formula">for i : 0 → len(txt)/2 - 1
+    if txt[i] != txt[len(txt) - 1 - i]
+        return False
+return True</pre><div class="ide">
+  <div class="ide-bar"><span class="ide-title">회문 검사</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def is_palindrome(txt):
+    for i in range(len(txt) // 2):
+        if txt[i] != txt[len(txt) - 1 - i]:
+            return False
+    return True
+
+for w in ['기러기', '토마토', 'level', 'python', 'abba']:
+    print(w, is_palindrome(w), w == w[::-1])
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">3-3</span>문자열 비교 — == 와 is</h3>
+<ul><li><code>==</code> 연산자는 내부적으로 특수 메서드 <code>__eq__()</code>를 호출 — <b>값(내용)</b>이 같은지 비교</li><li><code>is</code> 연산자는 두 객체의 정체성(identity), 즉 <b>같은 객체(메모리 주소)</b>인지 비교</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">== vs is</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">s1 = 'abc'
+s2 = 'abc'
+s3 = 'def'
+s4 = s1
+s5 = s1[:2] + 'c'
+print(s1 == s2)   # True
+print(s1 is s2)   # True  (짧은 문자열 리터럴은 interning 되어 같은 객체)
+print(s1 == s5)   # True
+print(s1 is s5)   # False (내용은 같지만 다른 객체)
+print(s4 is s1)   # True
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">3-4</span>사전 순서 비교 — my_strcmp()</h3>
+
+<p>문자열에 대한 &lt; 연산은 <b>유니코드 값에 대한 비교</b>입니다. 따라서 <code>'Apple' &lt; 'Banana'</code> 도 True이고 <code>'apple' &lt; 'banana'</code> 도 True입니다. (단, 대문자 'B'(66) &lt; 소문자 'a'(97) 이므로 <code>'Banana' &lt; 'apple'</code> 도 True)</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">사전 순서 비교 구현</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def my_strcmp(s1, s2):
+    i = 0
+    while i &lt; len(s1) and i &lt; len(s2):
+        if s1[i] != s2[i]:
+            return -1 if s1[i] &lt; s2[i] else 1
+        i += 1
+    if len(s1) == len(s2):
+        return 0          # 내용이 같은 경우
+    return -1 if len(s1) &lt; len(s2) else 1
+
+print(my_strcmp('abc', 'abd'), my_strcmp('abc', 'abc'), my_strcmp('b', 'abc'), my_strcmp('ab', 'abc'))
+print('Apple' &lt; 'Banana', 'Banana' &lt; 'apple')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">3-5</span>문자열 숫자를 정수로 변환하기 — atoi / itoa</h3>
+<ul><li>C언어에서는 atoi(), Java에서는 Integer.parseInt(String), 숫자를 문자열로 변환하는 toString() 메소드를 제공.</li><li>Python에서는 숫자와 문자변환 함수: <code>int("123")</code>, <code>float("3.14")</code>, <code>str(123)</code>, <code>repr(123)</code></li><li>직접 구현: 각 자리 문자에서 <code>ord(c) - ord('0')</code> 로 숫자를 얻어 <code>value = value * 10 + digit</code></li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">atoi / itoa 직접 구현</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def atoi(s):
+    value = 0
+    sign = 1
+    for i, c in enumerate(s):
+        if i == 0 and c == '-':
+            sign = -1
+            continue
+        value = value * 10 + (ord(c) - ord('0'))
+    return sign * value
+
+def itoa(n):
+    if n == 0: return '0'
+    neg = n &lt; 0
+    n = abs(n)
+    r = ''
+    while n:
+        r = chr(ord('0') + n % 10) + r
+        n //= 10
+    return '-' + r if neg else r
+
+x = atoi(input())
+print(x, type(x), x + 1)
+print(repr(itoa(-4025)))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">-123
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>패턴 매칭</h2><p class="desc">고지식한 패턴 검색 · KMP · 보이어-무어 · 비교</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>패턴 매칭에 사용되는 알고리즘들</h3>
+<div class="pillrow"><span class="pill">고지식한 패턴 검색 알고리즘</span><span class="pill">카프-라빈 알고리즘</span><span class="pill">KMP 알고리즘</span><span class="pill">보이어-무어 알고리즘</span></div>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>고지식한 알고리즘 (Brute Force)</h3>
+
+<p>본문 문자열을 처음부터 끝까지 차례대로 순회하면서 패턴 내의 문자들을 일일이 비교하는 방식으로 동작. "한 칸 이동, 비교"를 반복합니다.</p><ul><li>본문의 비교위치 i, 패턴의 비교위치 j</li><li>일치하면 i, j 증가</li><li>실패하면 i는 이전 시작위치 다음으로, j는 맨 앞으로 초기화</li></ul><div class="subhead">시간 복잡도</div><p>최악의 경우 시간 복잡도는 텍스트의 모든 위치에서 패턴을 비교해야 하므로 <b>O(MN)</b>이 됨. 길이가 10,000인 문자열에서 길이 80인 패턴을 찾는다고 할 때, 최악의 경우 약 10,000×80 = 800,000번의 비교가 일어납니다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">4-3</span>고지식한 패턴 검색 구현</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">고지식한 패턴 검색</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def brute_force(p, t):
+    M = len(p)          # 찾을 패턴의 길이
+    N = len(t)          # 전체 텍스트의 길이
+    i = 0               # t의 인덱스
+    j = 0               # p의 인덱스
+    while j &lt; M and i &lt; N:
+        if t[i] != p[j]:   # 다른 글자인 경우
+            i = i - j      # 이전 시작 위치 다음으로
+            j = -1
+        i = i + 1
+        j = j + 1
+    if j == M: return i - M   # 검색 성공
+    else: return -1           # 검색 실패
+
+t = input()
+p = input()
+print(brute_force(p, t), t.find(p))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">This is a book~!
+is
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-4</span>KMP 알고리즘</h3>
+<ul><li>불일치가 발생한 텍스트 스트링의 앞 부분에 어떤 문자가 있는지를 미리 알고 있으므로, 불일치가 발생한 앞 부분에 대하여 <b>다시 비교하지 않고</b> 매칭을 수행</li><li>패턴을 전처리하여 배열 next[M]을 구해서 잘못된 시작을 최소화함 — next[M]: 불일치가 발생했을 경우 이동할 다음 위치</li><li>예) 텍스트에서 abcdabc까지는 매치되고, e에서 실패한 상황 — 패턴의 맨 앞의 abc와 실패 직전의 abc는 동일함을 이용할 수 있음 → 실패한 텍스트 문자와 P[4]를 비교</li><li>시간 복잡도: 패턴 길이 M 전처리 O(M), 텍스트 길이 N 검색 O(N) → <b>O(M+N)</b></li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">KMP (참고 구현)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def make_lps(p):          # lps[j]: p[0..j]에서 접두사 = 접미사인 최대 길이
+    lps = [0] * len(p)
+    j = 0
+    for i in range(1, len(p)):
+        while j &gt; 0 and p[i] != p[j]:
+            j = lps[j - 1]
+        if p[i] == p[j]:
+            j += 1
+            lps[i] = j
+    return lps
+
+def kmp(t, p):
+    lps = make_lps(p)
+    found = []
+    j = 0
+    for i in range(len(t)):
+        while j &gt; 0 and t[i] != p[j]:
+            j = lps[j - 1]      # 다시 비교하지 않고 점프
+        if t[i] == p[j]:
+            j += 1
+            if j == len(p):
+                found.append(i - len(p) + 1)
+                j = lps[j - 1]
+    return found
+
+p = 'abcdabcef'
+print('lps:', make_lps(p))
+print(kmp('abcdabcdabcefabcdabcef', p))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-5</span>보이어-무어 (Boyer-Moore) 알고리즘</h3>
+<ul><li><b>오른쪽에서 왼쪽으로</b> 비교</li><li>대부분의 상용 소프트웨어에서 채택하고 있는 알고리즘</li><li>실제 검색에서 매우 빠른 성능</li><li>패턴의 오른쪽 끝에 있는 문자가 불일치하고 이 문자가 패턴 내에 존재하지 않는 경우, 이동 거리는 무려 <b>패턴의 길이만큼</b>이 됨</li><li>오른쪽 끝에 있는 문자가 불일치하고 이 문자가 패턴 내에 존재할 경우 — 패턴에서 일치하는 문자를 찾아서 그 위치가 맞도록 점프 (skip 배열)</li><li>앞의 두 매칭 알고리즘들의 공통점은 텍스트 문자열의 문자를 적어도 한번씩 훑는다는 것. 보이어-무어 알고리즘은 텍스트 문자를 다 보지 않아도 되며, 일반적으로 <b>O(n)보다 시간이 덜 든다</b>고 알려져 있습니다.</li><li>최악의 경우 수행시간 Θ(mn). 입력에 따라 다르지만 일반적으로 Θ(n)보다 시간이 덜 듦. 실제로는 불일치 문자 휴리스틱과 일치 접미부 휴리스틱을 함께 사용합니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">보이어-무어(Horspool 간소화)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def boyer_moore_horspool(t, p):
+    M, N = len(p), len(t)
+    skip = {}                       # 패턴 안 문자별 점프 거리
+    for k in range(M - 1):
+        skip[p[k]] = M - 1 - k
+    i = 0
+    while i &lt;= N - M:
+        j = M - 1
+        while j &gt;= 0 and t[i + j] == p[j]:   # 오른쪽부터 비교
+            j -= 1
+        if j &lt; 0:
+            return i
+        jump = skip.get(t[i + M - 1], M)     # 패턴에 없으면 패턴 길이만큼
+        print(f'  위치 {i}: 불일치, 끝 문자 {t[i + M - 1]!r} → {jump}칸 점프')
+        i += jump
+    return -1
+
+print(boyer_moore_horspool('a pattern matching algorithm', 'rithm'))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-6</span>문자열 매칭 알고리즘 비교</h3>
+<table class="compare"><tr><th>알고리즘</th><th>시간 복잡도</th><th>특징</th></tr><tr><td class="k">고지식한 방법</td><td>최악 O(MN)</td><td>구현이 가장 간단</td></tr><tr><td class="k">KMP</td><td>O(M + N)</td><td>실패 함수(next)로 다시 비교하지 않음</td></tr><tr><td class="k">보이어-무어</td><td>최악 Θ(MN), 평균 Θ(N)보다 빠름</td><td>오른쪽부터 비교, 상용 소프트웨어에서 채택</td></tr></table><div class="note gap">카프-라빈 알고리즘: 패턴을 해시값으로 바꿔 텍스트의 같은 길이 구간 해시와 비교 — 평균 O(N).</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch5" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>문자열 암호화와 압축</h2><p class="desc">시저 암호 · 문자 변환표(단일 치환) · 앨런 튜링 · 문자열 압축(RLE)</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">5-1</span>시저 암호 (Caesar cipher)</h3>
+<ul><li>줄리어스 시저가 사용했다고 하는 암호 — 시저는 기원전 100년경에 로마에서 활약했던 장군</li><li>시저 암호에서는 평문에서 사용되고 있는 알파벳을 일정한 문자 수만큼 <b>[평행 이동]</b> 시킴으로써 암호화를 행한다.</li><li>1만큼 평행했을 때 1을 <b>키 값</b>이라고 합니다. 예) SAVE PRIVATE RYAN → TBWF QSJWBUF SZBO</li><li>수신자 이외의 사람(키가 1이라는 사실을 모르는 사람)이 TBWFQSJWBUFSZBO 라는 메시지를 맞출 수 있을까? — 키 값을 바꿔가며 26번만 시도하면 해독 가능.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">시저 암호</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def caesar(text, key):
+    r = ''
+    for c in text:
+        if 'A' &lt;= c &lt;= 'Z':
+            r += chr((ord(c) - ord('A') + key) % 26 + ord('A'))
+        else:
+            r += c
+    return r
+
+enc = caesar('SAVE PRIVATE RYAN', 1)
+print(enc)
+print(caesar(enc, -1))
+for k in range(1, 4):               # 키를 모르면? 모든 키를 시도!
+    print(k, caesar(enc, -k))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-2</span>문자 변환표를 이용한 암호화 (단일 치환 암호화)</h3>
+<ul><li>단순한 카이사르 암호화보다 훨씬 강력한 암호화 기법</li><li>알파벳 하나를 다른 고정된 알파벳으로 바꾸는 방법입니다. (예: A→H, B→C, C→D …)</li><li>복호화하기 위해서는 모든 키의 조합(key space)이 필요 — 26 × 25 × 24 × … × 1 = <b>26! = 403291461126605635584000000</b></li><li>1초에 10억 개의 키를 적용할 수 있어도 120억년 이상 걸립니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">단일 치환 암호</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import random
+alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+random.seed(16)
+shuffled = list(alpha)
+random.shuffle(shuffled)
+table_ = dict(zip(alpha, shuffled))           # 문자 변환표
+inv = {v: k for k, v in table_.items()}
+
+msg = 'SAVE PRIVATE RYAN'
+enc = ''.join(table_.get(c, c) for c in msg)
+print(enc, '→', ''.join(inv.get(c, c) for c in enc))
+import math
+print('키 공간 26! =', math.factorial(26))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-3</span>참고 — 앨런 튜링(Alan Turing)</h3>
+<p>앨런 튜링은 기계식 암호 해독기 봄브(Bombe)를 개발해 제2차 세계대전 중에 독일군의 에니그마(Enigma) 암호를 해독했고, 이후 영국의 학자들이 로렌츠 암호를 해석하기 위해 세계 최초의 디지털 컴퓨터 콜로서스를 만듭니다. 존재가 기밀이어서 미국의 에니악이 오랫동안 최초의 컴퓨터로 알려져 있었습니다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">5-4</span>문자열 압축 — Run-length encoding</h3>
+<ul><li>같은 값이 몇 번 반복되는가를 나타내는 방식입니다. 예) ABBBBBBBBA → A1B8A1</li><li>이미지 파일 포맷 중 BMP 파일의 압축 방법 중 하나로 사용합니다.</li><li>같은 문자가 반복되는 경우가 많은 데이터에서 효과적입니다. 반복이 적으면 오히려 길어질 수 있습니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">Run-length encoding</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def rle_encode(s):
+    r = ''
+    i = 0
+    while i &lt; len(s):
+        j = i
+        while j &lt; len(s) and s[j] == s[i]:
+            j += 1
+        r += s[i] + str(j - i)
+        i = j
+    return r
+
+def rle_decode(s):
+    r = ''
+    i = 0
+    while i &lt; len(s):
+        ch = s[i]; i += 1
+        num = ''
+        while i &lt; len(s) and s[i].isdigit():
+            num += s[i]; i += 1
+        r += ch * int(num)
+    return r
+
+e = rle_encode(input())
+print(e, rle_decode(e))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">ABBBBBBBBA
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-5</span>추천 문제 (SWEA)</h3>
+<table class="compare"><tr><th>분류</th><th>문제</th></tr><tr><td class="k">문자열 · 회문</td><td>4865. 글자수 · 1989. 초심자의 회문 검사 · 4861. 회문</td></tr><tr><td class="k">패턴 매칭</td><td>4864. 문자열 비교 (고지식한 방법으로) · 3143. 가장 빠른 문자열 타이핑</td></tr><tr><td class="k">추가 연습</td><td>5356. 의석이의 세로로 말해요 · 5432. 쇠막대기 자르기</td></tr></table>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>String 확인문제</h3>
+<details class="quiz"><summary>1. 문자열 자료형에 대한 설명으로 옳은 것은?</summary><ol class="opt" type="a"><li>리스트로만 표현할 수 있다.</li><li>숫자와 동일한 연산자만 사용할 수 있다.</li><li>변경 가능한(mutable) 자료형이다.</li><li>문자열은 순서가 있는 자료형이며 변경할 수 없다.</li></ol><div class="ans"><b class="ok">정답: 문자열은 순서가 있는 자료형이며 변경할 수 없다</b> — 인덱싱, 슬라이싱이 가능한 순서가 있는 자료형입니다. 하지만 값을 바꿀 수 없습니다(immutable).</div></details><details class="quiz"><summary>2. 유니코드 인코딩 UTF-8에 대한 설명으로 틀린 것은?</summary><ol class="opt" type="a"><li>UTF-8은 가변 길이 인코딩이다.</li><li>영어 알파벳은 UTF-8에서 1바이트로 표현된다.</li><li>전 세계 대부분의 문자와 호환된다.</li><li>고정 길이 인코딩으로 4바이트로 표현한다.</li></ol><div class="ans"><b class="ok">정답: 고정 길이 인코딩으로 4바이트로 표현한다</b> — 4바이트 고정으로 인코딩하는 방식은 UTF-32입니다.</div></details><details class="quiz"><summary>3. <code>text = "Python"; print(text[1:4])</code> 의 결과는?</summary><ol class="opt" type="a"><li>Pyt</li><li>yth</li><li>ytho</li><li>tho</li></ol><div class="ans"><b class="ok">정답: yth</b> — 슬라이싱은 시작 인덱스 포함, 끝 인덱스 미포함.</div></details><details class="quiz"><summary>4. 문자열 s = "Apple"이 있을 때, s[-2]의 값은?</summary><ol class="opt" type="a"><li>'p'</li><li>'l'</li><li>'e'</li><li>'A'</li></ol><div class="ans"><b class="ok">정답: 'l'</b> — 음수 인덱스는 뒤에서부터 셉니다. -1은 'e', -2는 'l' 입니다.</div></details><details class="quiz"><summary>5. 문자열 replace() 메서드의 설명으로 바른 것은?</summary><ol class="opt" type="a"><li>대소문자를 자동으로 구분하지 않는다.</li><li>원래 문자열을 직접 변경한다.</li><li>새로운 문자열을 반환한다.</li><li>문자열의 길이를 변경할 수 없다.</li></ol><div class="ans"><b class="ok">정답: 새로운 문자열을 반환한다</b> — 문자열은 immutable이므로, replace()는 원래 문자열을 변경하지 않고 새로운 문자열을 반환합니다.</div></details><details class="quiz"><summary>6. 다음 중 문자열을 숫자로 변환할 수 없는 경우는?</summary><ol class="opt" type="a"><li>"42"</li><li>"3.14"</li><li>"123"</li><li>"3.14.15"</li></ol><div class="ans"><b class="ok">정답: "3.14.15"</b> — 숫자 형식이 잘못되어 int()나 float()로 변환할 수 없습니다.</div></details><details class="quiz"><summary>7. 문자열 "Hello World"에서 'o' 문자가 처음 등장하는 인덱스를 반환하는 메서드는?</summary><div class="ans"><b class="ok">정답: find()</b> (index()도 가능) — find()는 특정 문자가 없으면 -1을 반환합니다.</div></details><details class="quiz"><summary>8. "banana"라는 문자열에서 'a'의 개수를 세기 위한 메서드는?</summary><div class="ans"><b class="ok">정답: count()</b> — 문자열에서 특정 문자가 몇 번 나오는지 셉니다. <code>'banana'.count('a')</code> → 3</div></details><details class="quiz"><summary>9. <code>text = "hello python"; print(text.upper())</code> 의 실행 결과는?</summary><div class="ans"><b class="ok">정답: HELLO PYTHON</b> — upper()는 문자열의 모든 알파벳을 대문자로 바꿉니다.</div></details><details class="quiz"><summary>10. <code>text = "apple"; r_text = text[ ]</code> — 역순으로 만드는 슬라이싱 표현식은?</summary><div class="ans"><b class="ok">정답: [::-1]</b> — 슬라이싱의 세 번째 인자(step)를 -1로 주면 역순이 됩니다.</div></details><details class="quiz"><summary>11. <code>text = "  Hello  "; result = text.strip()</code> 의 result는?</summary><div class="ans"><b class="ok">정답: 'Hello'</b> — strip()은 문자열의 앞뒤 공백을 제거합니다. 중간 공백은 제거하지 않습니다.</div></details><details class="quiz"><summary>12. <code>text = '-'.join(['A', 'B', 'C']); print(text)</code> 의 결과는?</summary><div class="ans"><b class="ok">정답: A-B-C</b> — join()은 리스트의 각 요소 사이에 지정한 문자열을 삽입해 하나의 문자열로 만듭니다.</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th></tr><tr><td class="k">코드 체계</td><td>문자를 숫자로 표현하는 체계 — 문자에 대응되는 숫자를 정한 것. ASCII, Unicode로 규격화</td></tr><tr><td class="k">유니코드 · 인코딩</td><td>표준화되지 않은 부분(바이트 순서) 때문에 외부 인코딩(UTF-8/16/32)이 필요</td></tr><tr><td class="k">문자열</td><td>문자들이 순서대로 나열된 데이터. 순서가 구분되는 시퀀스 자료형이고 요소 변경 불가(immutable)</td></tr><tr><td class="k">문자열 연산</td><td>문자열에서의 덧셈(연결), 곱셈(반복), 인덱싱, 슬라이싱</td></tr><tr><td class="k">패턴 매칭</td><td>고지식한 방법은 비효율적이지만 구현할 수 있어야 함. KMP · 보이어-무어는 건너뛰기로 개선</td></tr><tr><td class="k">암호화</td><td>글자를 다른 글자로 바꾸는 것 — 모든 글자가 같은 키 값(시저)이거나, 각 글자가 다른 키 값을 갖도록 문자 변환표 이용</td></tr><tr><td class="k">압축 (RLE)</td><td>같은 값이 몇 번 반복되는지로 표현</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>메모리는 숫자만 저장하므로 <b>문자 ↔ 숫자 약속(코드 체계)</b>이 필요하다 — ASCII(7bit) → 확장 ASCII(8bit) → 유니코드.</li><li>같은 유니코드라도 <b>저장 방식(UTF-8/16/32, Endian)</b>이 다르면 깨진다 — 읽고 쓰는 인코딩을 맞춰야 한다.</li><li>파이썬 문자열은 <b>immutable 시퀀스</b> — 수정하려면 리스트로 바꾸거나 새 문자열을 만든다.</li><li>패턴 매칭: 고지식한 방법 O(MN) → KMP O(M+N)(앞부분 재활용) / 보이어-무어(오른쪽부터, 크게 점프).</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 기본 String」(2025-09-07, 76장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

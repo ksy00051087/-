@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>분할 정복 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 11 · 10/01 응용 분할정복</span>
+    <h1>분할 정복 개념정리</h1>
+    <p class="sub">가짜 동전 찾기 → 분할 정복 설계 전략 · 거듭 제곱 → 병합 정렬 → 퀵 정렬(Hoare · Lomuto) → 이진 검색 · 활용까지, 강의 슬라이드 81장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 4개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 12개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 분할 정복</a><a href="#ch2">2. 병합 정렬</a><a href="#ch3">3. 퀵 정렬</a><a href="#ch4">4. 이진 검색</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 가짜 동전 찾기</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">0-1</span>가짜 동전 찾기 — 양팔 저울을 최소로 사용해서 가짜 동전을 찾는 방법은 무엇인가?</h3>
+
+<p>동전이 24(진짜 23, 가짜 1)개 있다. 가짜 동전은 진짜 동전에 비해 아주 조금 가볍다. 하나씩 비교하면 최악 12번. <b>반으로 나눠</b> 무게를 비교하면 가벼운 쪽에 가짜가 있다 → 24 → 12 → 6 → 3 → (1 vs 1) … 훨씬 적은 횟수로 찾을 수 있습니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">가짜 동전 찾기 (반씩 나누기)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import random
+N = 24
+coins = [10] * N
+fake = random.randrange(N)
+coins[fake] = 9                      # 가짜 동전은 조금 가볍다
+
+def find(lo, hi, cnt):               # coins[lo:hi] 안에 가짜가 있음
+    if hi - lo == 1:
+        return lo, cnt
+    half = (hi - lo) // 2
+    left = sum(coins[lo:lo + half])
+    right = sum(coins[lo + half:lo + 2 * half])
+    cnt += 1                         # 저울 1회 사용
+    if left &lt; right:
+        return find(lo, lo + half, cnt)
+    if right &lt; left:
+        return find(lo + half, lo + 2 * half, cnt)
+    return lo + 2 * half, cnt        # 홀수 개일 때 남은 하나가 가짜
+
+pos, cnt = find(0, N, 0)
+print(f'가짜 동전 위치 {pos} (정답 {fake}), 저울 사용 {cnt}번')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>분할 정복 기법의 설계 전략(분할·정복·통합)을 이해한다.</li><li>거듭 제곱을 분할 정복으로 O(log n)에 계산할 수 있다.</li><li>병합 정렬을 구현하고 시간 복잡도를 분석할 수 있다.</li><li>퀵 정렬(Hoare/Lomuto 파티션)을 구현할 수 있다.</li><li>이진 검색을 반복·재귀로 구현할 수 있다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>분할 정복 기법</h2><p class="desc">유래 · 설계 전략 · 거듭 제곱</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>분할 정복 (Divide and Conquer)</h3>
+<ul><li>유래: 1805년 12월 2일 아우스터리츠 전투에서 나폴레옹이 사용한 전략 — 전력이 우세한 연합군을 공격하기 위해 나폴레옹은 연합군의 중앙부로 쳐들어가 연합군을 둘로 나눔. 둘로 나뉜 연합군을 한 부분씩 격파함.</li></ul><div class="subhead">설계 전략</div><table class="compare"><tr><th>단계</th><th>설명</th></tr><tr><td class="k">분할 (Divide)</td><td>해결할 문제를 여러 개의 작은 부분으로 나눈다.</td></tr><tr><td class="k">정복 (Conquer)</td><td>나눈 작은 문제를 각각 해결한다.</td></tr><tr><td class="k">통합 (Combine)</td><td>(필요하다면) 해결된 해답을 모은다.</td></tr></table>
+</div>
+<div class="card full">
+<h3><span class="tag">1-2</span>분할 정복의 예시 — 거듭 제곱 (Exponentiation)</h3>
+<ul><li>반복(Iterative) 알고리즘: Cⁿ = C × C × … × C → <b>O(n)</b></li><li>분할 정복 기반의 알고리즘: Cⁿ = C^(n/2) × C^(n/2) (n이 짝수), C^((n-1)/2) × C^((n-1)/2) × C (n이 홀수) → <b>O(log n)</b></li></ul><pre class="formula">Recursive_Power(x, n)
+    IF n == 1 : RETURN x
+    IF n is even
+        y ← Recursive_Power(x, n/2)
+        RETURN y * y
+    ELSE
+        y ← Recursive_Power(x, (n-1)/2)
+        RETURN y * y * x</pre><div class="ide">
+  <div class="ide-bar"><span class="ide-title">거듭 제곱 O(n) vs O(log n)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">calls = 0
+def power_iter(c, n):
+    r = 1
+    for _ in range(n):
+        r *= c
+    return r
+
+def power_dc(x, n):
+    global calls
+    calls += 1
+    if n == 1:
+        return x
+    y = power_dc(x, n // 2)        # 한 번만 계산해서 재사용!
+    if n % 2 == 0:
+        return y * y
+    return y * y * x
+
+n = int(input())
+print(power_iter(2, n) == power_dc(2, n) == pow(2, n))
+print(f'반복: 곱셈 {n}번 / 분할 정복: 재귀 호출 {calls}번')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">1000
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>병합 정렬 (Merge Sort)</h2><p class="desc">개념 · 분할 단계 · 병합 단계 · 알고리즘 · 구현 · 시간 복잡도</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">2-1</span>병합 정렬이란?</h3>
+<ul><li>여러 개의 정렬된 자료의 집합을 병합하여 한 개의 정렬된 집합으로 만드는 방식</li><li>분할 정복 알고리즘 활용 — 자료를 최소 단위의 문제까지 나눈 후에 차례대로 정렬하여 최종 결과를 얻어냄</li><li>top-down 방식</li><li>시간 복잡도: <b>O(n log n)</b></li></ul><div class="subhead">병합 정렬 과정 — {69, 10, 30, 2, 16, 8, 31, 22}를 병합 정렬하는 과정</div><div class="trace">분할 단계 : 전체 자료 집합에 대하여, 최소 크기의 부분집합이 될 때까지 분할 작업을 계속한다.
+[69 10 30 2 16 8 31 22]
+[69 10 30 2] [16 8 31 22]
+[69 10] [30 2] [16 8] [31 22]
+[69] [10] [30] [2] [16] [8] [31] [22]
+
+병합 단계 : 2개의 부분집합을 정렬하면서 하나의 집합으로 병합한다. 8개의 부분집합이 1개로 병합될 때까지 반복
+[10 69] [2 30] [8 16] [22 31]
+[2 10 30 69] [8 16 22 31]
+[2 8 10 16 22 30 31 69]</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>병합 정렬 알고리즘</h3>
+<pre class="formula">merge_sort(LIST m)
+    IF length(m) == 1 : RETURN m
+    LIST left, right
+    middle ← length(m) / 2
+    FOR x in m before middle : add x to left
+    FOR x in m after or equal middle : add x to right
+    left ← merge_sort(left)
+    right ← merge_sort(right)
+    RETURN merge(left, right)
+
+merge(LIST left, LIST right)
+    LIST result
+    WHILE length(left) &gt; 0 OR length(right) &gt; 0
+        IF length(left) &gt; 0 AND length(right) &gt; 0
+            IF first(left) &lt;= first(right)
+                append popfirst(left) to result
+            ELSE
+                append popfirst(right) to result
+        ELIF length(left) &gt; 0
+            append popfirst(left) to result
+        ELIF length(right) &gt; 0
+            append popfirst(right) to result
+    RETURN result</pre><div class="note tip"><code>pop(0)</code>은 O(n)이므로 실제 구현에서는 <b>인덱스(i, j)</b>를 움직이며 병합합니다. 병합 정렬은 병합할 때 <b>임시 배열</b>을 사용합니다 → 추가 메모리 필요(제자리 정렬이 아님).</div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-3</span>병합 정렬 구현</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">병합 정렬</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def merge(left, right):
+    result = []
+    i = j = 0
+    while i &lt; len(left) and j &lt; len(right):
+        if left[i] &lt;= right[j]:
+            result.append(left[i]); i += 1
+        else:
+            result.append(right[j]); j += 1
+    result.extend(left[i:])      # 남은 것 붙이기
+    result.extend(right[j:])
+    return result
+
+def merge_sort(m, depth=0):
+    if len(m) == 1:
+        return m
+    middle = len(m) // 2
+    left = merge_sort(m[:middle], depth + 1)     # 분할
+    right = merge_sort(m[middle:], depth + 1)
+    merged = merge(left, right)                  # 병합
+    print('  ' * depth + f'merge {left} + {right} → {merged}')
+    return merged
+
+arr = list(map(int, input().split()))
+print(merge_sort(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">69 10 30 2 16 8 31 22
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>퀵 정렬 (Quick Sort)</h2><p class="desc">개념 · 병합 정렬과의 차이 · Pivot · 파티셔닝 과정 · Hoare · Lomuto · 시간 복잡도</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>퀵 정렬이란?</h3>
+<ul><li>주어진 배열을 두 개로 분할하고, 각각을 정렬한다.</li><li>병합 정렬과 다른 점 — ① 병합 정렬은 그냥 두 부분으로 나누는 반면에, 퀵 정렬은 분할할 때, <b>기준 아이템(pivot item) 중심</b>으로, 이보다 작은 것은 왼편, 큰 것은 오른편에 위치시킨다. ② 각 부분 정렬이 끝난 후, 병합 정렬은 "병합"이란 후처리 작업이 필요하나, 퀵 정렬은 필요로 하지 않는다.</li></ul><div class="subhead">Pivot을 기준으로 파티셔닝</div><ul><li>작업 영역을 정하고, 작업 영역 중 가장 왼쪽에 있는 수를 Pivot이라고 하자.</li><li>파티셔닝 — Pivot을 기준으로 왼쪽에는 Pivot 보다 작은 수를 배치, 오른쪽에는 Pivot 보다 큰 수를 배치합니다.</li><li>파티셔닝이 끝나면 Pivot의 위치는 <b>확정(Fix)</b>된다 — 즉, 정렬이 다 되었을 때에도 Pivot의 위치는 지금 위치 그대로 배정됩니다.</li><li>한 번의 파티셔닝 이후, 왼쪽과 오른쪽 부분 배열에 대해 재귀적으로 파티셔닝을 반복하여 정렬을 진행합니다.</li><li>작업 영역에 혼자이면 해당 값이 Fix가 되고 바로 파티셔닝이 종료된다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>Pivot 선택 방법과 파티션 알고리즘</h3>
+<ul><li>왼쪽 끝 / 오른쪽 끝 / 임의의 값 / 왼쪽 끝·오른쪽 끝·가운데 세 값 중에 중간 값(median of three)을 선택하는 경우</li><li>대표적인 파티셔닝 방법: <b>Hoare-Partition</b> 알고리즘, <b>Lomuto-Partition</b> 알고리즘</li></ul><pre class="formula">Hoare-Partition(A[], l, r)
+    p ← A[l]       // p: 피봇 값
+    i ← l, j ← r
+    WHILE i &lt;= j
+        WHILE i &lt;= j and A[i] &lt;= p : i++
+        WHILE i &lt;= j and A[j] &gt;= p : j--
+        IF i &lt; j : swap(A[i], A[j])
+    swap(A[l], A[j])
+    RETURN j
+
+Lomuto-Partition(A[], l, r)
+    p ← A[r]
+    i ← l - 1
+    FOR j in range(l, r)
+        IF A[j] &lt;= p
+            i++, swap(A[i], A[j])
+    swap(A[i+1], A[r])
+    RETURN i+1</pre>
+</div>
+<div class="card full">
+<h3><span class="tag">3-3</span>퀵 정렬 구현 — Hoare / Lomuto</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">퀵 정렬 (Hoare · Lomuto)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def hoare_partition(A, l, r):
+    p = A[l]
+    i, j = l, r
+    while i &lt;= j:
+        while i &lt;= j and A[i] &lt;= p: i += 1
+        while i &lt;= j and A[j] &gt;= p: j -= 1
+        if i &lt; j:
+            A[i], A[j] = A[j], A[i]
+    A[l], A[j] = A[j], A[l]      # pivot을 제자리(Fix)로
+    return j
+
+def lomuto_partition(A, l, r):
+    p = A[r]
+    i = l - 1
+    for j in range(l, r):
+        if A[j] &lt;= p:
+            i += 1
+            A[i], A[j] = A[j], A[i]
+    A[i + 1], A[r] = A[r], A[i + 1]
+    return i + 1
+
+def quick_sort(A, l, r, part, depth=0):
+    if l &lt; r:
+        s = part(A, l, r)
+        print('  ' * depth + f'pivot {A[s]} Fix → {A}')
+        quick_sort(A, l, s - 1, part, depth + 1)
+        quick_sort(A, s + 1, r, part, depth + 1)
+
+data = list(map(int, input().split()))
+A = data[:]
+print('== Hoare =='); quick_sort(A, 0, len(A) - 1, hoare_partition); print(A)
+B = data[:]
+print('== Lomuto =='); quick_sort(B, 0, len(B) - 1, lomuto_partition); print(B)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">3 2 4 6 9 1 8 7 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">3-4</span>퀵 정렬의 시간 복잡도</h3>
+<ul><li>평균: <b>O(n log n)</b> — 피봇이 매번 비슷하게 반으로 나누면 높이 log n, 각 층 n</li><li>최악: <b>O(n²)</b> — 이미 정렬된 배열에서 왼쪽 끝을 피봇으로 고르면 한쪽으로만 나뉨</li><li>최악의 경우 O(n²)이지만, 평균적으로는 가장 빠르다. 추가 메모리가 거의 필요 없는 <b>제자리 정렬</b></li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">평균 vs 최악</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import random, sys
+sys.setrecursionlimit(10000)
+cmp = 0
+def qs(A, l, r):
+    global cmp
+    if l &lt; r:
+        p = A[l]; i, j = l, r
+        while i &lt;= j:
+            while i &lt;= j and A[i] &lt;= p: i += 1; cmp += 1
+            while i &lt;= j and A[j] &gt;= p: j -= 1; cmp += 1
+            if i &lt; j: A[i], A[j] = A[j], A[i]
+        A[l], A[j] = A[j], A[l]
+        qs(A, l, j - 1); qs(A, j + 1, r)
+
+n = 800
+for name, A in [('무작위', random.sample(range(n), n)), ('이미 정렬됨', list(range(n)))]:
+    cmp = 0
+    qs(A, 0, n - 1)
+    print(f'{name:8}: 비교 {cmp:7,}번  (n log n ≈ {int(n * 9.6):,}, n²/2 = {n*n//2:,})')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>이진 검색 (Binary Search)</h2><p class="desc">업다운 게임 · 개념 · 반복 · 재귀 · 활용</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>업다운 게임 — 술래가 1~100 중 숫자를 생각한다</h3>
+
+<p>첫 번째 사람이 14를 외쳤다면! → 술래는 "UP"! 두 번째 사람이 2를 외쳤다면! → … 결국 네 번째 사람이 술래 속 숫자를 부를 수 밖에 없으면 진다. 최대로 빨리 당첨 되려면 어떻게 하면 될까? → <b>항상 범위의 가운데</b>를 부르면 최대 7번(log₂100 ≈ 6.6)이면 맞힌다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">업다운 게임</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">secret = int(input())
+lo, hi = 1, 100
+turn = 0
+while True:
+    turn += 1
+    mid = (lo + hi) // 2
+    if mid == secret:
+        print(f'{turn}번째: {mid} 정답!')
+        break
+    elif mid &lt; secret:
+        print(f'{turn}번째: {mid} → UP');   lo = mid + 1
+    else:
+        print(f'{turn}번째: {mid} → DOWN'); hi = mid - 1
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">73
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>이진 검색</h3>
+<ul><li>자료의 가운데에 있는 항목의 키 값과 비교하여 다음 검색의 위치를 결정하고 검색을 계속 진행하는 방법 — 목적 키를 찾을 때까지 이진 검색을 순환적으로 반복 수행함으로써 검색 범위를 반으로 줄여가면서 보다 빠르게 검색을 수행함</li><li>이진 검색을 하기 위해서는 자료가 <b>정렬된 상태</b>여야 한다.</li><li>검색 과정: 자료의 중앙에 있는 원소를 고른다 → 중앙 원소의 값과 찾고자 하는 목표 값을 비교한다 → 목표 값이 중앙 원소의 값보다 작으면 자료의 왼쪽 반에 대해서 새로 검색을 수행하고, 크다면 자료의 오른쪽 반에 대해서 새로 검색을 수행한다 → 찾고자 하는 값을 찾을 때까지 반복한다.</li><li>재귀 호출이 끝나는 조건: 중간값이 찾는 값과 같거나(성공) 시작 인덱스가 끝 인덱스보다 큰 경우(low &gt; high, 탐색 실패)</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">이진 검색 (반복·재귀)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def binary_search(arr, key):          # 반복 구조
+    low, high = 0, len(arr) - 1
+    while low &lt;= high:
+        mid = (low + high) // 2
+        if arr[mid] == key: return mid
+        elif arr[mid] &gt; key: high = mid - 1
+        else: low = mid + 1
+    return -1
+
+def binary_search_rec(arr, low, high, key):   # 재귀 구조
+    if low &gt; high:                     # 탐색 범위가 역전 → 실패
+        return -1
+    mid = (low + high) // 2
+    if key == arr[mid]:
+        return mid
+    elif key &lt; arr[mid]:
+        return binary_search_rec(arr, low, mid - 1, key)
+    else:
+        return binary_search_rec(arr, mid + 1, high, key)
+
+arr = [2, 4, 7, 9, 11, 19, 23]
+for k in [7, 23, 5]:
+    print(k, binary_search(arr, k), binary_search_rec(arr, 0, len(arr) - 1, k))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-3</span>[연습] 5688. 세제곱근을 찾아라 — 이진 검색 응용</h3>
+
+<p>N이 주어질 때, X³ = N 을 만족하는 양의 정수 X를 구하라. 없으면 -1. (1 ≤ N ≤ 10¹⁸) — 실수 연산 <code>N ** (1/3)</code>은 오차가 생기므로, <b>정수 범위에서 이진 검색</b>합니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">세제곱근 (이진 검색)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">T = int(input())
+for tc in range(1, T + 1):
+    N = int(input())
+    lo, hi, ans = 1, 10**6, -1
+    while lo &lt;= hi:
+        mid = (lo + hi) // 2
+        c = mid ** 3
+        if c == N:
+            ans = mid; break
+        elif c &lt; N:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    print(f'#{tc} {ans}', ' (실수 연산:', round(N ** (1/3), 10), ')')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">3
+27
+7777
+1000000000000000000
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-4</span>분할 정복의 활용</h3>
+<ul><li>병합 정렬은 <b>외부 정렬(External Sort)</b>의 기본이 되는 정렬 알고리즘 입니다. (메모리에 다 올릴 수 없는 매우 큰 데이터를 나눠서 정렬 후 병합)</li><li><b>멀티코어(Multi-Core) CPU</b>나 다수의 프로세서에서 정렬 알고리즘을 병렬화 하기 위해 병합 정렬 알고리즘이 활용됩니다.</li><li>퀵 정렬은 매우 큰 입력 데이터에 대해서 좋은 성능을 보이는 알고리즘입니다.</li><li>이진 검색은 정렬된 데이터에서 값을 찾는 것뿐 아니라, 답의 범위를 반씩 줄이는 <b>매개 변수 탐색</b>에도 활용됩니다.</li></ul><div class="subhead">추천 문제 (SWEA)</div><ul><li>5204. 병합 정렬</li><li>5205. 퀵 정렬</li><li>5207. 이진 탐색</li><li>5688. 세제곱근을 찾아라</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>분할정복 확인문제</h3>
+<details class="quiz"><summary>1. 이진 검색이 가능하려면 데이터는 어떤 상태여야 하나요? (단답형)</summary><div class="ans"><b class="ok">정답: 정렬된 상태</b> — 이진 탐색은 중간값을 기준으로 탐색 범위를 절반씩 줄이기 때문에, 데이터가 정렬되어 있어야 합니다.</div></details><details class="quiz"><summary>2. 다음 중 분할정복 알고리즘이 아닌 것은?</summary><ol class="opt" type="a"><li>병합 정렬</li><li>퀵 정렬</li><li>선택 정렬</li><li>이진 검색</li></ol><div class="ans"><b class="ok">정답: 선택 정렬</b> — 단순 반복을 통해 최소값을 찾아가는 방식이며, 분할정복 전략을 사용하지 않습니다.</div></details><details class="quiz"><summary>3. 다음 중 퀵정렬의 평균 시간복잡도는?</summary><ol class="opt" type="a"><li>O(n)</li><li>O(n²)</li><li>O(n log n)</li><li>O(log n)</li></ol><div class="ans"><b class="ok">정답: O(n log n)</b> — 평균적으로 분할과 정렬을 효율적으로 수행합니다.</div></details><details class="quiz"><summary>4. 퀵 정렬에서 피봇(Pivot)의 역할은? (단답형)</summary><div class="ans"><b class="ok">정답: 작은 값과 큰 값을 분할하는 기준</b></div></details><details class="quiz"><summary>5. 병합 정렬은 다음 중 어떤 구조로 구현하는가?</summary><ol class="opt" type="a"><li>큐</li><li>스택</li><li>재귀</li><li>해시</li></ol><div class="ans"><b class="ok">정답: 재귀</b> — 함수가 자기 자신을 호출하는 재귀 구조로 구현되는 것이 일반적입니다.</div></details><details class="quiz"><summary>6. [5, 3, 8, 2, 7] 에서 첫 원소 5를 피봇으로 정했을 때, 왼쪽 그룹에 들어가는 값은? (단답형)</summary><div class="ans"><b class="ok">정답: 3, 2</b> — 피봇보다 작은 값들</div></details><details class="quiz"><summary>7. 이진 검색은 매 단계에서 어떻게 탐색 범위를 줄이나요?</summary><ol class="opt" type="a"><li>한 칸씩</li><li>중간 값을 기준으로 절반씩 제거</li><li>무작위로</li><li>정렬하며</li></ol><div class="ans"><b class="ok">정답: 중간 값을 기준으로 절반씩 제거</b></div></details><details class="quiz"><summary>8. 이진 탐색을 재귀로 구현할 때 재귀 호출이 끝나는 조건은?</summary><div class="ans"><b class="ok">정답: 중간값이 찾는 값과 같거나 시작 인덱스가 끝 인덱스보다 큰 경우</b> — low &gt; high 이면 탐색 실패로 끝나고, 중간 값이 찾는 값과 일치할 때 성공으로 끝납니다.</div></details><details class="quiz"><summary>9. 병합 정렬에서 병합 시 필요한 것은?</summary><ol class="opt" type="a"><li>피봇</li><li>임시 배열</li><li>해시 테이블</li><li>스택</li></ol><div class="ans"><b class="ok">정답: 임시 배열</b> — 정렬하면서 새로운 배열에 임시 저장하며 병합합니다.</div></details><details class="quiz"><summary>10. 분할정복 전략을 사용하는 알고리즘의 공통점은?</summary><div class="ans"><b class="ok">정답: 동일한 방식으로 작은 문제를 해결하고 필요에 따라 병합한다</b></div></details><details class="quiz"><summary>11. 이진 검색에서 low &gt; high 가 되면?</summary><div class="ans"><b class="ok">정답: 탐색 실패 (찾는 값 없음)</b> — 탐색 범위가 역전되면 탐색 대상이 사라졌음을 의미합니다.</div></details><details class="quiz"><summary>12. 병합 정렬에 대한 설명으로 틀린 것은?</summary><ol class="opt" type="a"><li>O(n log n)이다</li><li>분할 정복이다</li><li>안정 정렬이다</li><li>제자리 정렬이다</li></ol><div class="ans"><b class="ok">정답: 제자리 정렬이다</b> — 병합 정렬은 추가 배열을 사용하므로 제자리(in-place) 정렬이 아닙니다.</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th></tr><tr><td class="k">분할 정복</td><td>분할(Divide) → 정복(Conquer) → 통합(Combine)</td></tr><tr><td class="k">거듭 제곱</td><td>Cⁿ = C^(n/2) · C^(n/2) — O(log n)</td></tr><tr><td class="k">병합 정렬</td><td>반으로 나누고, 정렬하며 병합 — 항상 O(n log n), 임시 배열 필요, 외부 정렬의 기본</td></tr><tr><td class="k">퀵 정렬</td><td>피봇 기준으로 작은 값/큰 값 분할, 병합 불필요 — 평균 O(n log n), 최악 O(n²)</td></tr><tr><td class="k">Hoare · Lomuto 파티션</td><td>양쪽에서 좁혀오며 교환 / 한쪽에서 작은 값을 앞으로 모음</td></tr><tr><td class="k">이진 검색</td><td>정렬된 자료에서 중간값과 비교해 범위를 반씩 — O(log n)</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>큰 문제를 <b>같은 모양의 작은 문제</b>로 쪼갤 수 있으면 분할 정복을 떠올린다.</li><li>병합 정렬은 "나누기는 쉽고 <b>합치기가 일</b>", 퀵 정렬은 "<b>나누기가 일</b>이고 합칠 필요 없음".</li><li>절반씩 줄이면 log n — 거듭 제곱, 이진 검색, 가짜 동전 찾기가 모두 같은 원리.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 응용 분할정복」(2025-10-01, 81장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

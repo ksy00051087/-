@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stack 1 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 03 · 09/08 Stack 1</span>
+    <h1>Stack 1 개념정리</h1>
+    <p class="sub">스택의 개념·구현 → 괄호 검사 · 함수 호출(시스템 스택) → 재귀호출 → Memoization · 동적 계획법(DP) → DFS까지, 강의 슬라이드 99장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 7개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 10개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 스택 개념</a><a href="#ch2">2. 스택 구현</a><a href="#ch3">3. 괄호 검사</a><a href="#ch4">4. Function call</a><a href="#ch5">5. 재귀호출</a><a href="#ch6">6. Memoization·DP</a><a href="#ch7">7. DFS</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 접시를 쌓아두었다가 꺼낼 때의 순서</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">0-1</span>설거지를 끝낸 접시 쌓기</h3>
+
+<p>식당에서 설거지를 끝낸 접시를 1번 → 2번 → 3번 순서대로 올려놓으면, 꺼낼 때는 <b>3번 → 2번 → 1번</b> 순서로 꺼내게 됩니다. 파이썬 리스트의 <code>append()</code>와 <code>pop()</code>으로 같은 흐름을 구현할 수 있습니다.</p><ul><li>데이터를 임시로 저장했다가, 정해진 시점에 꺼내는 구조를 직접 다룰 수 있습니다.</li><li>중첩된 구조(예: 괄호, 블록, 태그 등)를 관리하는 방식에 익숙해질 수 있습니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">접시 쌓기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">plates = []
+for p in ['1번 접시', '2번 접시', '3번 접시']:
+    plates.append(p)
+    print('쌓기:', plates)
+while plates:
+    print('꺼내기:', plates.pop())
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>스택(Stack) 자료구조의 개념과 특성(LIFO)을 이해하고 push/pop/isEmpty/peek를 구현한다.</li><li>스택의 응용 — 괄호 검사, 함수 호출(시스템 스택)을 설명할 수 있다.</li><li>재귀호출의 개념과 활용(팩토리얼·피보나치)을 이해한다.</li><li>Memoization과 동적 계획법(DP)의 개념을 이해한다.</li><li>DFS(깊이 우선 탐색)를 스택으로 구현할 수 있다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>스택(Stack)의 개념과 특성</h2><p class="desc">선형구조 · 비선형구조 · LIFO · 자료구조와 연산 · top</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>스택의 개념</h3>
+<table class="compare"><tr><th>구조</th><th>설명</th></tr><tr><td class="k">선형구조</td><td>자료 간의 관계가 1:1의 관계를 갖는다. (예: 배열, 리스트)</td></tr><tr><td class="k">비선형구조</td><td>자료 간의 관계가 1:N의 관계를 갖는다. (예: 트리, 그래프)</td></tr></table><p>스택은 <b>물건을 쌓아 올리듯 자료를 쌓아 올린 형태의 자료구조</b>입니다. 스택에 저장된 자료는 선형 구조를 갖습니다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>스택의 특성 — 후입선출 (LIFO, Last-In-First-Out)</h3>
+
+<p><b>가장 마지막에 넣은 자료가 가장 먼저 나오는 것</b>. 예를 들어, 스택에 1, 2, 3을 차례대로 넣으면 꺼낼 때는 3, 2, 1 순서로 나오게 됩니다.</p><ul><li>스택에 자료를 삽입하거나 스택에서 자료를 꺼낼 수 있습니다.</li><li>마지막에 삽입한 자료를 가장 먼저 꺼냅니다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">1-3</span>스택을 프로그램에서 구현하기 위해서 필요한 자료구조와 연산</h3>
+<ul><li><b>자료구조</b>: 자료를 선형으로 저장할 저장소 — 파이썬에서는 리스트를 사용해 구현할 수 있습니다. (C언어에서는 배열을 사용할 수 있습니다.)</li><li>저장소 자체를 스택이라 부르기도 합니다. 용도에 따라 메모리의 일부를 스택으로 부릅니다.</li><li>스택에서 마지막 삽입된 원소의 위치를 <b>top</b>이라 부릅니다 — 스택 포인터(stack pointer)로 부르며 데이터를 넣거나 뺄 때 기준이 되는 위치입니다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">1-4</span>스택의 연산</h3>
+<table class="compare"><tr><th>연산</th><th>설명</th></tr><tr><td class="k">push (삽입)</td><td>저장소에 자료를 저장하는 연산</td></tr><tr><td class="k">pop (삭제)</td><td>저장소에서 삽입한 자료의 역순으로 꺼내는 연산</td></tr><tr><td class="k">isEmpty</td><td>스택이 공백인지 아닌지를 확인하는 연산 — 스택이 비어 있으면 True, 아니면 False를 반환</td></tr><tr><td class="k">peek</td><td>스택의 top에 있는 item(원소)을 반환하는 연산 — 삭제는 하지 않습니다</td></tr></table><div class="trace">push(A) → [A]          top=0
+push(B) → [A, B]       top=1
+push(C) → [A, B, C]    top=2
+pop()   → [A, B]  반환 C
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>스택의 구현</h2><p class="desc">append/pop · 인덱스(top)를 이용한 push/pop · 고려사항(동적 메모리·연결리스트)</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>push — append 메서드를 통해 리스트의 마지막에 데이터를 삽입</h3>
+<pre class="formula">def push(item):
+    s.append(item)</pre><p>인덱스 연산으로 구현하면 크기가 정해진 리스트에서 top을 증가시킨 뒤 저장하며, <b>top == size-1이면 overflow</b>입니다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>pop — 가장 늦게 저장된 데이터를 삭제하는 연산</h3>
+<pre class="formula">def pop():
+    if len(s) == 0:
+        # underflow
+        return
+    else:
+        return s.pop()    # 리스트 s의 마지막 원소 삭제 후 반환</pre><p>인덱스 연산을 이용한 pop: <code>top == -1</code> 이면 Underflow, 아니면 top을 1 감소시키고 <code>stack[top+1]</code> 반환.</p>
+</div>
+<div class="card full">
+<h3><span class="tag">2-3</span>리스트 메서드 방식 / 인덱스(top) 방식 직접 실행해보기</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">스택 구현 두 가지</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 1) append/pop 메서드를 이용한 스택
+s = []
+def push(item):
+    s.append(item)
+def pop():
+    if len(s) == 0:
+        print('Underflow')
+        return None
+    return s.pop()
+
+push(1); push(2); push(3)
+print(pop(), pop(), pop(), pop())
+
+# 2) 크기가 정해진 리스트 + top 인덱스를 이용한 스택
+size = 3
+stack = [0] * size
+top = -1
+
+def my_push(item, size):
+    global top
+    if top == size - 1:
+        print('Overflow!')
+        return
+    top += 1
+    stack[top] = item
+
+def my_pop():
+    global top
+    if top == -1:
+        print('Underflow')
+        return None
+    top -= 1
+    return stack[top + 1]
+
+my_push(10, size); my_push(20, size); my_push(30, size); my_push(40, size)
+print(my_pop(), my_pop(), my_pop(), my_pop())
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-4</span>스택 구현 고려사항</h3>
+<ul><li>1차원 배열을 사용하여 구현할 경우 구현이 용이하다는 장점이 있지만 <b>스택의 크기를 변경하기가 어렵다</b>는 단점이 있습니다.</li><li>이를 해결하기 위한 방법으로 저장소를 <b>동적으로 할당</b>하여 스택을 구현하는 방법이 있습니다. 동적 연결리스트를 이용하여 구현하는 방법을 의미합니다. 구현이 복잡하다는 단점이 있지만 메모리를 효율적으로 사용한다는 장점을 가집니다.</li></ul><table class="compare"><tr><th>용어</th><th>의미</th></tr><tr><td class="k">동적 메모리 할당</td><td>필요한 만큼 메모리를 할당하고 해제하여 유연하게 크기를 조절할 수 있음</td></tr><tr><td class="k">연결리스트</td><td>데이터와 다음 노드의 주소를 함께 저장하여 요소들이 순차적으로 연결된 자료구조</td></tr><tr><td class="k">메모리</td><td>컴퓨터에서 데이터를 저장하고 처리하기 위해 사용하는 일시적인 저장 공간</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">2-5</span>[연습] 스택을 구현해 3개의 데이터를 저장하고 다시 3번 꺼내어 출력해보기</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">3개 push, 3번 pop</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">stack = []
+for x in map(int, input().split()):
+    stack.append(x)
+for _ in range(3):
+    print(stack.pop())
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">1 2 3
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>스택의 응용 1 — 괄호 검사</h2><p class="desc">괄호의 조건 · 알고리즘 개요 · 구현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>괄호 검사 — 괄호의 종류: 대괄호 ([, ]), 중괄호 ({, }), 소괄호 ((, ))</h3>
+<div class="subhead">조건</div><ol><li>왼쪽 괄호의 개수와 오른쪽 괄호의 개수가 같아야 한다.</li><li>같은 괄호에서 왼쪽 괄호는 오른쪽 괄호보다 먼저 나와야 한다.</li><li>괄호 사이에는 포함 관계만 존재한다.</li></ol><div class="subhead">잘못된 괄호 사용의 예</div><pre class="formula">(a(b)        → 조건 1 위반
+a(b)c)       → 조건 1 위반
+a{b(c[d]e}f) → 조건 3 위반</pre>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>스택을 이용한 괄호 검사 알고리즘 개요</h3>
+<ul><li>문자열에 있는 괄호를 차례대로 조사하면서 <b>왼쪽 괄호를 만나면 스택에 삽입</b>하고, <b>오른쪽 괄호를 만나면 스택에서 top 괄호를 삭제</b>한 후 오른쪽 괄호와 짝이 맞는지를 검사한다.</li><li>이 때, 스택이 비어 있으면 조건 1 또는 조건 2에 위배되고 괄호의 짝이 맞지 않으면 조건 3에 위배된다.</li><li>문자열 끝까지 조사한 후에도 스택에 괄호가 남아 있으면 조건 1에 위배된다.</li></ul>
+</div>
+<div class="card full">
+<h3><span class="tag">3-3</span>괄호 검사 구현</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">괄호 검사</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def check(text):
+    pair = {')': '(', ']': '[', '}': '{'}
+    stack = []
+    for ch in text:
+        if ch in '([{':
+            stack.append(ch)            # 왼쪽 괄호 → push
+        elif ch in ')]}':
+            if not stack:               # 스택이 비어 있음 → 조건 1 또는 2 위배
+                return 0
+            if stack.pop() != pair[ch]: # 짝이 맞지 않음 → 조건 3 위배
+                return 0
+    return 0 if stack else 1            # 남아 있으면 조건 1 위배
+
+for t in ['( )( )((( )))', '((( )((((( )( )((( )( ))((( ))))))', '(a(b)', 'a(b)c)', 'a{b(c[d]e}f)', '{(a+b)*[c-d]}']:
+    print(check(t), t)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>스택의 응용 2 — Function call</h2><p class="desc">함수 호출과 복귀 · 시스템 스택 · 스택 프레임</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>Function call — 프로그램에서의 함수 호출과 복귀에 따른 수행 순서를 관리</h3>
+<ul><li>가장 마지막에 호출된 함수가 가장 먼저 실행을 완료하고 복귀하는 <b>후입선출 구조</b>이므로, 후입선출 구조의 스택을 이용하여 수행순서 관리</li><li>함수 호출이 발생하면 호출한 함수 수행에 필요한 지역변수, 매개변수 및 수행 후 복귀할 주소 등의 정보를 <b>스택 프레임(stack frame)</b>에 저장하여 <b>시스템 스택</b>에 삽입</li><li>함수의 실행이 끝나면 시스템 스택의 top 원소(스택 프레임)를 삭제(pop)하면서 프레임에 저장되어 있던 복귀주소를 확인하고 복귀</li><li>함수 호출과 복귀에 따라 이 과정을 반복하여 전체 프로그램 수행이 종료되면 시스템 스택은 공백 스택이 된다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>함수 호출에 따른 시스템 스택의 변화</h3>
+<div class="trace">main() 실행        → [main]
+F_1() 호출         → [main, F_1]
+F_2() 호출         → [main, F_1, F_2]
+F_2() 종료·복귀    → [main, F_1]
+F_1() 종료·복귀    → [main]
+main() 종료        → []</div><div class="ide">
+  <div class="ide-bar"><span class="ide-title">호출 스택 들여다보기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import inspect
+def show(where):
+    names = [f.function for f in inspect.stack()[1:] if f.function in ('main', 'F_1', 'F_2')]
+    print(f'{where:12} 시스템 스택(top→bottom):', names)
+
+def F_2():
+    show('F_2 실행')
+def F_1():
+    show('F_1 실행')
+    F_2()
+    show('F_1 복귀')
+def main():
+    show('main 실행')
+    F_1()
+    show('main 복귀')
+main()
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch5" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>재귀호출의 개념과 활용</h2><p class="desc">재귀호출 · 팩토리얼 · 피보나치 · 재귀 기본형 · 배열 원소 접근/검색</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">5-1</span>재귀호출 (Recursive Call)</h3>
+<ul><li><b>자기 자신을 호출</b>하여 순환 수행되는 것</li><li>함수에서 실행해야 하는 작업의 특성에 따라 일반적인 호출방식보다 재귀호출방식을 사용하여 함수를 만들면 프로그램의 크기를 줄이고 간단하게 작성</li><li>재귀 호출의 예) <b>factorial</b> — n에 대한 factorial: 1부터 n까지의 모든 자연수를 곱하여 구하는 연산</li></ul><pre class="formula">n! = n × (n-1)!
+    (n-1)! = (n-1) × (n-2)!
+    (n-2)! = (n-2) × (n-3)!
+    ...
+    2! = 2 × 1!
+    1! = 1</pre><p>마지막에 구한 하위 값을 이용하여 상위 값을 구하는 작업을 반복합니다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">5-2</span>factorial 함수에서 n=4인 경우의 실행</h3>
+<div class="trace">fact(4) → 4 * fact(3)
+          fact(3) → 3 * fact(2)
+                    fact(2) → 2 * fact(1)
+                              fact(1) → return 1
+                    return 2
+          return 6
+return 24</div><div class="ide">
+  <div class="ide-bar"><span class="ide-title">factorial 재귀 추적</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def fact(n, depth=0):
+    print('  ' * depth + f'fact({n}) 호출')
+    if n &lt;= 1:                     # 기저 조건(base case)
+        print('  ' * depth + 'return 1')
+        return 1
+    r = n * fact(n - 1, depth + 1)
+    print('  ' * depth + f'return {r}')
+    return r
+
+print(fact(int(input())))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">4
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-3</span>피보나치 수열</h3>
+
+<p>0과 1로 시작하고 이전의 두 수 합을 다음 항으로 하는 수열. 0, 1, 1, 2, 3, 5, 8, 13, …</p>
+<p>피보나치 수열의 i번째 값을 계산하는 함수 F를 정의하면: <code>F₀ = 0, F₁ = 1, Fᵢ = Fᵢ₋₁ + Fᵢ₋₂ (for i ≥ 2)</code></p>
+<p>위의 정의로부터 피보나치 수열의 i번째 항을 반환하는 함수를 재귀함수로 구현할 수 있습니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">피보나치 (재귀)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def fibo(n):
+    if n &lt; 2:
+        return n
+    else:
+        return fibo(n - 1) + fibo(n - 2)
+
+print([fibo(i) for i in range(15)])
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-4</span>재귀 함수의 기본형 — 모든 배열 원소에 접근하는 재귀 함수</h3>
+
+<p>호출 단계 i에서 arr[i] 원소에 접근하고, i가 배열의 크기와 같아지면 재귀호출을 중단합니다.</p><pre class="formula">def f(i, N):
+    if i == N:      # 중단 조건 (기저 조건)
+        return
+    else:           # 재귀 호출
+        f(i + 1, N)</pre><div class="ide">
+  <div class="ide-bar"><span class="ide-title">배열 원소 접근 재귀</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def f(i, N):
+    if i == N:              # 배열의 크기와 같아지면 중단
+        return
+    else:
+        print(arr[i])       # 크기가 N인 배열의 arr[i]에 접근
+        f(i + 1, N)
+
+arr = [1, 2, 3]
+N = 3
+f(0, N)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-5</span>재귀 함수 — 배열 원소 v 검색</h3>
+
+<p>배열에 v가 있으면 1, 없으면 0을 리턴하는 함수. v를 찾은 경우 재귀호출을 중단합니다. 예) v=3일 때, arr에 3이 있으면 마지막 원소까지 보지 않고 1을 리턴.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">재귀로 원소 검색</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def f(i, N, v):
+    if i == N:          # 끝까지 못 찾음
+        return 0
+    elif arr[i] == v:   # 찾으면 재귀호출 중단
+        return 1
+    else:
+        return f(i + 1, N, v)
+
+arr = [1, 2, 3]
+N = 3
+print(f(0, N, 3), f(0, N, 10))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch6" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">6</div><div><h2>Memoization과 동적 계획법(DP)</h2><p class="desc">피보나치 재귀의 문제점 · 메모이제이션 · DP 개념 · 적용 요건 · 구현 · 재귀 vs 반복</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">6-1</span>피보나치 재귀호출의 문제점</h3>
+<ul><li>피보나치 수를 구하는 함수를 재귀함수로 구현한 알고리즘은 "엄청난 중복 호출이 존재한다"는 문제점이 있습니다.</li><li>피보나치 수열의 Call Tree: fib(5) → fib(4), fib(3) → fib(3), fib(2), fib(2), fib(1) … fib(2)가 여러 번 계산됩니다.</li><li>호출 수가 거의 2ⁿ에 가깝게 늘어납니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">중복 호출 횟수 세기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">calls = 0
+def fibo(n):
+    global calls
+    calls += 1
+    if n &lt; 2:
+        return n
+    return fibo(n - 1) + fibo(n - 2)
+
+for n in [10, 20, 25]:
+    calls = 0
+    print(f'fibo({n}) = {fibo(n)}, 호출 횟수 = {calls}')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">6-2</span>알고리즘 최적화: 메모이제이션 기법</h3>
+
+<p><b>메모이제이션(Memoization)</b>은 컴퓨터 프로그램을 실행할 때 <b>이전에 계산한 값을 메모리에 저장</b>해서 매번 다시 계산하지 않도록 하여 전체적인 실행 속도를 빠르게 하는 기술입니다. 동적 계획법의 핵심이 되는 기술입니다.</p>
+<p>'memoization'은 글자 그대로 해석하면 '메모리에 넣기(to put in memory)'라는 의미이며 '기억되어야 할 것'이라는 뜻의 라틴어 memorandum에서 파생되었습니다. 흔히 '기억하기', '암기하기'라는 뜻의 memorization과 혼동하지만, 정확한 단어는 memoization입니다.</p>
+<p>앞의 예에서 피보나치 수를 구하는 알고리즘에서 fibo(n)의 값을 계산하자마자 저장하면(memoize), 실행시간을 <b>O(n)</b>으로 줄일 수 있습니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">Memoization 피보나치</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># memo를 위한 배열을 할당하고, 모두 0으로 초기화 한다
+# memo[0]을 0으로 memo[1]은 1로 초기화 한다
+calls = 0
+def fibo1(n):
+    global calls
+    calls += 1
+    if n &gt;= 2 and memo[n] == 0:      # 계산된 적이 없으면 계산하고 저장
+        memo[n] = fibo1(n - 1) + fibo1(n - 2)
+    return memo[n]                   # 계산된 적이 있는 피보나치 수는 저장된 값을 리턴
+
+n = int(input())
+memo = [0] * (n + 1)
+memo[0] = 0
+memo[1] = 1
+print(fibo1(n), '호출 횟수:', calls)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">50
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-3</span>DP (Dynamic Programming)</h3>
+<ul><li>동적 계획(Dynamic Programming) 알고리즘은 그리디 알고리즘과 같이 <b>최적화 문제</b>를 해결하는 알고리즘입니다.</li><li>동적 계획 알고리즘은 먼저 입력 크기가 작은 부분 문제들을 모두 해결한 후에 그 해들을 이용하여 보다 큰 크기의 부분 문제들을 해결하여, 최종적으로 원래 주어진 입력의 문제를 해결하는 알고리즘입니다.</li></ul><div class="subhead">DP 적용 문제의 요건</div><ul><li><b>중복 부분 문제</b>: 동일한 하위 문제가 여러 번 반복되어 나타나는 중복 부분 문제여야 합니다.</li><li><b>최적 부분 구조</b>: 문제의 최적해가 하위 문제의 최적해로 구성되어야 합니다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">6-4</span>피보나치 수 DP 적용</h3>
+<ol><li>문제를 부분 문제로 분할한다. — fibo(n) = fibo(n-1) + fibo(n-2), fibo(n-1) = fibo(n-2) + fibo(n-3) … fibo(2) = fibo(1) + fibo(0)</li><li>부분 문제로 나누는 일을 끝냈으면 가장 작은 부분 문제부터 해를 구한다.</li><li>그 결과는 테이블에 저장하고, 테이블에 저장된 부분 문제의 해를 이용하여 상위 문제의 해를 구한다.</li></ol><table class="compare"><tr><th>테이블 인덱스</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th><th>…</th><th>n</th></tr><tr><td class="k">저장되어 있는 값</td><td>0</td><td>1</td><td>1</td><td>2</td><td>3</td><td>…</td><td>fibo(n)</td></tr></table><div class="ide">
+  <div class="ide-bar"><span class="ide-title">DP(반복) 피보나치</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def fibo2(n):
+    f = [0] * (n + 1)
+    f[0] = 0
+    f[1] = 1
+    for i in range(2, n + 1):
+        f[i] = f[i - 1] + f[i - 2]
+    return f[n]
+
+print(fibo2(int(input())))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">100
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-5</span>DP의 구현 방식 — recursive vs iterative</h3>
+<ul><li>recursive 방식: fibo1() — 메모이제이션을 재귀적 구조에 사용하는 방식</li><li>iterative 방식: fibo2() — 반복문으로 작은 문제부터 테이블을 채우는 방식</li><li>memoization을 재귀적 구조에 사용하는 것보다 <b>반복적 구조로 DP를 구현한 것이 성능 면에서 보다 효율적</b></li><li>재귀적 구조는 내부에 시스템 호출 스택을 사용하는 <b>오버헤드</b>가 발생하기 때문</li></ul><table class="compare"><tr><th>용어</th><th>의미</th></tr><tr><td class="k">오버헤드</td><td>추가적인 자원 소모나 처리 시간을 발생시키는 부가적인 작업</td></tr></table><div class="ide">
+  <div class="ide-bar"><span class="ide-title">재귀의 한계 vs 반복</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import sys
+sys.setrecursionlimit(10000)
+def fibo1(n):
+    if n &gt;= 2 and memo[n] == 0:
+        memo[n] = fibo1(n - 1) + fibo1(n - 2)
+    return memo[n]
+
+n = 1500
+memo = [0] * (n + 1); memo[1] = 1
+try:
+    print('재귀+memo 자리수:', len(str(fibo1(n))))
+except RecursionError as e:
+    print('RecursionError:', e)
+
+f = [0, 1] + [0] * n
+for i in range(2, n + 1):
+    f[i] = f[i - 1] + f[i - 2]
+print('반복 DP 자리수:', len(str(f[n])))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch7" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">7</div><div><h2>DFS (깊이우선탐색)</h2><p class="desc">그래프 탐색 · DFS 개념 · 알고리즘 · 예시 진행 · 구현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">7-1</span>그래프 탐색</h3>
+<ul><li>비선형구조인 그래프 구조는 그래프로 표현된 <b>모든 자료를 빠짐없이 검색하는 것</b>이 중요합니다.</li><li>탐색하는 방법에는 다음의 두 가지 방법이 사용됩니다: <b>깊이 우선 탐색(Depth First Search, DFS)</b>, <b>너비 우선 탐색(Breadth First Search, BFS)</b></li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">7-2</span>DFS — 깊이 우선 탐색</h3>
+<ul><li>시작 정점의 한 방향으로 갈 수 있는 경로가 있는 곳까지 깊이 탐색해 가다가 더 이상 갈 곳이 없게 되면, <b>가장 마지막에 만났던 갈림길 간선이 있는 정점으로 되돌아와서</b> 다른 방향의 정점으로 탐색을 계속 반복하여 결국 모든 정점을 방문하는 순회방법</li><li>가장 마지막에 만났던 갈림길의 정점으로 되돌아가서 다시 깊이 우선 탐색을 반복해야 하므로 <b>후입선출 구조의 스택</b> 사용</li></ul>
+</div>
+<div class="card full">
+<h3><span class="tag">7-3</span>DFS 알고리즘</h3>
+<ol><li>시작 정점 v를 결정하여 방문한다.</li><li>정점 v에 인접한 정점 중에서 — ① 방문하지 않은 정점 w가 있으면, 정점 v를 스택에 push하고 정점 w를 방문한다. 그리고 w를 v로 하여 다시 ②를 반복한다. ② 방문하지 않은 정점이 없으면, 탐색의 방향을 바꾸기 위해서 스택을 pop하여 받은 가장 마지막 방문 정점을 v로 하여 다시 ②를 반복한다.</li><li>스택이 공백이 될 때까지 ②를 반복한다.</li></ol><pre class="formula">visited[], stack[] 초기화
+DFS(v)
+    시작점 v 방문;
+    visited[v] ← true;
+    while {
+        if (v의 인접 정점 중 방문 안 한 정점 w가 있으면)
+            push(v);
+            v ← w;  (w에 방문)
+            visited[w] ← true;
+        else
+            if (스택이 비어 있지 않으면)
+                v ← pop(stack);
+            else
+                break
+    }
+end DFS()</pre>
+</div>
+<div class="card full">
+<h3><span class="tag">7-4</span>DFS 예시 진행 (정점 A~G, 오름차순으로 선택)</h3>
+<div class="trace">초기 상태) 배열 visited를 False로 초기화하고, 공백 스택을 생성
+1) 정점 A를 시작으로 깊이 우선 탐색을 시작              visited[A]←True
+2) A에 방문하지 않은 인접 정점 B, C → A를 push, B 선택   visited[B]←True  stack=[A]
+3) B에 방문하지 않은 인접 정점 D, E → B를 push, D 선택   visited[D]←True  stack=[A,B]
+4) D에 방문하지 않은 인접 정점 F → D를 push, F 선택       visited[F]←True  stack=[A,B,D]
+5) F에 방문하지 않은 인접 정점 E, G → F를 push, E 선택   visited[E]←True  stack=[A,B,D,F]
+6) E에 방문하지 않은 인접 정점 C → E를 push, C 선택       visited[C]←True  stack=[A,B,D,F,E]
+7) C에 방문하지 않은 인접 정점이 없음 → pop → E
+8) E에 방문하지 않은 인접 정점 없음 → pop → F
+9) F에 방문하지 않은 인접 정점 G → F를 push, G 선택      visited[G]←True
+10) G 없음 → pop F → F 없음 → pop D → … → pop A
+11) 스택이 공백이므로 깊이 우선 탐색을 종료한다.
+방문 순서: A B D F E C G</div>
+</div>
+<div class="card full">
+<h3><span class="tag">7-5</span>DFS 구현 — 반복(스택) / 재귀</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">DFS (A~G 예시 그래프)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 정점: 1~7 (A~G), 간선 정보
+V, E = map(int, input().split())
+edges = list(map(int, input().split()))
+adj = [[] for _ in range(V + 1)]
+for i in range(E):
+    a, b = edges[2 * i], edges[2 * i + 1]
+    adj[a].append(b)
+    adj[b].append(a)
+for lst in adj:
+    lst.sort()                   # 오름차순으로 선택
+
+name = ' ABCDEFG'
+
+def dfs_stack(s):
+    visited = [False] * (V + 1)
+    stack = []
+    v = s
+    visited[v] = True
+    order = [name[v]]
+    while True:
+        for w in adj[v]:
+            if not visited[w]:       # 방문 안 한 인접 정점 w가 있으면
+                stack.append(v)      # 현재 정점 push
+                v = w
+                visited[w] = True
+                order.append(name[w])
+                break
+        else:                        # 더 이상 갈 곳이 없으면
+            if stack:
+                v = stack.pop()      # 마지막 갈림길로 되돌아감
+            else:
+                break
+    return order
+
+def dfs_rec(v, visited, order):
+    visited[v] = True
+    order.append(name[v])
+    for w in adj[v]:
+        if not visited[w]:
+            dfs_rec(w, visited, order)
+    return order
+
+print('스택 DFS:', ' '.join(dfs_stack(1)))
+print('재귀 DFS:', ' '.join(dfs_rec(1, [False] * (V + 1), [])))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">7 8
+1 2 1 3 2 4 2 5 4 6 5 6 6 7 3 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">7-6</span>추천 문제 (SWEA)</h3>
+<ul><li>4866. 괄호검사</li><li>4871. 그래프 경로</li><li>4869. 종이붙이기</li><li>4873. 반복문자 지우기</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>Stack 1 확인문제</h3>
+<details class="quiz"><summary>1. 스택(Stack)은 어떤 데이터 처리 순서를 가지나요?</summary><ol class="opt" type="a"><li>FIFO</li><li>LIFO</li><li>우선순위</li><li>무작위</li></ol><div class="ans"><b class="ok">정답: LIFO(후입선출)</b> — 가장 최근에 삽입된 데이터가 가장 먼저 나옵니다.</div></details><details class="quiz"><summary>2. 스택에 데이터를 삽입하는 연산은?</summary><ol class="opt" type="a"><li>push</li><li>pop</li><li>peek</li><li>enqueue</li></ol><div class="ans"><b class="ok">정답: push</b></div></details><details class="quiz"><summary>3. 스택이 비어 있을 때 데이터를 꺼내려고 하면 발생하는 오류는?</summary><div class="ans"><b class="ok">정답: Underflow (스택 언더플로우)</b></div></details><details class="quiz"><summary>4. 재귀 함수에서 반드시 필요한 것은? (무한 재귀를 방지)</summary><ol class="opt" type="a"><li>전역 변수</li><li>기저 조건(종료 조건)</li><li>반복문</li><li>리스트</li></ol><div class="ans"><b class="ok">정답: 기저 조건(종료 조건)</b></div></details><details class="quiz"><summary>5. 배열 기반 스택 구현의 단점으로 적절한 것은?</summary><ol class="opt" type="a"><li>구현이 어렵다</li><li>메모리 낭비가 많다</li><li>스택의 크기 변경이 어렵다</li><li>속도가 느리다</li></ol><div class="ans"><b class="ok">정답: 스택의 크기 변경이 어렵다</b></div></details><details class="quiz"><summary>6. DFS 알고리즘에서 스택을 사용하는 이유는?</summary><ol class="opt" type="a"><li>무작위 탐색을 위해</li><li>전 정점을 동시에 방문하기 위해</li><li>깊은 노드를 우선적으로 탐색하기 위해</li><li>가장 마지막 방문한 정점으로 되돌아가기 위해</li></ol><div class="ans"><b class="ok">정답: 가장 마지막 방문한 정점으로 되돌아가기 위해</b></div></details><details class="quiz"><summary>7. 이전에 계산한 값을 저장해 두고 다시 계산하지 않는 기법은? (단답형)</summary><div class="ans"><b class="ok">정답: 메모이제이션(Memoization)</b></div></details><details class="quiz"><summary>8. 동적 계획법(DP)의 특징으로 가장 적절한 설명은?</summary><ol class="opt" type="a"><li>현재 선택이 항상 전체 최적 해를 보장함</li><li>반복문을 사용하지 않고 재귀만 사용함</li><li>작은 부분 문제의 해를 저장해 큰 문제를 해결함</li><li>모든 경우를 무작위로 시도함</li></ol><div class="ans"><b class="ok">정답: 작은 부분 문제의 해를 저장해 큰 문제를 해결함</b></div></details><details class="quiz"><summary>9. 함수 호출 시 지역변수·매개변수·복귀 주소를 저장하는 단위는?</summary><ol class="opt" type="a"><li>힙</li><li>스택 프레임</li><li>큐</li><li>레지스터</li></ol><div class="ans"><b class="ok">정답: 스택 프레임(stack frame)</b> — 시스템 스택에 쌓입니다.</div></details><details class="quiz"><summary>10. 괄호 검사에서 문자열 끝까지 조사한 후 스택에 괄호가 남아 있다면?</summary><ol class="opt" type="a"><li>정상</li><li>조건 1 위배</li><li>조건 3 위배</li><li>판단 불가</li></ol><div class="ans"><b class="ok">정답: 조건 1 위배</b> — 왼쪽 괄호와 오른쪽 괄호의 개수가 다릅니다.</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th></tr><tr><td class="k">스택(Stack)</td><td>물건을 쌓아 올리듯 자료를 쌓아 올린 선형 자료구조, 후입선출(LIFO)</td></tr><tr><td class="k">push / pop / isEmpty / peek</td><td>삽입 / 삭제(꺼냄) / 공백 확인 / top 원소 확인(삭제 X)</td></tr><tr><td class="k">top</td><td>마지막 삽입된 원소의 위치 (스택 포인터)</td></tr><tr><td class="k">괄호 검사</td><td>왼쪽 괄호 push, 오른쪽 괄호에서 pop 후 짝 확인</td></tr><tr><td class="k">시스템 스택 · 스택 프레임</td><td>함수 호출 정보(지역변수·매개변수·복귀주소)를 저장</td></tr><tr><td class="k">재귀호출</td><td>자기 자신을 호출, 기저 조건 필수</td></tr><tr><td class="k">Memoization</td><td>이전에 계산한 값을 메모리에 저장해 재사용</td></tr><tr><td class="k">DP</td><td>작은 부분 문제부터 해를 테이블에 저장해 큰 문제 해결 — 중복 부분 문제 + 최적 부분 구조</td></tr><tr><td class="k">DFS</td><td>깊이 우선 탐색 — 막히면 마지막 갈림길로 되돌아감(스택)</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>스택은 <b>"나중에 넣은 것을 먼저"</b> 꺼내야 하는 모든 상황 — 괄호 짝, 함수 복귀, 되돌아가기(DFS)의 공통 구조다.</li><li>재귀는 시스템 스택을 쓰는 반복이다 → <b>기저 조건</b>이 없으면 끝나지 않고, 깊으면 스택이 넘친다.</li><li>피보나치 재귀의 중복 호출(≈2ⁿ)을 <b>memo로 O(n)</b>, 반복 DP로 오버헤드까지 제거한다.</li><li>DFS = 스택(또는 재귀) + visited.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 기본 Stack 1」(2025-09-08, 99장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>탐욕 알고리즘 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 10 · 09/30 응용 탐욕알고리즘</span>
+    <h1>탐욕 알고리즘 개념정리</h1>
+    <p class="sub">부분집합(재귀 · 바이너리 카운팅) → 조합 → 탐욕 알고리즘의 조건 → 동전 교환 · 화장실 · 배낭(0-1 / Fractional) · 회의실 배정까지, 강의 슬라이드 76장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 4개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 12개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 부분집합</a><a href="#ch2">2. 조합</a><a href="#ch3">3. 탐욕 알고리즘</a><a href="#ch4">4. 대표 문제</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 컴퓨터가 바라본 탐욕 알고리즘</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">0-1</span>컴퓨터가 바라본 탐욕 알고리즘을 이해해봅시다!</h3>
+<ol><li>문제를 풀 때마다 <b>가장 좋아 보이는 선택</b>을 합니다. 왜냐하면 매 순간의 선택이 결국 전체 문제의 <b>최적 해</b>라고 믿기 때문입니다. 이런 방식이 잘 통하려면 <b>탐욕 선택 속성</b>이 있어야 합니다.</li><li>항상 <b>명확한 기준</b>을 대상으로 정렬하고, 그 중에서 <b>즉각적인 선택</b>만을 반복합니다.</li><li>하지만 매번 성공하는 것은 아닙니다. 어떤 문제는 <b>최적 부분 구조</b>를 만족하지 않아서 실패하기도 합니다.</li></ol><div class="subhead">학습 목표</div><ul><li>특정 문제가 Greedy가 정답인지 아닌지 판단하는 기준을 가질 수 있습니다.</li><li>문제마다 정렬 기준을 스스로 설정하고, 반복 구조를 설계하는 능력이 향상됩니다.</li><li>부분집합(바이너리 카운팅)과 조합을 구현할 수 있다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>부분집합 (Subset)</h2><p class="desc">재귀로 부분집합 · O/X 선택 · 바이너리 카운팅</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">1-1</span>재귀로 부분집합 만들기 — 각 원소를 포함(O)하거나 포함하지 않음(X)</h3>
+<ul><li>{MIN, CO, TIM} 세 명으로 만들 수 있는 모든 그룹(부분집합)은 2³ = 8가지</li><li>각 사람마다 O(포함) / X(미포함) 2가지 선택 → 재귀 깊이 3, 갈래 2</li><li>예) Path 배열이 [X, O, O]가 되면, 이는 MIN을 제외하고 {CO, TIM}이 선택된 것입니다.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">재귀로 부분집합 (O/X)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">name = ['MIN', 'CO', 'TIM']
+path = []
+
+def print_name():
+    print('{', end=' ')
+    for i in range(3):
+        if path[i] == 'O':
+            print(name[i], end=' ')
+    print('}')
+
+def run(lev):
+    if lev == 3:
+        print(path, end=' → ')
+        print_name()
+        return
+    for i in range(2):
+        path.append('O' if i == 0 else 'X')
+        run(lev + 1)
+        path.pop()
+
+run(0)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">1-2</span>바이너리 카운팅 (Binary Counting)</h3>
+<ul><li>원소 수에 해당하는 N개의 비트열을 이용한다.</li><li>0 ~ 2ᴺ-1 까지의 수를 2진수로 보면, 각 비트가 원소의 포함 여부를 나타낸다. 예) {A, B, C} → 0b101 → {A, C}</li><li>부분집합을 구하기 위해서 Binary Counting을 사용하는 것이 가장 일반적입니다. 학습용으로 완전 탐색(재귀)을 선택할 수도 있습니다.</li></ul><table class="compare"><tr><th>10진수</th><th>2진수</th><th>{A, B, C}</th></tr><tr><td class="k">0</td><td>000</td><td>{ }</td></tr><tr><td class="k">1</td><td>001</td><td>{A}</td></tr><tr><td class="k">2</td><td>010</td><td>{B}</td></tr><tr><td class="k">3</td><td>011</td><td>{A, B}</td></tr><tr><td class="k">4</td><td>100</td><td>{C}</td></tr><tr><td class="k">5</td><td>101</td><td>{A, C}</td></tr><tr><td class="k">6</td><td>110</td><td>{B, C}</td></tr><tr><td class="k">7</td><td>111</td><td>{A, B, C}</td></tr></table><div class="ide">
+  <div class="ide-bar"><span class="ide-title">바이너리 카운팅</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">arr = ['A', 'B', 'C']
+n = len(arr)
+
+def get_sub(tar):
+    result = []
+    for i in range(n):
+        if tar &amp; 0x1:          # 가장 오른쪽 비트가 1이면 포함
+            result.append(arr[i])
+        tar &gt;&gt;= 1              # 오른쪽으로 한 칸 밀기
+    return result
+
+for tar in range(1 &lt;&lt; n):      # range(0, 8)
+    print(f'{tar} {tar:03b}', get_sub(tar))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>조합 (Combination)</h2><p class="desc">정의 · start 파라미터 · 주사위 조합</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">2-1</span>조합 — 서로 다른 n개의 원소 중 r개를 순서 없이 골라낸 것</h3>
+<ul><li>순열은 [A B]와 [B A]가 다르지만, 조합은 같은 것으로 본다.</li><li>메모장에 모든 경우를 적으면서, 규칙을 찾아보면 — 뒤에 오는 원소는 항상 앞의 원소보다 "뒤의 인덱스"에서 고른다.</li><li>그래서 코드에 <b>start 파라미터</b>를 추가하여 조합 소스코드를 완성한다.</li></ul><pre class="formula">def comb(cnt, start):
+    if cnt == n:            # n개 다 골랐으면
+        print(path)
+        return
+    for i in range(start, len(arr)):
+        path.append(arr[i])
+        comb(cnt + 1, i + 1)   # 다음은 i+1부터 고름
+        path.pop()</pre><div class="ide">
+  <div class="ide-bar"><span class="ide-title">조합 (start)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">arr = ['A', 'B', 'C', 'D', 'E']
+n = 3
+path = []
+cnt_all = 0
+def comb(cnt, start):
+    global cnt_all
+    if cnt == n:
+        cnt_all += 1
+        print(path)
+        return
+    for i in range(start, len(arr)):
+        path.append(arr[i])
+        comb(cnt + 1, i + 1)
+        path.pop()
+comb(0, 0)
+print('5C3 =', cnt_all)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>[연습] 주사위 N개를 던져서 나올 수 있는 눈금의 모든 조합 (중복 조합)</h3>
+<p>주사위 눈은 같은 숫자가 여러 번 나올 수 있으므로 <code>comb(cnt + 1, i)</code> — 다음도 <b>i부터</b>(자기 자신 포함) 고르면 중복 조합이 됩니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">주사위 중복 조합</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">N = int(input())
+path = []
+cnt = 0
+def dice(lev, start):
+    global cnt
+    if lev == N:
+        cnt += 1
+        print(path)
+        return
+    for i in range(start, 7):
+        path.append(i)
+        dice(lev + 1, i)       # i부터 → 중복 조합
+        path.pop()
+dice(0, 1)
+print('총', cnt, '가지')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">2
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>탐욕 (Greedy) 알고리즘</h2><p class="desc">개념 · 적용 조건(탐욕 선택 속성 · 최적 부분 구조) · 동전 교환 · 반례</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">3-1</span>탐욕 알고리즘이란?</h3>
+<ul><li>결정을 해야 할 때마다 그 순간에 <b>가장 좋다고 생각되는 것</b>을 선택하면서 최종 해답에 도달하는 방법</li><li>미래를 생각하지 않고, 과거의 선택을 번복하지 않는다 — "과거의 데이터를 이용하여 현재의 데이터를 만드는" DP와 다름</li><li>여러 경우 중 하나를 결정해야 할 때마다 그 순간 최적이라고 생각되는 것을 선택해 나가는 방식으로 진행하여 최종적인 해답에 도달한다.</li></ul><div class="subhead">탐욕 기법이 적용 가능한 조건</div><table class="compare"><tr><th>조건</th><th>의미</th></tr><tr><td class="k">탐욕적 선택 속성 (greedy choice property)</td><td>탐욕적 선택은 최적해로 갈 수 있음을 보여라 → 즉, 탐욕적 선택은 항상 안전하다.</td></tr><tr><td class="k">최적 부분 구조 (optimal substructure)</td><td>최적화 문제를 정형화하라 → 하나의 선택을 하면 풀어야 할 하나의 하위 문제가 남는다. 문제의 최적해가 하위 문제의 최적해로 구성되는 성질</td></tr></table><div class="note exam">그리디 알고리즘은 쉬워 보이나, <b>예외 없이 모든 경우가 맞는 규칙인지 아닌지 증명이 어렵습니다</b>.</div>
+</div>
+<div class="card full">
+<h3><span class="tag">3-2</span>동전 교환 문제 — 530원을 거슬러 주기 위해서 사용해야 하는 최소 동전의 수는?</h3>
+<ul><li>동전 교환 문제를 완전탐색으로 해결한다면? — 0원이 될 때까지 모든 경우를 다 구한다. (느리다)</li><li>Greedy로 접근 → 액수가 큰 동전을 먼저 선택하면 <b>4개</b>이다. (500원 하나, 10원 3개)</li><li><b>10, 50, 100, 500 처럼 모든 동전이 배수 관계인 경우 Greedy 적용 가능</b></li><li><b>10, 50, 70 처럼 모든 동전이 배수 관계가 아닌 경우 Greedy 적용 불가</b> — 100원: Greedy는 70+10+10+10 = 4개, 최적은 50+50 = 2개</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">동전 교환 — Greedy vs 최적</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def greedy(coin_list, target):
+    cnt = 0
+    used = []
+    for coin in sorted(coin_list, reverse=True):
+        possible = target // coin
+        cnt += possible
+        target -= possible * coin
+        used += [coin] * possible
+    return cnt, used
+
+def best(coin_list, target):        # DP로 구한 진짜 최솟값 (비교용)
+    INF = float('inf')
+    dp = [0] + [INF] * target
+    for t in range(1, target + 1):
+        for c in coin_list:
+            if c &lt;= t and dp[t - c] + 1 &lt; dp[t]:
+                dp[t] = dp[t - c] + 1
+    return dp[target]
+
+for coins, t in [([500, 100, 50, 10], 530), ([10, 50, 70], 100), ([1, 3, 4], 6)]:
+    print(coins, t, '→ Greedy:', greedy(coins, t), '/ 최적:', best(coins, t))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>탐욕 알고리즘 대표 문제</h2><p class="desc">화장실 대기시간 · 0-1 Knapsack · Fractional Knapsack · 회의실 배정</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">4-1</span>[도전] 화장실 문제 — 대기시간의 누적 합을 최소로</h3>
+
+<p>기숙사에는 하나의 화장실만 존재한다. 여러 사람이 각자 화장실을 사용하는 시간이 주어진다. 어떤 순서로 사용해야 <b>각자의 대기시간의 누적 합</b>이 최소가 될지 고민해보고 구현해보자. (예: 어떤 순서에서는 대기시간 누적 합이 155분이 되기도 함)</p>
+<p>→ <b>사용 시간이 짧은 사람부터</b> (오름차순 정렬). 짧은 사람이 앞에 있어야 뒤 사람들의 대기가 짧아진다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">화장실 대기시간</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">times = list(map(int, input().split()))
+
+def total_wait(order):
+    wait = 0
+    acc = 0
+    for t in order:
+        wait += acc       # 내 앞 사람들이 쓴 시간만큼 기다림
+        acc += t
+    return wait
+
+print('입력 순서:', times, '→', total_wait(times))
+print('오름차순:', sorted(times), '→', total_wait(sorted(times)))
+from itertools import permutations
+print('모든 순서 중 최소(완전탐색 검증):', min(total_wait(p) for p in permutations(times)))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">15 30 50 10
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-2</span>Knapsack (배낭) 문제</h3>
+
+<p>도둑이 보물들이 있는 창고에 침입하였다. 도둑은 최대 30kg까지 짐을 담아갈 수 있다. 물건의 개수(N) 그리고 물건 별 무게(W)와 가격(P)이 주어질 때, 어떤 물건을 담아야 도둑이 최대 이득을 볼 수 있을지 구하시오.</p><table class="compare"><tr><th>물건</th><th>무게</th><th>가격</th><th>kg당 가격</th></tr><tr><td class="k">물건1</td><td>5kg</td><td>50만원</td><td>10만원</td></tr><tr><td class="k">물건2</td><td>10kg</td><td>60만원</td><td>6만원</td></tr><tr><td class="k">물건3</td><td>20kg</td><td>140만원</td><td>7만원</td></tr></table><ul><li><b>0-1 Knapsack</b>: 물건을 통째로 담거나 안 담거나. [도전] 이 문제를 Greedy로 접근해보자 — "kg당 가치가 높은 것"을 선택: 물건1(5) + 물건3(20) = 190만원, 25kg. 하지만 <b>정답은 물건2, 3을 선택하는 것(200만원)</b>이다 → kg당 가치가 높은 것을 선택하면 안되는 예시. 완전 탐색 혹은 DP로 접근해야 한다.</li><li><b>Fractional Knapsack</b>: 0-1 Knapsack과 달리, 물건을 원하는 만큼 자를 수 있는 문제. kg당 가격이 가장 높은 물건부터 최대한 담으면 된다 → 물건1 전체(50) + 두 번째로 kg당 금액이 높은 물건3 전체(140) + 세 번째 물건2 나머지 5kg(30) = <b>220만원</b>.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">0-1 vs Fractional Knapsack</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from itertools import combinations
+W = 30
+things = [(5, 50), (10, 60), (20, 140)]     # (kg, 만원)
+
+# 0-1 Knapsack: 완전탐색(부분집합)
+best = 0
+for r in range(len(things) + 1):
+    for sub in combinations(things, r):
+        if sum(k for k, p in sub) &lt;= W:
+            best = max(best, sum(p for k, p in sub))
+print('0-1 Knapsack 최적:', best)
+
+# 0-1에 Greedy(kg당 가치) 적용하면?
+g, cap = 0, W
+for kg, price in sorted(things, key=lambda x: x[1] / x[0], reverse=True):
+    if kg &lt;= cap:
+        g += price; cap -= kg
+print('0-1에 Greedy 적용:', g, '(오답!)')
+
+# Fractional Knapsack: Greedy가 최적
+target = W
+total = 0
+for kg, price in sorted(things, key=lambda x: x[1] / x[0], reverse=True):
+    if target &lt; kg:                 # 가방에 남은 용량이 얼마되지 않는다면, 쪼개서 담는다
+        total += price / kg * target
+        break
+    total += price
+    target -= kg
+print('Fractional Knapsack:', total)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-3</span>회의실 배정 문제</h3>
+
+<p>김대리는 소프트웨어 개발팀의 회의실 사용 예약을 담당하고 있다. 여러 팀들이 원하는 회의실 예약 시간이 주어질 때, 가능한 많은 회의가 열리기 위해서는 회의들을 어떻게 배정해야 할까?</p>
+<p>입력 예시: 회의 10개 — (시작, 종료) = (1,4) (1,6) (6,10) (5,7) (3,8) (5,9) (3,5) (8,11) (2,13) (12,14)</p><ol><li><b>종료 시간이 빠른 순서로 정렬</b>한다.</li><li>가장 빨리 끝나는 회의를 선택하여 확정한다. → (이제는 4시 이후부터 회의가 가능하다.)</li><li>4시 이후에 가능한 회의 중, 가장 빨리 끝나는 회의를 찾아 확정한다. → (이제부터 7시 이후로 회의가 가능하다.)</li><li>이를 반복한다: 다음 회의의 시작 시간 &gt;= 마지막으로 선택한 회의의 종료 시간이면 선택</li></ol><div class="ide">
+  <div class="ide-bar"><span class="ide-title">회의실 배정</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">meetings = [(1, 4), (1, 6), (6, 10), (5, 7), (3, 8), (5, 9), (3, 5), (8, 11), (2, 13), (12, 14)]
+meetings.sort(key=lambda x: (x[1], x[0]))     # 종료 시간 기준 오름차순
+
+def is_valid(start, end, current_end):
+    return start &gt;= current_end
+
+selected = []
+current_end = 0
+for s, e in meetings:
+    if is_valid(s, e, current_end):           # 마지막으로 선택한 회의 종료 이후면
+        selected.append((s, e))
+        current_end = e
+        print(f'({s}, {e}) 확정 → 이제 {e}시 이후 가능')
+print('최대 회의 수:', len(selected), selected)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-4</span>추천 문제 (SWEA)</h3>
+<ul><li>5201. 컨테이너 운반</li><li>5202. 화물 도크</li><li>5203. 베이비진 게임</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>탐욕 알고리즘 확인문제</h3>
+<details class="quiz"><summary>1. Greedy 알고리즘이 유효하기 위한 조건은?</summary><ol class="opt" type="a"><li>입력이 정렬되어 있어야 한다.</li><li>재귀를 사용해야 한다.</li><li>최적 부분 구조와 탐욕 선택 속성이 있어야 한다.</li><li>입력 크기가 작아야 한다.</li></ol><div class="ans"><b class="ok">정답: 최적 부분 구조와 탐욕 선택 속성이 있어야 한다.</b></div></details><details class="quiz"><summary>2. 부분집합을 구하는 가장 일반적인 방법은? (단답형)</summary><div class="ans"><b class="ok">정답: Binary Counting</b> — 부분집합을 구하기 위해서 Binary Counting을 사용하는 것이 가장 일반적입니다. 학습용으로 완전 탐색을 선택할 수도 있습니다.</div></details><details class="quiz"><summary>3. 다음 중 Greedy 알고리즘으로 풀 수 없는 문제는?</summary><ol class="opt" type="a"><li>배수 관계 동전 거스름돈</li><li>Fractional Knapsack</li><li>0-1 Knapsack</li><li>회의실 배정</li></ol><div class="ans"><b class="ok">정답: 0-1 Knapsack</b> — Greedy로 접근하면 안되는 예외 케이스가 존재하기 때문입니다. 동전 거스름돈 문제는 모든 동전이 배수 관계가 성립하면 Greedy 알고리즘으로 접근 가능합니다.</div></details><details class="quiz"><summary>4. <code>def is_valid(start, end, current_end): return start &gt;= current_end</code> 에서 <code>is_valid(5, 7, 4)</code> 의 결과는?</summary><div class="ans"><b class="ok">정답: True</b> — 회의실 배정 문제에서 다음 회의를 선택할 수 있는지 판단하는 함수입니다. start(5)가 current_end(4)보다 크거나 같으므로 회의를 배정할 수 있습니다.</div></details><details class="quiz"><summary>5. 아이템 (무게, 가치)가 (10, 60), (20, 100), (30, 120)일 때, Fractional Knapsack에서 가장 먼저 선택되는 아이템은?</summary><div class="ans"><b class="ok">정답: (10, 60)</b> — 각 아이템의 단위 무게당 가치는 [6.0, 5.0, 4.0]이고, 가장 높은 6.0을 가진 아이템이 먼저 선택됩니다.</div></details><details class="quiz"><summary>6. Fractional Knapsack 문제의 정렬 기준은?</summary><div class="ans"><b class="ok">정답: 단위 무게당 가치 순 (내림차순)</b></div></details><details class="quiz"><summary>7. 회의실 배정 문제의 정렬 기준은?</summary><div class="ans"><b class="ok">정답: 회의 종료 시간 오름차순</b></div></details><details class="quiz"><summary>8. 단위 무게당 가치를 val 리스트에 저장할 때, (10, 60)의 값은? (실수로 표현)</summary><div class="ans"><b class="ok">정답: 6.0</b></div></details><details class="quiz"><summary>9. 5원, 50원, 70원 단위 동전으로 100원 거슬러주기를 Greedy로 풀면?</summary><div class="ans"><b class="ok">정답: 최적이 아니다</b> — 모든 동전이 배수 관계가 성립하지 않기 때문에 Greedy로 풀 수 없습니다. 최소가 되기 위한 답은 50원 동전 2개이지만, Greedy를 활용하면 70원 1개와 5원 6개(7개)가 됩니다.</div></details><details class="quiz"><summary>10. [3, 7, 2, 6]에서 탐욕적으로 가장 큰 값 2개를 선택하여 합한 값은?</summary><div class="ans"><b class="ok">정답: 13</b> — 7 + 6 = 13</div></details><details class="quiz"><summary>11. 동전 [4, 3, 1]으로 6원을 거슬러 주는 Greedy 코드에서 cnt의 값은? 이는 최적해인가?</summary><div class="ans"><b class="ok">정답: 3, 최적해가 아니다</b> — 6 // 4 = 1, 남은 2 // 1 = 2로 3이 답입니다. 그러나 최적의 해는 3 + 3 = 6으로 2개를 사용하는 것입니다. 따라서 그리디가 항상 정답이 아님을 보여주는 예시입니다.</div></details><details class="quiz"><summary>12. Binary Counting을 통해 집합 {A, B, C}의 부분집합 중 101에 해당하는 것은?</summary><ol class="opt" type="a"><li>{A, B}</li><li>{A, C}</li><li>{B, C}</li><li>{C}</li></ol><div class="ans"><b class="ok">정답: {A, C}</b> — 비트를 오른쪽(0번)부터 A, B, C에 대응시키면 101 → A와 C 포함.</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th></tr><tr><td class="k">탐욕 알고리즘</td><td>현재 상황에서 가장 좋아 보이는 해를 선택하는 알고리즘</td></tr><tr><td class="k">탐욕 선택 속성</td><td>탐욕적 선택은 항상 안전하다 (최적해로 갈 수 있다)</td></tr><tr><td class="k">최적 부분 구조</td><td>문제의 최적해가 부분 문제의 최적해로 구성되는 성질</td></tr><tr><td class="k">Fractional Knapsack</td><td>단위 무게당 가치가 가장 높은 물건부터 담는 것이 항상 최적의 해를 보장하며, 물건을 쪼갤 수 있다는 점이 핵심</td></tr><tr><td class="k">0-1 Knapsack</td><td>탐욕적으로 단위가치가 높은 것부터 선택하면 오답이 나올 수 있으며, 이 문제는 백트래킹이나 동적 계획법이 필요</td></tr><tr><td class="k">바이너리 카운팅 · 조합</td><td>비트로 부분집합 2ⁿ개 / start 파라미터로 순서 없는 선택</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>Greedy = <b>기준 정하기 → 정렬 → 앞에서부터 즉시 선택</b>. 빠르지만 항상 맞지는 않는다.</li><li>Greedy를 쓰기 전에 <b>반례</b>를 찾아본다 — 동전(70원), 0-1 배낭. 반례가 있으면 완전탐색·DP.</li><li>맞는 문제의 기준: 동전(큰 단위부터, 배수 관계), 화장실(짧은 순), 분할 배낭(kg당 가치), 회의실(<b>종료 시간</b> 빠른 순).</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 응용 탐욕알고리즘」(2025-09-30, 76장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

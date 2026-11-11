@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>문제풀이 1 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 05 · 09/15 문제풀이 1</span>
+    <h1>문제풀이 1 개념정리</h1>
+    <p class="sub">증가하는 사탕 수열(20551) → 전봇대(10580) → 탈주범 검거(1953, BFS) → 벽돌 깨기(5656, 중복순열 + BFS + 시뮬레이션)까지, 강의 슬라이드 55장의 문제와 풀이 흐름을 실행 가능한 코드와 함께 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 4문제</span><span>🐍 문제별 실행 가능한 풀이 IDE</span><span>❓ 확인문제 12개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 사탕 수열</a><a href="#ch2">2. 전봇대</a><a href="#ch3">3. 탈주범 검거</a><a href="#ch4">4. 벽돌 깨기</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 알고리즘은 현실 문제의 축소판</h2><p class="desc">Onboarding · 오늘 풀어볼 4문제와 활용 분야</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">0-1</span>여러 도시에서 수집된 데이터를 분석해 복잡한 문제를 빠르고 정확하게 해결해야 합니다</h3>
+
+<p>도시 교통 흐름, 전력망 설계, 보안 시스템, 건물 구조물의 취약점 분석 등 — 오늘 풀어볼 문제는 각각 현실 문제의 축소판입니다.</p><table class="compare"><tr><th>문제</th><th>핵심 기법</th><th>현실 활용</th></tr><tr><td class="k">1. 사탕 수열 문제 (20551)</td><td>데이터 흐름 중 '일정한 증가 패턴'을 탐색하는 기술</td><td>이상 징후 탐지, 재고 분석, 온도 변화 감지</td></tr><tr><td class="k">2. 전봇대 문제 (10580)</td><td>수열 탐색을 통해 선이 겹치지 않게 배선하는 방법</td><td>회로 설계, 통신망 구성, 배선 충돌 방지</td></tr><tr><td class="k">3. 탈주범 문제 (1953)</td><td>BFS를 활용하여 제한된 구조에서 이동 가능한 경로 탐색</td><td>로봇 경로 계획, 미로 탐색, 보안 영역 침입 탐지</td></tr><tr><td class="k">4. 벽돌깨기 문제 (5656)</td><td>BFS/DFS를 활용하여 하나의 행동이 주변에 미치는 영향을 시뮬레이션</td><td>재난 예측, 구조물 붕괴 예측, 게임 물리 엔진 설계</td></tr></table>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>20551. 증가하는 사탕 수열</h2><p class="desc">문제 · 입력 · 해결 아이디어 · 구현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>문제</h3>
+
+<p>세현이는 세 개의 상자를 나란히 세워 놓았다. 첫 번째 상자에는 사탕 A개, 두 번째 상자에는 사탕 B개, 세 번째 상자에는 사탕 C개가 들어 있다. 세현이는 상자에 들어 있는 사탕의 개수가 <b>순증가</b>하기를 원한다. 즉, 두 번째 상자에 들어 있는 사탕의 개수가 첫 번째 상자에 들어 있는 사탕의 개수보다 더 많기를 원하고, 세 번째 상자에 들어 있는 사탕의 개수가 두 번째 상자에 들어 있는 사탕의 개수보다 더 많기를 원한다. 또한, 세현이는 <b>모든 상자가 비어 있지 않기</b>를 원한다. 즉, 모든 상자에 1개 이상의 사탕이 들어 있기를 원한다.</p>
+<p>세현이는 이 조건을 만족시키기 위해 사탕을 먹을 수 있다. 조건을 만족하기 위해 먹어야 하는 <b>최소 사탕 개수</b>를 구하라. 불가능하면 -1.</p>
+<p><b>입력</b>: 첫 번째 줄에 테스트 케이스의 수 T. 각 테스트 케이스는 한 개의 줄로 이루어지며, 세 개의 자연수 A, B, C (1 ≤ A, B, C ≤ 3000)가 공백 하나를 사이로 두고 주어진다.</p>
+</div>
+<div class="card full">
+<h3><span class="tag">1-2</span>해결 아이디어 — 뒤에서부터 탐욕적으로</h3>
+<ul><li>사탕은 <b>먹을(줄일) 수만</b> 있다 → C는 그대로 두는 것이 최선.</li><li>B가 C 이상이면 B를 <b>C-1</b>까지 줄인다 (가장 적게 먹는 방법).</li><li>A가 (새) B 이상이면 A를 <b>B-1</b>까지 줄인다.</li><li>줄인 결과 A나 B가 1보다 작아지면 조건(모든 상자 1개 이상)을 만족할 수 없으므로 -1.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">증가하는 사탕 수열</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">T = int(input())
+for tc in range(1, T + 1):
+    A, B, C = map(int, input().split())
+    eat = 0
+    if B &gt;= C:
+        eat += B - (C - 1)
+        B = C - 1
+    if A &gt;= B:
+        eat += A - (B - 1)
+        A = B - 1
+    if A &lt; 1 or B &lt; 1:
+        eat = -1
+    print(f'#{tc} {eat}')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">4
+2 3 4
+5 5 5
+1 1 1
+10 3 7
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>10580. 전봇대</h2><p class="desc">문제 · 입력 · 교차 조건 · 구현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>문제</h3>
+
+<p>현우는 길을 가다가 전선들이 복잡하게 꼬여 있는 전봇대 두 개를 보았다. 두 전봇대는 높이가 매우 높으며, N개의 팽팽한 전선으로 연결되어 있었다. 두 전선의 끝점이 같은 경우는 없으나, 교차하는 경우는 있다. 세 개 이상의 전선이 하나의 점에서 만나지 않는다고 가정하자. <b>이 전봇대에는 총 몇 개의 교차점이 있을까?</b> (예: 전선 3개, 교차점 2개)</p>
+<p><b>입력</b>: 첫 번째 줄에 테스트 케이스의 수 T. 각 테스트 케이스의 첫 번째 줄에 전선의 개수 N (1 ≤ N ≤ 1000). 이후 N개의 줄에 두 양의 정수 Aᵢ, Bᵢ (1 ≤ Aᵢ, Bᵢ ≤ 10000) — i번째 전선이 첫 번째 전봇대의 Aᵢ 고도, 두 번째 전봇대의 Bᵢ 고도에 걸려 있음. 모든 Aᵢ는 서로 다르고, 모든 Bᵢ도 서로 다르다.</p>
+</div>
+<div class="card full">
+<h3><span class="tag">2-2</span>교차점이 발생하는 경우는 두 가지</h3>
+<table class="compare"><tr><th>경우</th><th>조건</th></tr><tr><td class="k">①</td><td>새로운 선의 시작점이 기존 선의 시작점보다 높으며, 새로운 선의 도착점이 기존 선의 도착점보다 <b>낮은</b> 경우</td></tr><tr><td class="k">②</td><td>새로운 선의 시작점이 기존 선의 시작점보다 낮으며, 새로운 선의 도착점이 기존 선의 도착점보다 <b>높은</b> 경우</td></tr></table><p>즉 두 전선 i, j에 대해 <code>(Aᵢ - Aⱼ) × (Bᵢ - Bⱼ) &lt; 0</code> 이면 교차. 모든 쌍을 확인하는 완전 탐색 O(N²) — N ≤ 1000이면 약 50만 번.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">전봇대 교차점</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">T = int(input())
+for tc in range(1, T + 1):
+    N = int(input())
+    lines = [tuple(map(int, input().split())) for _ in range(N)]
+    cnt = 0
+    for i in range(N):
+        for j in range(i + 1, N):
+            a1, b1 = lines[i]
+            a2, b2 = lines[j]
+            if (a1 &lt; a2 and b1 &gt; b2) or (a1 &gt; a2 and b1 &lt; b2):
+                cnt += 1
+    print(f'#{tc} {cnt}')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">2
+3
+1 10
+5 5
+7 7
+2
+1 1
+2 2
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>1953. [모의 SW 역량테스트] 탈주범 검거</h2><p class="desc">문제 · 터널 구조물 7종 · 제약 · 해결 아이디어(BFS) · 구현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>문제</h3>
+
+<p>교도소로 이송 중이던 흉악범이 탈출하는 사건이 발생하여 수색에 나섰다. 탈주범은 탈출한 지 한 시간 뒤, <b>맨홀 뚜껑</b>을 통해 지하터널의 어느 한 지점으로 들어갔으며, 지하 터널 어딘가에서 은신 중인 것으로 추정된다. 터널끼리 연결이 되어 있는 경우 이동이 가능하므로 탈주범이 있을 수 있는 위치의 개수를 계산하여야 한다.</p>
+<p>탈주범은 시간당 1의 거리를 움직일 수 있다. 지하 터널은 총 7 종류의 터널 구조물로 구성되어 있다. 예) 세로 5, 가로 6, 맨홀 (2, 1), 탈출 후 소요된 시간 3 → 1시간 후 맨홀 위치 1곳, 2시간 후 3곳, <b>3시간 후 총 5개의 지점</b>에 있을 수 있다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>터널 구조물 타입 (1~7, 0은 터널 없음)</h3>
+<table class="compare"><tr><th>타입</th><th>연결 방향</th></tr><tr><td class="k">1</td><td>상 · 하 · 좌 · 우</td></tr><tr><td class="k">2</td><td>상 · 하</td></tr><tr><td class="k">3</td><td>좌 · 우</td></tr><tr><td class="k">4</td><td>상 · 우</td></tr><tr><td class="k">5</td><td>하 · 우</td></tr><tr><td class="k">6</td><td>하 · 좌</td></tr><tr><td class="k">7</td><td>상 · 좌</td></tr></table><p><b>제약</b>: 세로 N, 가로 M은 각각 5 이상 50 이하. 맨홀 뚜껑의 세로 위치 R은 0 이상 N-1이하, 가로 위치 C는 0 이상 M-1이하. 탈출 후 소요된 시간 L은 1 이상 20 이하. 지도에는 반드시 1개 이상의 터널이 있음. 맨홀 뚜껑은 항상 터널이 있는 위치에 존재한다.</p>
+</div>
+<div class="card full">
+<h3><span class="tag">3-3</span>해결 아이디어</h3>
+<ul><li>현재 지점으로부터 갈 수 있는 지점은 <b>연결된 파이프 1칸</b>이다.</li><li>현재 칸에서 d 방향으로 나갈 수 있고, <b>다음 칸이 반대 방향(d+2)%4로 열려 있어야</b> 실제로 이동 가능하다.</li><li>탐색 시 걸린 시간도 함께 기록하면서 진행한다 → <b>BFS</b>, 시간 L 이하인 칸의 개수가 답.</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">탈주범 검거 (BFS)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from collections import deque
+# 방향: 0 상, 1 우, 2 하, 3 좌
+di = [-1, 0, 1, 0]
+dj = [0, 1, 0, -1]
+pipe = {1: [0, 1, 2, 3], 2: [0, 2], 3: [1, 3], 4: [0, 1], 5: [2, 1], 6: [2, 3], 7: [0, 3]}
+
+T = int(input())
+for tc in range(1, T + 1):
+    N, M, R, C, L = map(int, input().split())
+    arr = [list(map(int, input().split())) for _ in range(N)]
+    time = [[0] * M for _ in range(N)]     # 도착 시간 (0 = 미방문)
+    q = deque([(R, C)])
+    time[R][C] = 1
+    cnt = 1
+    while q:
+        i, j = q.popleft()
+        if time[i][j] == L:                # 시간이 다 되면 더 확장하지 않음
+            continue
+        for d in pipe[arr[i][j]]:
+            ni, nj = i + di[d], j + dj[d]
+            if 0 &lt;= ni &lt; N and 0 &lt;= nj &lt; M and arr[ni][nj] and not time[ni][nj]:
+                if (d + 2) % 4 in pipe[arr[ni][nj]]:   # 다음 칸이 반대 방향으로 열려 있어야
+                    time[ni][nj] = time[i][j] + 1
+                    q.append((ni, nj))
+                    cnt += 1
+    print(f'#{tc} {cnt}')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">1
+5 6 2 1 3
+0 0 5 3 6 0
+0 0 2 0 2 0
+3 3 1 3 7 0
+0 0 0 0 0 0
+0 0 0 0 0 0
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>5656. [모의 SW 역량테스트] 벽돌 깨기</h2><p class="desc">규칙 · 예제 · 해결 아이디어(중복순열 + BFS + 중력) · 구현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>문제 규칙</h3>
+<ol><li>구슬은 좌, 우로만 움직일 수 있어서 <b>항상 맨 위에 있는 벽돌만</b> 깨트릴 수 있다.</li><li>벽돌은 숫자 1 ~ 9로 표현되며, 구슬이 명중한 벽돌은 상하좌우로 <b>(벽돌에 적힌 숫자 - 1)칸</b> 만큼 같이 제거된다.</li><li>제거되는 범위 내에 있는 벽돌은 <b>동시에</b> 제거된다. (연쇄 반응)</li><li>빈 공간이 있을 경우 벽돌은 <b>밑으로 떨어지게</b> 된다.</li></ol><p>N개의 구슬을 쏘아 벽돌을 <b>최대한 많이 제거</b>하였을 때, 남은 벽돌의 개수를 구하라. (1 ≤ N ≤ 4, 2 ≤ W ≤ 12, 2 ≤ H ≤ 15)</p>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>해결 아이디어</h3>
+<ul><li>구슬을 쏠 위치는 매번 W가지 → <b>W^N가지 중복순열</b> (최대 12⁴ = 20,736) — 완전 탐색 가능.</li><li>새로운 자리에 구슬을 쏠 때는 <b>쏘기 전 기준으로 초기화</b>한다 → 맵을 복사해서 재귀에 넘긴다.</li><li>명중한 벽돌부터 범위 안의 벽돌을 큐(BFS)/스택으로 연쇄 제거 → 벽돌을 지우고 지운 개수를 늘린다.</li><li>지워진 자리는 위에서 내려온 벽돌로 메꾼다 — 열마다 아래(H-1)에서부터 0이 아닌 벽돌만 차곡차곡 내린다. (i는 항상 감소, idx는 arr[i][j]가 0이 아닐 때만 감소)</li></ul><pre class="formula">for j in range(W):
+    idx = H - 1
+    for i in range(H - 1, -1, -1):
+        if dest[i][j]:
+            dest[idx][j] = dest[i][j]
+            idx -= 1
+    for i in range(idx, -1, -1):
+        dest[i][j] = 0</pre>
+</div>
+<div class="card full">
+<h3><span class="tag">4-3</span>벽돌 깨기 구현</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">벽돌 깨기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from collections import deque
+
+def shoot(arr, col, H, W):
+    dest = [row[:] for row in arr]          # 쏘기 전 기준 복사
+    r = 0
+    while r &lt; H and dest[r][col] == 0:      # 맨 위 벽돌 찾기
+        r += 1
+    if r == H:
+        return dest, 0
+    q = deque([(r, col, dest[r][col])])
+    dest[r][col] = 0
+    removed = 1
+    while q:                                # 연쇄 제거
+        i, j, p = q.popleft()
+        for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            for k in range(1, p):
+                ni, nj = i + di * k, j + dj * k
+                if 0 &lt;= ni &lt; H and 0 &lt;= nj &lt; W and dest[ni][nj]:
+                    q.append((ni, nj, dest[ni][nj]))
+                    dest[ni][nj] = 0
+                    removed += 1
+    for j in range(W):                      # 중력: 아래로 떨어뜨리기
+        idx = H - 1
+        for i in range(H - 1, -1, -1):
+            if dest[i][j]:
+                dest[idx][j] = dest[i][j]
+                idx -= 1
+        for i in range(idx, -1, -1):
+            dest[i][j] = 0
+    return dest, removed
+
+def solve(arr, n, H, W, total):
+    global best
+    if n == 0:
+        best = max(best, total)
+        return
+    for c in range(W):                      # W^N 중복순열
+        nxt, rm = shoot(arr, c, H, W)
+        solve(nxt, n - 1, H, W, total + rm)
+
+T = int(input())
+for tc in range(1, T + 1):
+    N, W, H = map(int, input().split())
+    arr = [list(map(int, input().split())) for _ in range(H)]
+    bricks = sum(1 for row in arr for x in row if x)
+    best = 0
+    solve(arr, N, H, W, 0)
+    print(f'#{tc} {bricks - best}')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">1
+2 5 6
+0 0 0 0 0
+0 0 0 0 0
+0 3 0 0 0
+1 1 2 0 1
+2 1 1 1 1
+1 1 3 1 2
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-4</span>추천 문제 (SWEA)</h3>
+<ul><li>20551. 증가하는 사탕 수열</li><li>10580. 전봇대</li><li>1953. [모의 SW 역량테스트] 탈주범 검거</li><li>5656. [모의 SW 역량테스트] 벽돌 깨기</li><li>5105. 미로의 거리</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>문제풀이 1 확인문제</h3>
+<details class="quiz"><summary>1. 원래 수열의 일부 원소들을 순서대로 그대로 가져와 만든 새로운 수열을 무엇이라고 하나요? (단답형)</summary><div class="ans"><b class="ok">정답: 부분 수열</b> — 원래 수열의 원소들을 건너뛰며 선택할 수는 있지만, 선택한 원소들의 순서는 유지해야 합니다.</div></details><details class="quiz"><summary>2. 다음 중 BFS(너비 우선 탐색)의 특징으로 옳은 것은?</summary><ol class="opt" type="a"><li>한 경로 끝까지 탐색한 뒤 이동</li><li>가까운 노드부터 차례로 탐색</li><li>모든 경우의 수를 탐색</li><li>무작위로 탐색</li></ol><div class="ans"><b class="ok">정답: 가까운 노드부터 차례로 탐색</b></div></details><details class="quiz"><summary>3. DFS 탐색 시 탐색의 진행 방식은 어떻게 이루어지나요? (단답형)</summary><div class="ans"><b class="ok">정답: 한 경로를 끝까지 탐색한 뒤 다른 경로로 이동한다</b> — 깊게 파고든 후, 막히면 돌아와 다른 경로를 탐색합니다.</div></details><details class="quiz"><summary>4. 완전 탐색(Brute Force)에 대한 설명으로 옳지 않은 것은?</summary><ol class="opt" type="a"><li>가능한 모든 경우를 탐색해 해답을 찾는다</li><li>계산 비용이 크다</li><li>실제 환경을 코드로 재현한다</li><li>경우의 수가 적을 때 유리하다</li></ol><div class="ans"><b class="ok">정답: 실제 환경을 코드로 재현한다</b> — 이는 시뮬레이션에 대한 설명입니다.</div></details><details class="quiz"><summary>5. 다음 중 그래프/트리 탐색과 직접적인 관련이 없는 것은?</summary><ol class="opt" type="a"><li>BFS</li><li>DFS</li><li>시뮬레이션</li><li>백트래킹</li></ol><div class="ans"><b class="ok">정답: 시뮬레이션</b> — 시뮬레이션은 상태 변화를 모사하는 기법으로 그래프 탐색과는 성격이 다릅니다.</div></details><details class="quiz"><summary>6. BFS를 사용할 때 가장 일반적으로 활용하는 자료구조는? (단답형)</summary><div class="ans"><b class="ok">정답: 큐</b> — BFS는 먼저 들어온 노드를 먼저 탐색하기 때문에 FIFO 구조인 큐를 사용합니다.</div></details><details class="quiz"><summary>7. DFS를 사용할 때 가장 일반적으로 활용하는 자료구조는? (단답형)</summary><div class="ans"><b class="ok">정답: 스택(Stack) 또는 재귀(Recursion)</b> — 깊게 들어갔다가 다시 돌아오기 때문에 후입선출 구조를 씁니다.</div></details><details class="quiz"><summary>8. 다음 중 완전 탐색이 적합하지 않은 경우는?</summary><ol class="opt" type="a"><li>입력 크기가 작을 때</li><li>최적해를 반드시 찾아야 할 때</li><li>경우의 수가 매우 큰 빅데이터 상황</li><li>수열의 모든 조합을 확인할 때</li></ol><div class="ans"><b class="ok">정답: 경우의 수가 매우 큰 빅데이터 상황</b> — 계산량이 폭발적으로 늘어납니다.</div></details><details class="quiz"><summary>9. 다음 중 DFS의 활용 예로 적절한 것은?</summary><ol class="opt" type="a"><li>최단 거리 계산</li><li>미로에서 출구 찾기(경로 따라가기)</li><li>레벨 순회</li><li>대기열 처리</li></ol><div class="ans"><b class="ok">정답: 미로에서 출구 찾기(경로 따라가기)</b></div></details><details class="quiz"><summary>10. 다음 중 시뮬레이션 기법의 장점으로 옳은 것은?</summary><ol class="opt" type="a"><li>항상 최적해를 보장한다</li><li>복잡한 실제 상황을 재현할 수 있다</li><li>계산량이 항상 적다</li><li>코드가 항상 짧다</li></ol><div class="ans"><b class="ok">정답: 복잡한 실제 상황을 재현할 수 있다</b> — 최적해 보장보다는 실제 환경을 재현해 분석하는 것이 목적입니다.</div></details><details class="quiz"><summary>11. 다음 중 BFS와 DFS의 차이로 옳지 않은 것은?</summary><ol class="opt" type="a"><li>BFS는 큐, DFS는 스택을 사용한다</li><li>BFS는 최단 거리 탐색에 유리하다</li><li>DFS는 경우의 수 탐색에 적합하다</li><li>둘 다 항상 최적해를 보장한다</li></ol><div class="ans"><b class="ok">정답: 둘 다 항상 최적해를 보장한다</b></div></details><details class="quiz"><summary>12. 다음 중 완전 탐색으로 풀기 어려운 것은?</summary><ol class="opt" type="a"><li>3개 상자 사탕 조정</li><li>전선 N≤1000 쌍 비교</li><li>최장 증가 부분 수열 찾기(N이 매우 클 때 모든 부분 수열)</li><li>구슬 4개 쏘기</li></ol><div class="ans"><b class="ok">정답: 최장 증가 부분 수열 찾기</b> — 모든 부분 수열은 2ⁿ개라 n이 크면 불가능합니다.</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th></tr><tr><td class="k">부분 수열 · 증가 패턴</td><td>순서를 유지하며 일부 원소를 고른 수열 — 사탕 수열은 뒤에서부터 줄이는 탐욕</td></tr><tr><td class="k">완전 탐색 (쌍 비교)</td><td>모든 쌍을 비교 O(N²) — 전봇대 교차 (Aᵢ-Aⱼ)(Bᵢ-Bⱼ) &lt; 0</td></tr><tr><td class="k">이차원 배열 탐색과 방향 제어</td><td>행과 열로 이루어진 데이터를 상하좌우로 이동하며 탐색 — 예: 미로 탐색에서 상-하-좌-우 이동</td></tr><tr><td class="k">BFS (너비 우선 탐색)</td><td>가까운 노드부터 탐색, 최단 거리 — 탈주범 검거(시간 기록)</td></tr><tr><td class="k">시뮬레이션</td><td>벽돌깨기 게임에서 공의 충돌과 벽돌 제거, 중력을 그대로 재현</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>문제를 보면 <b>입력 크기 → 가능한 경우의 수</b>부터 계산한다: 3개 상자(상수), 1000쌍(50만), 12⁴(2만) — 모두 완전 탐색/시뮬레이션 가능.</li><li>격자 이동은 <b>델타 + 범위 검사 + 연결 조건</b>(파이프 반대 방향)으로 일반화된다.</li><li>"한 번의 행동이 주변에 미치는 영향" = 큐로 연쇄 처리(BFS), "여러 번의 선택" = 재귀 중복순열.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 기본 문제풀이1」(2025-09-15, 55장) 기반 개념정리 문서. 입력 예시 중 일부는 동작 확인용으로 새로 만든 것입니다.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

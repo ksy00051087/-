@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Basic Syntax 01 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.ide-title.js::before{content:"JS"; background:oklch(85% 0.15 95); color:oklch(25% 0.05 90);}
+.jsbox .html-src textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(85% 0.08 50); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.jsbox .html-src{border-bottom:1px solid oklch(32% 0.05 258);}
+.jsbox .js-view{width:100%; height:170px; border:0; background:#fff; display:block;}
+.jsbox .view-wrap{border-top:1px solid oklch(32% 0.05 258); background:#fff;}
+.jsbox .view-wrap .ide-lbl{background:oklch(95% 0.01 258); color:var(--slate); padding:5px 12px;}
+.jsbox .ide-out pre .warn{color:oklch(82% 0.14 85);}
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · JS 02 · 11/12 JavaScript Basic Syntax 01</span>
+    <h1>JavaScript Basic Syntax 01 개념정리</h1>
+    <p class="sub">데이터 타입(원시 · 참조) → Number · String · 템플릿 리터럴 · null · undefined · Boolean → 연산자(== vs ===, 단축 평가) → 조건문 → 반복문(for...in vs for...of) → 함수(선언식 · 표현식 · 매개변수 · spread) → 화살표 함수까지, 강의 슬라이드 89장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 8개 장</span><span>⚡ 실행 가능한 JS 실습 상자</span><span>❓ 확인문제 10개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 MDN·ECMAScript 표준 동작 기준으로 바로잡았습니다.<br>⚡ <b>JS 표시가 있는 코드 상자는 이 브라우저에서 실제로 실행</b>됩니다(격리된 iframe). 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b> — console.log 결과와 DOM 결과 화면이 바로 보입니다. 인터넷 없이도 실행됩니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 데이터 타입</a><a href="#ch2">2. 원시 자료형</a><a href="#ch3">3. 연산자</a><a href="#ch4">4. 조건문</a><a href="#ch5">5. 반복문</a><a href="#ch6">6. 함수</a><a href="#ch7">7. 화살표 함수</a><a href="#ch8">8. 참고</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 장바구니 총액 계산하기</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">0-1</span>오늘 배울 문법으로 만드는 장바구니 계산기</h3>
+
+<p>데이터 타입(숫자·문자열·객체), 연산자, 조건문, <code>for...of</code> 반복문, 함수 표현식과 화살표 함수 — 이번 강의의 모든 문법이 이 짧은 코드 안에 들어 있습니다. 끝까지 공부한 뒤 다시 돌아와 한 줄씩 읽어보세요.</p><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">장바구니 계산기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const calculateCartTotal = function (items) {
+  let total = 0
+  for (const item of items) {
+    total += item.price * item.quantity
+  }
+  return total
+}
+
+const cart = [
+  { name: '키보드', price: 30000, quantity: 1 },
+  { name: '마우스', price: 15000, quantity: 2 }
+]
+const total = calculateCartTotal(cart)
+const shipping = total &gt;= 50000 ? 0 : 3000      // 삼항 연산자
+console.log(`상품 합계: ${total}원`)
+console.log(`배송비: ${shipping}원`)
+console.log(`결제 금액: ${total + shipping}원`)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>원시 자료형과 참조 자료형의 차이를 안다.</li><li>Number, String, null, undefined, Boolean의 특징을 안다.</li><li>동등(==) 연산자와 일치(===) 연산자의 차이를 안다.</li><li>조건문(if, 삼항 연산자)을 작성할 수 있다.</li><li>for...in과 for...of 반복문의 차이와 용도를 안다.</li><li>함수 선언식·표현식, 매개변수(기본·나머지), spread, 화살표 함수를 사용할 수 있다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>데이터 타입</h2><p class="desc">원시 자료형 · 참조 자료형 · 값 복사 vs 주소 복사</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">1-1</span>원시 자료형 (Primitive type) vs 참조 자료형 (Reference type)</h3>
+<table class="compare"><tr><th></th><th>원시 자료형</th><th>참조 자료형</th></tr><tr><td class="k">정의</td><td>값(value) 자체가 변수에 직접 저장되는 자료형</td><td>데이터가 저장된 메모리의 주소가 변수에 저장되는 자료형</td></tr><tr><td class="k">특징</td><td>불변(immutable)이며, 변수 간 할당 시 <b>값이 복사</b></td><td>가변(mutable)이며, 변수 간 할당 시 <b>주소가 복사</b>되어 원본과 사본이 서로 영향을 줌</td></tr><tr><td class="k">종류</td><td>Number, String, Boolean, null, undefined (Symbol, BigInt — 이번 과정에서는 다루지 않음)</td><td>Objects (Object, Array, Function)</td></tr></table><div class="note tip">값이 불변이라는 것은, 값의 내용을 직접 바꿀 수 없다는 뜻 — <code>let text = 'apple'; text[0] = 'S'</code> 를 해도 text는 그대로 'apple'. 새로운 값을 만들어 변수에 다시 할당해야 합니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>원시 자료형 예시 — 값 복사</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">원시 자료형</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const a = 'bar'
+console.log(a)                 // bar
+console.log(a.toUpperCase())   // BAR (새 문자열을 반환)
+console.log(a)                 // bar (원본은 불변)
+
+let b = 10
+let c = b                      // 값이 복사됨
+c = 20
+console.log(c)                 // 20
+console.log(b)                 // 10
+
+let text = 'apple'
+text[0] = 'S'
+console.log(text)              // apple
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-3</span>참조 자료형 예시 — 주소 복사</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">참조 자료형</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const obj1 = { name: 'Alice', age: 30 }
+const obj2 = obj1              // 주소가 복사됨 → 같은 객체를 가리킴
+obj2.age = 40
+console.log(obj1.age)          // 40
+console.log(obj2.age)          // 40
+console.log(obj1 === obj2)     // true (같은 객체)
+
+const arr1 = [1, 2]
+const arr2 = [1, 2]
+console.log(arr1 === arr2)     // false (내용이 같아도 다른 객체)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>원시 자료형</h2><p class="desc">Number · String · 템플릿 리터럴 · null · undefined · Boolean · 자동 형변환</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>Number — 정수 또는 실수형 숫자를 표현하는 자료형</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">Number</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const a = 13
+const b = -5
+const c = 3.14          // float - 숫자표현
+const d = 2.998e8       // 2.998 * 10^8 = 299,800,000
+const e = Infinity
+const f = -Infinity
+const g = NaN           // Not a Number를 나타내는 값
+console.log(a, b, c, d, e, f, g)
+console.log(typeof g)   // NaN도 타입은 number
+console.log(0.1 + 0.2)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>String — 텍스트 데이터를 표현하는 자료형</h3>
+<ul><li><b>+ 연산자</b>를 사용해 문자열끼리 결합</li><li>곱셈, 나눗셈, 뺄셈 불가능 (NaN)</li><li><b>Template literals (템플릿 리터럴)</b>: 내장된 표현식을 허용하는 문자열 작성 방식 — Backtick(`)을 이용하며, 여러 줄에 걸쳐 문자열을 정의할 수도 있고 JavaScript의 변수를 문자열 안에 바로 연결할 수 있음. 표현식은 <code>${expression}</code> 으로 표기</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">String · 템플릿 리터럴</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const firstName = 'Tony'
+const lastName = 'Stark'
+const fullName = firstName + lastName
+console.log(fullName)            // TonyStark
+console.log('3' * 'a')           // NaN
+
+const age = 100
+const message = `홍길동은 ${age}세입니다.`
+console.log(message)
+console.log(`여러 줄도
+그대로 쓸 수 있고, 계산도 됩니다: ${age + 1}`)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-3</span>null과 undefined — '값이 없음'을 나타내는 두 가지</h3>
+<table class="compare"><tr><th></th><th>null</th><th>undefined</th></tr><tr><td class="k">의미</td><td>프로그래머가 <b>의도적으로</b> '값이 없음'을 나타낼 때 사용</td><td>시스템이나 JavaScript 엔진이 '값이 할당되지 않음'을 나타낼 때 사용</td></tr><tr><td class="k">예</td><td>let x = null</td><td>let y (선언만)</td></tr><tr><td class="k">typeof</td><td>'object' (초기 버전의 버그 — 참고 섹션)</td><td>'undefined'</td></tr><tr><td class="k">산술 연산</td><td>0으로 취급</td><td>계산 불가능한 NaN</td></tr></table><ul><li>return 이 없는 함수나, 인자가 전달되지 않은 매개변수는 기본적으로 undefined가 할당됩니다.</li><li>null의 타입은 'object', undefined의 타입은 'undefined' 이므로 타입 검사 시 주의하세요.</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">null · undefined</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">let x = null
+console.log(x, typeof x)        // null 'object'
+let y
+console.log(y, typeof y)        // undefined 'undefined'
+console.log(null + 1)           // 1  (null → 0)
+console.log(undefined + 1)      // NaN
+function noReturn () {}
+console.log(noReturn())         // undefined
+console.log(null == undefined, null === undefined)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-4</span>Boolean — true / false · 자동 형변환</h3>
+<ul><li>조건문 또는 반복문에서 Boolean이 아닌 데이터 타입은 <b>자동 형변환 규칙</b>에 따라 true 또는 false로 변환됨</li></ul><table class="compare"><tr><th>데이터 타입</th><th>false</th><th>true</th></tr><tr><td class="k">undefined</td><td>항상 false</td><td>X</td></tr><tr><td class="k">null</td><td>항상 false</td><td>X</td></tr><tr><td class="k">Number</td><td>0, -0, NaN</td><td>나머지 모든 경우</td></tr><tr><td class="k">String</td><td>'' (빈 문자열)</td><td>나머지 모든 경우</td></tr></table><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">자동 형변환 (truthy · falsy)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const values = [
+  ['0', 0], ['-0', -0], ['NaN', NaN], ['1', 1], ['-5', -5],
+  ["''", ''], ["'a'", 'a'], ["' '", ' '],
+  ['null', null], ['undefined', undefined], ['[]', []], ['{}', {}]
+]
+for (const [label, v] of values) {
+  console.log(label, '→', Boolean(v))
+}
+if ('') { console.log('빈 문자열은 true?') } else { console.log('빈 문자열은 false') }
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>연산자</h2><p class="desc">할당 · 증가/감소 · 비교 · 동등(==) · 일치(===) · 논리 · 단축 평가</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>할당 연산자 · 증가 & 감소 연산자</h3>
+<ul><li><b>할당 연산자</b>: 오른쪽에 있는 피연산자의 평가 결과를 왼쪽 피연산자에 할당하는 연산자 — 단축 연산자 지원: <code>x = x + 1</code> 을 <code>x += 1</code> 처럼</li><li><b>증가 연산자 (++)</b>: 피연산자를 증가(1을 더함)시키고 연산자의 위치에 따라 증가하기 전이나 후의 값을 반환</li><li><b>감소 연산자 (--)</b>: 피연산자를 감소(1을 뺌)시키고 연산자의 위치에 따라 감소하기 전이나 후의 값을 반환</li><li>→ 코드의 가독성을 위해 <b>+= 1, -= 1</b>과 같이 더 명시적인 표현으로 작성하는 것을 권장</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">할당 · 증감</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">let a = 0
+a += 10; console.log(a)   // 10
+a -= 3;  console.log(a)   // 7
+a *= 10; console.log(a)   // 70
+a %= 7;  console.log(a)   // 0
+
+let x = 3
+const y = x++             // 후위: 반환 후 증가
+console.log(x, y)         // 4 3
+
+let m = 0
+const n = ++m             // 전위: 증가 후 반환
+console.log(m, n)         // 1 1
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">3-2</span>비교 연산자 · 동등 연산자 (==) · 일치 연산자 (===)</h3>
+<ul><li><b>비교 연산자</b>: 피연산자들(숫자, 문자, Boolean 등)을 비교하고 결과 값을 boolean으로 반환하는 연산자 — 문자열은 유니코드 값으로 비교</li><li><b>동등 연산자 (==)</b>: 두 피연산자가 같은 값으로 평가되는지 비교 후 boolean 값을 반환 — '<b>암묵적 타입 변환</b>'을 통해 타입을 일치시킨 후 같은 값인지 비교. <code>0 == false</code>, <code>'' == []</code> 가 true 가 되는 등, 직관과 다른 암묵적 타입 변환이 일어나니 주의. 두 피연산자가 모두 객체일 경우 메모리의 같은 객체를 바라보는지 판별 — 내용이 같아도 다른 객체이면 false 입니다.</li><li><b>일치 연산자 (===)</b>: 두 피연산자의 값과 타입이 모두 같은 경우 true를 반환 — 같은 객체를 가리키거나, 같은 타입이면서 같은 값인지를 비교. 엄격한 비교가 이뤄지며 암묵적 타입 변환이 발생하지 않음. <b>특수한 경우를 제외하고는 동등 연산자가 아닌 일치 연산자 사용 권장</b></li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">== vs ===</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">console.log(3 &gt; 2, 'A' &lt; 'B', 'Z' &lt; 'a', '가' &lt; '나')
+console.log('--- == (동등) ---')
+console.log(1 == 1)        // true
+console.log('hello' == 'hello')  // true
+console.log('1' == 1)      // true
+console.log(0 == false)    // true
+console.log('' == [])      // true  (!)
+console.log(null == undefined)   // true
+console.log('--- === (일치) ---')
+console.log(1 === 1)       // true
+console.log('hello' === 'hello') // true
+console.log('1' === 1)     // false
+console.log(0 === false)   // false
+console.log([1] === [1])   // false (다른 객체)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">3-3</span>논리 연산자</h3>
+<table class="compare"><tr><th>연산자</th><th>표기</th></tr><tr><td class="k">and 연산</td><td>&&</td></tr><tr><td class="k">or 연산</td><td>||</td></tr><tr><td class="k">not 연산</td><td>!</td></tr></table><ul><li><b>단축 평가</b> 지원 — <code>&&</code>는 앞이 false면 뒤를 보지 않고 앞 값을, <code>||</code>는 앞이 true면 뒤를 보지 않고 앞 값을 반환</li><li>예) <code>false &amp;&amp; true → false</code>, <code>1 &amp;&amp; 0 → 0</code>, <code>4 &amp;&amp; 7 → 7</code>, <code>false || true → true</code>, <code>1 || 0 → 1</code>, <code>4 || 7 → 4</code>, <code>'' || 0 → 0</code></li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">논리 연산자 · 단축 평가</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">console.log(true &amp;&amp; false, true || false, !true)
+console.log(1 &amp;&amp; 0)     // 0
+console.log(0 &amp;&amp; 1)     // 0
+console.log(4 &amp;&amp; 7)     // 7
+console.log(1 || 0)     // 1
+console.log(0 || 1)     // 1
+console.log(4 || 7)     // 4
+console.log('' || 0)    // 0
+const nickname = ''
+console.log(nickname || '익명')   // 기본값 패턴
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>조건문</h2><p class="desc">if · else if · else · 삼항 연산자</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>if 문</h3>
+<ul><li>조건 표현식의 결과 값을 boolean 타입으로 변환 후 참/거짓을 판단</li><li><code>if (조건) { } else if (조건) { } else { }</code></li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">if 문</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const name = 'customer'
+
+if (name === 'admin') {
+  console.log('관리자님 환영해요')
+} else if (name === 'customer') {
+  console.log('고객님 환영해요')
+} else {
+  console.log(`반갑습니다. ${name}님`)
+}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>삼항 연산자 (condition ? expression1 : expression2)</h3>
+<ul><li><b>condition</b>: 평가할 조건 (true 또는 false로 평가)</li><li><b>expression1</b>: 조건이 true일 경우 반환할 값 또는 표현식</li><li><b>expression2</b>: 조건이 false일 경우 반환할 값 또는 표현식</li><li>간단한 조건부 로직을 간결하게 표현할 때 유용 — 복잡한 로직이나 대다수의 경우에는 가독성이 떨어질 수 있으므로 적절한 상황에서만 사용할 것</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">삼항 연산자</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const age = 20
+const message = (age &gt;= 18) ? '성인' : '미성년자'
+console.log(message)    // '성인'
+
+for (const a of [7, 18, 45]) {
+  console.log(a, a &gt;= 18 ? '성인' : '미성년자')
+}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch5" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>반복문</h2><p class="desc">while · for · for...in · for...of · 배열과 for...in · const 사용 여부</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">5-1</span>반복문 종류</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th><th>스코프</th></tr><tr><td class="k">while</td><td>조건문이 참이면 문장을 계속해서 수행</td><td>블록 스코프</td></tr><tr><td class="k">for</td><td>특정한 조건이 거짓으로 판별될 때까지 반복</td><td>블록 스코프</td></tr><tr><td class="k">for...in</td><td>객체의 열거 가능한(enumerable) 속성(property)에 대해 반복</td><td>블록 스코프</td></tr><tr><td class="k">for...of</td><td>반복 가능한(iterable) 객체(배열, 문자열 등)에 대해 반복</td><td>블록 스코프</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">5-2</span>while · for</h3>
+<pre class="formula">while (조건문) {
+  // do something
+}
+
+for ([초기문]; [조건문]; [증감문]) {
+  // do something
+}</pre><p>for 동작 원리: 초기문(1번만) → 조건문 검사 → (참이면) 본문 → 증감문 → 조건문 … → 조건문이 거짓이면 종료</p><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">while · for</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">let i = 0
+while (i &lt; 6) {
+  console.log('while', i)
+  i += 1
+}
+for (let i = 0; i &lt; 6; i++) {
+  console.log('for', i)
+}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-3</span>for...in vs for...of</h3>
+<pre class="formula">for (variable in object) {
+  statement
+}
+for (variable of iterable) {
+  statement
+}</pre><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">for...in · for...of</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const fruits = { a: 'apple', b: 'banana' }
+for (const property in fruits) {
+  console.log(property)            // a, b  (속성 이름)
+  console.log(fruits[property])    // apple, banana
+}
+
+const numbers = [0, 1, 2, 3]
+for (const number of numbers) {
+  console.log(number)              // 0, 1, 2, 3 (값)
+}
+
+const str = 'abc'
+for (const ch of str) console.log(ch)   // 문자열도 iterable
+
+try {
+  for (const capital of { korea: '서울' }) {}   // 일반 객체는 iterable이 아님
+} catch (e) {
+  console.error(e.name + ': ' + e.message)
+}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-4</span>배열 반복과 for...in — 사용하지 않는 이유</h3>
+<ul><li>객체 관점에서 배열의 인덱스는 "정수 이름을 가진 속성"이기 때문에 for...in을 쓸 수는 있지만,</li><li>for...in은 배열의 <b>값이 아닌 인덱스</b>를, 그것도 숫자가 아닌 <b>'문자열'</b>로 반환함</li><li>배열의 프로토타입에 추가된 속성까지 순회할 수 있어, 예기치 않은 결과를 초래할 수 있음</li><li>내부적으로 for...in은 정수가 아닌 이름과 속성을 반환하는 것과 더불어 특정 순서에 따라 인덱스를 반환하는 것을 보장할 수 없음 → 따라서 for...in은 인덱스의 순서가 중요한 배열에서는 사용하지 않음</li><li>→ <b>배열에서는 for문, for...of를 사용</b></li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">배열에 for...in 쓰면?</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const arr = ['a', 'b', 'c']
+Array.prototype.extra = '추가된 속성'   // 프로토타입 오염 예시
+for (const i in arr) {
+  console.log('in:', i, typeof i)       // '0','1','2' 문자열 + extra까지!
+}
+for (const v of arr) {
+  console.log('of:', v)
+}
+delete Array.prototype.extra
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-5</span>반복문 사용 시 const 사용 여부</h3>
+<ul><li><b>for 문</b>: <code>for (let i = 0; i &lt; arr.length; i++) { ... }</code>의 경우에는 최초 정의한 i를 "재할당" 하면서 사용하기 때문에 <b>const를 사용하면 에러 발생</b></li><li><b>for...in, for...of</b>: 재할당이 아니라, 매 반복마다 다른 속성 이름이 변수에 지정되는 것이므로 <b>const를 사용해도 에러가 발생하지 않음</b> — 단, const 특징에 따라 블록 내부에서 변수를 수정할 수 없음</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">const와 반복문</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">for (const x of [1, 2, 3]) {
+  console.log(x)                // OK
+}
+try {
+  for (const i = 0; i &lt; 3; i++) {
+    console.log(i)              // 첫 번째는 출력되고, i++ 에서 TypeError
+  }
+} catch (e) {
+  console.error(e.name + ': ' + e.message)
+}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch6" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">6</div><div><h2>함수</h2><p class="desc">참조 자료형 · 선언식 · 표현식 · 호이스팅 · 기본/나머지 매개변수 · 인자 개수 불일치 · spread</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">6-1</span>함수 (Function)</h3>
+<ul><li>참조 자료형에 속하며 모든 함수는 <b>Function object</b></li><li>함수 정의 구조: function 키워드, 함수의 이름, 함수의 매개변수, 함수의 body를 구성하는 statement</li><li>return 문이 없거나 return 뒤에 값이 없으면, 함수는 <b>undefined</b>를 반환합니다.</li></ul><pre class="formula">function name ([param[, param,[..., param]]]) {
+  statements
+  return value
+}</pre><table class="compare"><tr><th></th><th>선언식 (function declaration)</th><th>표현식 (function expression)</th></tr><tr><td class="k">형태</td><td>function add (num1, num2) { return num1 + num2 }</td><td>const sub = function (num1, num2) { return num1 - num2 }</td></tr><tr><td class="k">특징</td><td>호이스팅 됨 — 선언 전에 호출 가능</td><td>함수 이름이 없는 '익명 함수'를 사용할 수 있음. 선언부만 호이스팅 되었지만, 선언한 줄에 도달하기 전까지는 접근할 수 없음(TDZ) — 선언 전에 호출할 수 없음</td></tr><tr><td class="k">권장</td><td></td><td><b>함수 표현식 사용 권장</b> — 예측 가능성: 호이스팅 에러를 피할 수 있음, 유연성: 변수에 할당되므로 함수를 값으로 다루기 쉬움</td></tr></table><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">선언식 · 표현식</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">console.log(add(1, 2))           // 선언식: 선언 전에 호출 가능
+function add (num1, num2) {
+  return num1 + num2
+}
+
+try {
+  console.log(sub(2, 1))         // 표현식: TDZ → ReferenceError
+} catch (e) {
+  console.error(e.name + ': ' + e.message)
+}
+const sub = function (num1, num2) {
+  return num1 - num2
+}
+console.log(sub(2, 1))
+console.log(typeof add, typeof sub)
+function noValue () { return }
+console.log(noValue())
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-2</span>매개변수 — 기본 함수 매개변수 · 나머지 매개변수</h3>
+<ul><li><b>기본 함수 매개변수 (Default function parameter)</b>: 전달하는 인자가 없거나 undefined가 전달될 경우 이름 붙은 매개변수를 기본값으로 초기화</li><li><b>나머지 매개변수 (Rest parameters)</b>: 임의의 수의 인자를 '배열'로 허용하여 가변 인자를 나타내는 방법 — 작성 규칙: 함수 정의 시 나머지 매개변수는 하나만 작성할 수 있음, 나머지 매개변수는 함수 정의에서 매개변수 마지막에 위치해야 함</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">기본 · 나머지 매개변수</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const greeting = function (name = 'Anonymous') {
+  return `Hi ${name}`
+}
+console.log(greeting())          // Hi Anonymous
+console.log(greeting('Alice'))
+
+const myFunc = function (param1, param2, ...restPrams) {
+  return [param1, param2, restPrams]
+}
+console.log(myFunc(1, 2, 3, 4, 5))   // [1, 2, [3, 4, 5]]
+console.log(myFunc(1, 2))            // [1, 2, []]
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-3</span>매개변수와 인자 개수 불일치</h3>
+<ul><li><b>매개변수 개수 &gt; 인자 개수</b>: 누락된 인자는 undefined로 할당</li><li><b>매개변수 개수 &lt; 인자 개수</b>: 초과 입력한 인자는 사용하지 않음 (에러가 나지 않음)</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">인자 개수 불일치</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const threeArgs = function (param1, param2, param3) {
+  return [param1, param2, param3]
+}
+console.log(threeArgs())         // [undefined, undefined, undefined]
+console.log(threeArgs(1))        // [1, undefined, undefined]
+console.log(threeArgs(2, 3))     // [2, 3, undefined]
+
+const noArgs = function () { return 0 }
+console.log(noArgs(1, 2, 3))     // 0
+const twoArgs = function (param1, param2) {
+  return [param1, param2]
+}
+console.log(twoArgs(1, 2, 3))    // [1, 2]
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">6-4</span>Spread syntax (...) — 전개 구문</h3>
+<ul><li>배열이나 문자열과 같이 반복 가능한 항목을 펼치는 것(확장, 전개)</li><li>전개 대상에 따라 역할이 다름 — 배열이나 객체의 요소를 개별적인 값으로 분리하거나 다른 배열이나 객체의 요소를 현재 배열이나 객체에 추가하는 등</li><li>활용처: ① 함수와의 사용 — 함수 호출 시 인자 확장, 나머지 매개변수(압축) ② 객체와의 사용 ③ 배열과의 활용</li></ul><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">Spread syntax</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">function myFunc (x, y, z) {
+  return x + y + z
+}
+let numbers = [1, 2, 3]
+console.log(myFunc(...numbers))        // 6 — 함수 호출 시 인자 확장
+
+function myFunc2 (x, y, ...restArgs) {  // 나머지 매개변수 (압축)
+  return [x, y, restArgs]
+}
+console.log(myFunc2(1, 2, 3, 4, 5))    // [1, 2, [3, 4, 5]]
+console.log(myFunc2(1, 2))             // [1, 2, []]
+
+const merged = [...numbers, 4, 5]       // 배열과의 활용
+console.log(merged)
+const base = { a: 1 }
+console.log({ ...base, b: 2 })          // 객체와의 사용
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch7" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">7</div><div><h2>화살표 함수 (Arrow function expressions)</h2><p class="desc">작성 과정 · 생략 규칙 · 심화(인자 없음 · 객체 반환)</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">7-1</span>화살표 함수 표현식</h3>
+<ul><li>함수 표현식의 간결한 표현법</li><li><code>const arrow = function (name) { return `hello, ${name}` }</code> → <code>const arrow = name => `hello, ${name}`</code></li></ul><div class="subhead">화살표 함수 작성 결과</div><ol><li>function 키워드 제거 후 매개변수와 중괄호 사이에 화살표(=&gt;) 작성</li><li>함수의 매개변수가 하나 뿐이라면, 매개변수의 '( )' 제거 가능 (단, 생략하지 않는 것을 권장)</li><li>함수 본문의 표현식이 한 줄이라면, '{ }'와 'return' 제거 가능</li></ol><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">화살표 함수 작성 과정</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">const arrow1 = function (name) {
+  return `hello, ${name}`
+}
+// 1. function 키워드 삭제 후 화살표 작성
+const arrow2 = (name) =&gt; { return `hello, ${name}` }
+// 2. 인자의 소괄호 삭제 (인자가 1개일 경우에만 가능)
+const arrow3 = name =&gt; { return `hello, ${name}` }
+// 3. 중괄호와 return 삭제 (함수 본문이 return을 포함한 표현식 1개일 경우에만 가능)
+const arrow4 = name =&gt; `hello, ${name}`
+
+console.log(arrow1('Kim'), arrow2('Kim'), arrow3('Kim'), arrow4('Kim'))
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">7-2</span>화살표 함수 심화</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">화살표 함수 심화</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">// 1. 인자가 없다면 () 또는 _ 로 표시 가능
+const noArgs1 = () =&gt; 'No args'
+const noArgs2 = _ =&gt; 'No args'
+console.log(noArgs1(), noArgs2())
+
+// 2-1. object를 return 한다면 return 을 명시적으로 작성해야 함
+const returnObject1 = () =&gt; { return { key: 'value' } }
+// 2-2. return을 작성하지 않으려면 객체를 소괄호로 감싸야 함
+const returnObject2 = () =&gt; ({ key: 'value' })
+console.log(returnObject1(), returnObject2())
+
+// (주의) 소괄호 없이 쓰면 { }가 함수 본문으로 해석됨
+const wrong = () =&gt; { key: 'value' }
+console.log(wrong())    // undefined
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch8" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">8</div><div><h2>참고</h2><p class="desc">NaN을 반환하는 경우 · null과 undefined 두 가지인 이유 · typeof null</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">8-1</span>NaN을 반환하는 경우 예시</h3>
+<ul><li>숫자로서 읽을 수 없음 (<code>Number(undefined)</code>)</li><li>결과가 허수인 수학 계산식 (<code>Math.sqrt(-1)</code>)</li><li>피연산자가 NaN (<code>7 ** NaN</code>)</li><li>정의할 수 없는 계산식 (<code>0 * Infinity</code>)</li><li>문자열을 포함하면서 덧셈이 아닌 계산식 (<code>'가' / 3</code>)</li></ul><div class="note exam">NaN은 <b>자기 자신과 비교해도 false</b>가 나오는 유일한 값입니다 (<code>NaN === NaN // false</code>). NaN은 '숫자가 아님'이라는 뜻이지만, 타입을 확인하면 'number'가 반환됩니다. 검사는 <code>Number.isNaN()</code>을 사용합니다.</div><div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">NaN</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  
+  <div class="ide-code"><textarea spellcheck="false">console.log(Number(undefined), Math.sqrt(-1), 7 ** NaN, 0 * Infinity, '가' / 3)
+console.log(NaN === NaN)          // false
+console.log(typeof NaN)           // 'number'
+console.log(Number.isNaN(NaN), Number.isNaN('abc'), isNaN('abc'))
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">8-2</span>'값이 없음'에 대한 표현이 null과 undefined 2가지인 이유</h3>
+<ol><li><b>역사적 맥락</b>: JavaScript의 설계자 브랜던 아이크는 초기 언어 설계 시, 의도적인 값의 부재와 시스템적인 값의 부재를 구분하고자 함 — null: 개발자가 의도적으로 '값이 없다'는 것을 나타냄 / undefined: 시스템이 아직 값이 할당되지 않았음을 나타냄</li><li><b>typeof null의 결과가 "object"인 이유 (역사적 버그)</b>: 초기 버전에서 값의 타입을 나타내는 데 32비트 시스템을 사용 — 타입 태그를 하위 비트에 저장했는데, null은 모든 비트가 0인 특별한 값(NULL 포인터)으로 표현되었고, 하필 객체 타입을 나타내는 태그 또한 000이었기 때문에 null을 객체로 잘못 판단</li><li>ECMAScript 명세에서는 null을 원시 자료형으로 정의 — 그러나 typeof null의 결과는 역사적인 이유로 "object"를 유지</li><li>ECMAScript 6 개발 중 이 문제를 수정하려는 시도가 있었지만, 이미 <code>typeof null === 'object'</code> 라는 전제하에 만들어진 수많은 웹 사이트와의 하위 호환성 문제 때문에 수정되지 못함</li></ol><pre class="formula">null == undefined   // true
+null === undefined  // false</pre>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>Basic Syntax 01 확인문제</h3>
+<details class="quiz"><summary>1. 다음 중 원시 자료형(Primitive type)이 아닌 것은?</summary><ol class="opt" type="a"><li>Number</li><li>String</li><li>Array</li><li>undefined</li></ol><div class="ans"><b class="ok">정답: Array</b> — 배열(Array)은 객체(Object)에 속하는 참조 자료형이며 원시 자료형이 아닙니다.</div></details><details class="quiz"><summary>2. typeof null 의 결과는?</summary><div class="ans"><b class="ok">정답: 'object'</b> — JavaScript 초기 버전의 오류로 인해 typeof null이 'object'를 반환합니다.</div></details><details class="quiz"><summary>3. == 와 === 연산자의 주된 차이점은?</summary><div class="ans"><b class="ok">정답: ===는 타입까지 비교하고 ==는 암묵적 타입 변환 후 비교한다</b></div></details><details class="quiz"><summary>4. null과 undefined에 대한 설명으로 옳지 않은 것은?</summary><ol class="opt" type="a"><li>null은 의도적인 '값 없음'을 의미한다.</li><li>undefined는 값이 할당되지 않았음을 의미한다.</li><li>typeof null의 결과는 'null'이다.</li><li>null == undefined 는 true이다.</li></ol><div class="ans"><b class="ok">정답: typeof null의 결과는 'null'이다.</b> — 실제로는 'object'입니다.</div></details><details class="quiz"><summary>5. 다음 중 단축 평가 결과가 0인 것은?</summary><ol class="opt" type="a"><li>1 || 0</li><li>0 && 3</li><li>4 && 7</li><li>'' || 'a'</li></ol><div class="ans"><b class="ok">정답: 0 &amp;&amp; 3</b> — 앞이 false(0)이므로 뒤를 평가하지 않고 0을 반환합니다.</div></details><details class="quiz"><summary>6. 삼항 연산자의 특징은?</summary><ol class="opt" type="a"><li>세 개의 피연산자를 가진다.</li><li>두 개의 피연산자를 가진다.</li><li>반복문이다</li><li>함수이다</li></ol><div class="ans"><b class="ok">정답: 세 개의 피연산자를 가진다.</b> — condition ? expr1 : expr2</div></details><details class="quiz"><summary>7. 배열의 값을 순회하는 데 적합한 반복문은?</summary><ol class="opt" type="a"><li>for...in</li><li>for...of</li><li>while만</li><li>없음</li></ol><div class="ans"><b class="ok">정답: for...of</b> — iterable 객체를 순회하는 데 사용됩니다. for...in은 객체의 속성을 순회합니다.</div></details><details class="quiz"><summary>8. 함수 선언식과 표현식의 호이스팅 차이는?</summary><div class="ans"><b class="ok">정답: 함수 선언식은 호이스팅되어 선언 전에 호출 가능하지만, 함수 표현식은 변수가 TDZ에 있어 선언 전에 호출할 수 없습니다.</b></div></details><details class="quiz"><summary>9. 정해지지 않은 수의 인자들을 배열로 받는 매개변수는?</summary><ol class="opt" type="a"><li>기본 매개변수</li><li>나머지 매개변수</li><li>spread</li><li>화살표</li></ol><div class="ans"><b class="ok">정답: 나머지 매개변수 (...restParams)</b></div></details><details class="quiz"><summary>10. 올바른 화살표 함수 표현은?</summary><ol class="opt" type="a"><li>const arrow = name => { 'hello, ' + name }</li><li>const arrow = name => 'hello, ' + name</li><li>const arrow = (name) => return 'hello, ' + name</li><li>const arrow = => 'hello, ' + name</li></ol><div class="ans"><b class="ok">정답: const arrow = name =&gt; 'hello, ' + name</b> — 본문이 한 줄의 표현식이면 중괄호와 return을 동시에 생략할 수 있습니다. (a)는 중괄호만 있고 return이 없어 undefined를 반환합니다.</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th><th>예시</th></tr><tr><td class="k">원시 자료형</td><td>변수에 값이 직접 저장되는 자료형 — Number, String, Boolean, null, undefined. 데이터가 불변(immutable)이며, 다른 변수에 할당할 때 값이 복사</td><td>const a = 'bar'</td></tr><tr><td class="k">참조 자료형</td><td>객체의 메모리 주소가 변수에 저장되는 자료형. 데이터가 가변(mutable)이며, 다른 변수에 할당할 때 주소가 복사되어 원본과 사본이 서로 영향을 줌</td><td>Object, Array, Function</td></tr><tr><td class="k">String · 템플릿 리터럴</td><td>텍스트 데이터를 나타내며, + 연산자로 문자열을 결합 가능 / 백틱(`)을 사용해 변수를 ${} 형태로 문자열에 쉽게 삽입할 수 있는 방식</td><td>`${age}세`</td></tr><tr><td class="k">null · undefined</td><td>null은 개발자가 의도적으로 '값이 없음'을 나타낼 때 사용 / undefined는 '값이 할당되지 않음'을 시스템이 나타낼 때 사용</td><td>let x = null</td></tr><tr><td class="k">일치 연산자 (===)</td><td>값과 타입이 모두 같을 때 true, 암묵적 타입 변환 없음</td><td>'1' === 1 // false</td></tr><tr><td class="k">for...of 반복문</td><td>iterable(배열, 문자열) 값 순회</td><td>for (const i of arr) { ... }</td></tr><tr><td class="k">함수 표현식</td><td>const funcName = function() {} 형태로 변수에 할당, 호이스팅 문제 없음</td><td>const sub = function () {}</td></tr><tr><td class="k">화살표 함수</td><td>const arrow = () => {} — 함수 표현식의 간결한 표현</td><td>const arrow = () => {}</td></tr><tr><td class="k">기본 / 나머지 매개변수</td><td>function (name = 'Anonymous') 처럼 인자가 전달되지 않을 경우를 대비해 기본값을 설정 / function (...args) {} 형태로 작성하며, 정해지지 않은 개수의 인자를 배열로 받음</td><td>function (...args) {}</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>원시 = 값 복사(불변), 참조 = 주소 복사(공유) — 이 차이가 대부분의 "왜 같이 바뀌지?"를 설명한다.</li><li>비교는 <b>===</b>, 기본값은 <b>||</b> 또는 기본 매개변수, 배열 순회는 <b>for...of</b>.</li><li>함수는 <b>표현식(const) + 화살표 함수</b>로 쓰는 것이 기본 — 객체를 바로 반환할 때는 <code>() =&gt; ({ })</code>.</li></ul>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「JavaScript Basic Syntax 01」(2025-11-12, 89장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<script>
+(function(){
+  var CM = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var BRIDGE = "<scr"+"ipt>(function(){var ID=__ID__;function fmt(v,d){d=d||0;try{if(v===null)return 'null';if(v===undefined)return 'undefined';var t=typeof v;if(t==='string')return d?JSON.stringify(v):v;if(t==='number'||t==='boolean'||t==='bigint'||t==='symbol')return String(v);if(t==='function')return 'ƒ '+(v.name||'anonymous')+'()';if(v instanceof Element){var h=v.outerHTML;return h.length>160?h.slice(0,160)+'…':h;}if(v instanceof Text)return '#text '+JSON.stringify(v.textContent);if(typeof NodeList!=='undefined'&&(v instanceof NodeList||v instanceof HTMLCollection)){return (v instanceof NodeList?'NodeList':'HTMLCollection')+'('+v.length+') ['+Array.prototype.map.call(v,function(x){return fmt(x,d+1)}).join(', ')+']';}if(typeof DOMTokenList!=='undefined'&&v instanceof DOMTokenList)return 'DOMTokenList('+v.length+') ['+Array.prototype.map.call(v,function(x){return JSON.stringify(x)}).join(', ')+']';if(v instanceof Error)return v.name+': '+v.message;if(Array.isArray(v)){if(d>2)return '[…]';return '['+v.map(function(x){return fmt(x,d+1)}).join(', ')+']';}if(d>2)return '{…}';var ks=Object.keys(v);return '{ '+ks.map(function(k){return k+': '+fmt(v[k],d+1)}).join(', ')+' }';}catch(e){return String(v);}}function send(type,args){parent.postMessage({__jsbox:ID,type:type,s:Array.prototype.map.call(args,function(a){return fmt(a)}).join(' ')},'*');}['log','info','error','warn'].forEach(function(k){var o=console[k];console[k]=function(){send(k,arguments);try{o.apply(console,arguments)}catch(e){}};});window.addEventListener('error',function(e){send('error',[(e.error&&e.error.name?e.error.name+': '+e.error.message:e.message)]);});window.__done=function(){parent.postMessage({__jsbox:ID,type:'done'},'*');};})();</scr"+"ipt>";
+  var boxes = [];
+  function out(box, s, cls){ var pre=box.querySelector('.ide-out pre'); var sp=document.createElement('span'); if(cls) sp.className=cls; sp.textContent=s+'\n'; pre.appendChild(sp); pre.scrollTop=pre.scrollHeight; }
+  window.addEventListener('message', function(e){
+    var m=e.data; if(!m || m.__jsbox===undefined) return; var box=boxes[m.__jsbox]; if(!box) return;
+    if(m.type==='done'){ if(!box.querySelector('.ide-out pre').textContent) out(box,'(console 출력 없음)','sys'); return; }
+    out(box, m.s, m.type==='error'?'err':(m.type==='warn'?'warn':''));
+  });
+  function run(box){
+    var code=box._ed.get(); var htmlTa=box.querySelector('.html-src textarea'); var html=htmlTa?htmlTa.value:'';
+    box.querySelector('.ide-out pre').innerHTML='';
+    var safe=code.replace(/<\/script/gi,'<\\/script');
+    var doc='<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:Pretendard,"Malgun Gothic",sans-serif;margin:10px;font-size:14px;color:#222} .dark-mode{background:#1e1e2e;color:#eee} .red{color:crimson}</style>'+BRIDGE.replace('__ID__', box._id)+'</head><body>'+html+'<scr'+'ipt>document.currentScript.remove();'+safe+'\n</scr'+'ipt><scr'+'ipt>document.currentScript.remove();__done()</scr'+'ipt></body></html>';
+    var old=box.querySelector('iframe.js-view'); var f=document.createElement('iframe'); f.className='js-view'; f.setAttribute('sandbox','allow-scripts'); f.srcdoc=doc;
+    if(!box._hasView){ f.style.display='none'; box.appendChild(f); if(old) old.remove(); }
+    else { old.replaceWith(f); }
+  }
+  function init(useCM){
+    document.querySelectorAll('.jsbox').forEach(function(box, i){
+      box._id=i; boxes[i]=box; box._hasView=!!box.querySelector('.view-wrap');
+      var ta=box.querySelector('.ide-code textarea'); var orig=ta.value; var ed;
+      if(useCM && window.CodeMirror){
+        var cm=CodeMirror.fromTextArea(ta,{mode:'javascript',lineNumbers:true,indentUnit:2,tabSize:2,matchBrackets:true,viewportMargin:Infinity,extraKeys:{'Ctrl-Enter':function(){run(box)},'Cmd-Enter':function(){run(box)},'Tab':function(c){c.replaceSelection('  ','end')}}});
+        ed={get:function(){return cm.getValue()},set:function(v){cm.setValue(v)}};
+      } else {
+        ta.rows=Math.min(26,Math.max(5,orig.split('\n').length+1));
+        ta.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run(box);} if(e.key==='Tab'){e.preventDefault();var s=ta.selectionStart;ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(ta.selectionEnd);ta.selectionStart=ta.selectionEnd=s+2;} });
+        ed={get:function(){return ta.value},set:function(v){ta.value=v}};
+      }
+      box._ed=ed; var h=box.querySelector('.html-src textarea'); var origH=h?h.value:'';
+      box.querySelector('.run').onclick=function(){run(box)};
+      box.querySelector('.reset').onclick=function(){ ed.set(orig); if(h) h.value=origH; box.querySelector('.ide-out pre').innerHTML=''; };
+      if(box._hasView) run(box);
+    });
+  }
+  window.__runJS = function(i){ run(boxes[i]); };
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js').then(function(){ return Promise.all([loadJS(CM+'mode/javascript/javascript.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js')]); })
+    .then(function(){ init(true); }, function(){ init(false); });
+})();
+</script>
+</body>
+</html>

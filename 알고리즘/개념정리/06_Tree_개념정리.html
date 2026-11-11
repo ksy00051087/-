@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tree 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 06 · 09/16 Tree</span>
+    <h1>Tree 개념정리</h1>
+    <p class="sub">트리의 정의·용어 → 이진 트리(포화·완전·편향) → 배열/연결 리스트 표현 → 전위·중위·후위 순회 → 이진 탐색 트리 → 힙까지, 강의 슬라이드 74장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 6개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 12개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 트리</a><a href="#ch2">2. 이진 트리</a><a href="#ch3">3. 표현</a><a href="#ch4">4. 순회</a><a href="#ch5">5. 이진 탐색 트리</a><a href="#ch6">6. 힙</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 트리 자료구조를 이용해 가계도를 표현해 봅시다!</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">0-1</span>가계도를 완전 이진 트리로 저장하기</h3>
+
+<p>조부모, 부모, 고모, 나, 동생, 1명인 사촌을 완전 이진 트리로 저장하면 1번 인덱스부터 차례대로 담을 수 있습니다. 노드 i의 자식은 2i, 2i+1, 부모는 i//2.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">가계도 트리</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">family = [0, '조부모', '부모', '고모', '나', '동생', '사촌']
+for i in range(1, len(family)):
+    kids = [family[c] for c in (2 * i, 2 * i + 1) if c &lt; len(family)]
+    parent = family[i // 2] if i &gt; 1 else '-'
+    print(f'{i}번 {family[i]:4}  부모: {parent:4}  자식: {kids}')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>트리의 정의와 용어(노드·간선·루트·형제·조상·서브트리·자손·차수·높이)를 설명할 수 있다.</li><li>이진 트리의 특성과 종류(포화·완전·편향)를 설명할 수 있다.</li><li>이진 트리를 배열과 연결 리스트로 표현할 수 있다.</li><li>전위·중위·후위 순회를 구현할 수 있다.</li><li>이진 탐색 트리의 탐색·삽입·삭제 연산을 이해한다.</li><li>힙의 삽입·삭제 과정을 이해하고 우선순위 큐에 활용할 수 있다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>트리 (Tree)</h2><p class="desc">트리의 개념 · 정의 · 용어</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>트리의 개념</h3>
+<ul><li>비선형 구조</li><li>원소들 간에 <b>1:N 관계</b>를 가지는 자료구조</li><li>원소들 간에 <b>계층관계</b>를 가지는 계층형 자료구조</li><li>상위 원소에서 하위 원소로 내려가면서 확장되는 트리(나무) 모양의 구조</li></ul><div class="subhead">정의</div><ul><li>한 개 이상의 노드로 이루어진 유한 집합이며 다음 조건을 만족한다.</li><li>노드 중 최상위 노드를 <b>루트(root)</b>라 한다.</li><li>나머지 노드들은 n(>=0)개의 분리 집합 T1, …, TN으로 분리될 수 있다.</li><li>이들 T1, …, TN은 각각 하나의 트리가 되며(재귀적 정의) 루트의 <b>부 트리(subtree)</b>라 한다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>트리 용어 정리</h3>
+<table class="compare"><tr><th>용어</th><th>의미</th></tr><tr><td class="k">노드(node)</td><td>트리의 원소 — 트리 T의 노드 A, B, C, …</td></tr><tr><td class="k">간선(edge)</td><td>노드를 연결하는 선. 부모 노드와 자식 노드를 연결</td></tr><tr><td class="k">루트 노드(root node)</td><td>트리의 시작 노드</td></tr><tr><td class="k">형제 노드(sibling node)</td><td>같은 부모 노드의 자식 노드들</td></tr><tr><td class="k">조상 노드</td><td>간선을 따라 루트 노드까지 이르는 경로에 있는 모든 노드들</td></tr><tr><td class="k">서브 트리(subtree)</td><td>부모 노드와 연결된 간선을 끊었을 때 생성되는 트리</td></tr><tr><td class="k">자손 노드</td><td>서브 트리에 있는 하위 레벨의 노드들</td></tr><tr><td class="k">노드의 차수(degree)</td><td>노드에 연결된 자식 노드의 수</td></tr><tr><td class="k">트리의 차수</td><td>트리에 있는 노드의 차수 중에서 가장 큰 값</td></tr><tr><td class="k">단말 노드(리프 노드)</td><td>차수가 0인 노드. 자식 노드가 없는 노드</td></tr><tr><td class="k">노드의 높이(레벨)</td><td>루트에서 노드에 이르는 간선의 수</td></tr><tr><td class="k">트리의 높이</td><td>트리에 있는 노드의 높이 중에서 가장 큰 값. 최대 레벨</td></tr></table>
+</div>
+<div class="card full">
+<h3><span class="tag">1-3</span>트리 용어를 코드로 확인 — 입력 트리</h3>
+
+<p>입력: 정점의 수 V, 다음 줄에 간선(부모 자식 쌍)이 나열됩니다. 루트는 부모가 없는 노드입니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">트리 용어 확인</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">V = int(input())
+E = V - 1
+arr = list(map(int, input().split()))
+children = [[] for _ in range(V + 1)]
+par = [0] * (V + 1)
+for i in range(E):
+    p, c = arr[2 * i], arr[2 * i + 1]
+    children[p].append(c)
+    par[c] = p
+
+root = [v for v in range(1, V + 1) if par[v] == 0][0]
+leaves = [v for v in range(1, V + 1) if not children[v]]
+def level(v):
+    h = 0
+    while par[v]:
+        v = par[v]; h += 1
+    return h
+print('루트:', root)
+print('단말(리프) 노드:', leaves)
+print('노드 3의 차수:', len(children[3]), '/ 트리의 차수:', max(len(c) for c in children))
+print('노드 11의 레벨:', level(11), '/ 트리의 높이:', max(level(v) for v in range(1, V + 1)))
+anc, v = [], 13
+while par[v]:
+    v = par[v]; anc.append(v)
+print('노드 13의 조상:', anc)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">13
+1 2 1 3 2 4 3 5 3 6 4 7 5 8 5 9 6 10 6 11 7 12 11 13
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>이진 트리 (Binary Tree)</h2><p class="desc">특성 · 포화 · 완전 · 편향 이진 트리</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>이진 트리</h3>
+<ul><li>모든 노드들이 <b>2개의 서브트리</b>를 갖는 특별한 형태의 트리</li><li>각 노드가 자식 노드를 최대한 2개 까지만 가질 수 있는 트리 — 왼쪽 자식 노드(left child node), 오른쪽 자식 노드(right child node)</li><li>레벨 i에서의 노드의 최대 개수는 <b>2ⁱ개</b></li><li>높이가 h인 이진 트리가 가질 수 있는 노드의 최소 개수는 <b>(h+1)개</b>가 되며, 최대 개수는 <b>(2ʰ⁺¹-1)개</b>가 된다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>이진 트리의 종류</h3>
+<table class="compare"><tr><th>종류</th><th>설명</th></tr><tr><td class="k">포화 이진 트리 (Full Binary Tree)</td><td>모든 레벨에 노드가 포화상태로 차 있는 이진 트리. 높이가 h일 때, 최대의 노드 개수인 (2ʰ⁺¹-1)의 노드를 가진 이진 트리 — 높이 3일 때 2⁴-1 = 15개의 노드. 루트를 1번으로 하여 2ʰ⁺¹-1까지 정해진 위치에 대한 노드 번호를 가짐</td></tr><tr><td class="k">완전 이진 트리 (Complete Binary Tree)</td><td>높이가 h이고 노드 수가 n개일 때 (단, 2ʰ ≤ n &lt; 2ʰ⁺¹-1), 포화 이진 트리의 노드 번호 1번부터 n번까지 빈 자리가 없는 이진 트리. 예) 노드가 10개인 완전 이진 트리</td></tr><tr><td class="k">편향 이진 트리 (Skewed Binary Tree)</td><td>높이 h에 대한 최소 개수의 노드를 가지면서 한쪽 방향의 자식 노드만을 가진 이진 트리 — 왼쪽 편향 / 오른쪽 편향</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">2-3</span>높이에 따른 노드 수</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">이진 트리 노드 수</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">for h in range(5):
+    print(f'높이 {h}: 레벨 {h}의 최대 노드 2^{h} = {2**h:2},  전체 최소 {h + 1:2}개, 최대 2^{h+1}-1 = {2**(h+1) - 1}개')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>이진 트리의 표현</h2><p class="desc">배열 표현 · 부모/자식 번호 · 단점 · 연결 리스트 표현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>배열을 이용한 이진 트리의 표현</h3>
+<ul><li>이진 트리에 각 노드 번호를 다음과 같이 부여 — 루트의 번호를 1로 함, 레벨 n에 있는 노드에 대하여 왼쪽부터 오른쪽으로 2ⁿ 부터 2ⁿ⁺¹ - 1 까지 번호를 차례로 부여</li><li>노드 번호를 배열의 인덱스로 사용</li><li>높이가 h인 이진 트리를 위한 배열의 크기는? → 레벨 i의 최대 노드 수는 2ⁱ 이므로 모든 노드의 수는 1 + 2 + 4 + … + 2ʰ = <b>2ʰ⁺¹ - 1</b> 이므로 배열의 크기는 2ʰ⁺¹</li></ul><table class="compare"><tr><th>질문</th><th>답</th></tr><tr><td class="k">노드 번호가 i인 노드의 부모 노드 번호?</td><td>i // 2</td></tr><tr><td class="k">노드 번호가 i인 노드의 왼쪽 자식 노드 번호?</td><td>2 * i</td></tr><tr><td class="k">노드 번호가 i인 노드의 오른쪽 자식 노드 번호?</td><td>2 * i + 1</td></tr><tr><td class="k">레벨 n의 노드 번호 시작 번호는?</td><td>2ⁿ</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>배열을 이용한 이진 트리 표현의 단점</h3>
+<ul><li>편향 이진 트리의 경우에 사용하지 않는 배열 원소에 대한 <b>메모리 공간 낭비</b> 발생</li><li>트리의 중간에 새로운 노드를 삽입하거나 기존의 노드를 삭제할 경우 배열의 크기 변경 어려워 비효율적</li></ul><div class="subhead">부모 번호를 인덱스로 자식 번호를 저장 (일반 트리 입력)</div><pre class="formula">for i in range(E):
+    p, c = arr[i*2], arr[i*2+1]
+    if c1[p] == 0:   # 아직 자식이 없으면 왼쪽
+        c1[p] = c
+    else:            # 오른쪽
+        c2[p] = c</pre><p>자식 번호를 인덱스로 부모 번호를 저장하면(<code>par[c] = p</code>) 루트 찾기, 조상 찾기가 쉬워집니다.</p>
+</div>
+<div class="card full">
+<h3><span class="tag">3-3</span>연결 리스트를 이용한 이진 트리의 표현</h3>
+<ul><li>배열을 이용한 이진 트리의 표현의 단점을 보완하기 위해 연결리스트를 이용하여 트리를 표현할 수 있음</li><li>이진 트리의 모든 노드는 최대 2개의 자식 노드를 가지므로 일정한 구조의 단순 연결 리스트 노드를 사용하여 구현: <code>[left | data | right]</code></li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">연결 리스트 이진 트리</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">class Node:
+    def __init__(self, data):
+        self.data = data
+        self.left = None
+        self.right = None
+
+# 완전 이진 트리 배열 [_, A, B, C, D, E, F] → 연결 리스트로 변환
+arr = [None, 'A', 'B', 'C', 'D', 'E', 'F']
+nodes = [None] + [Node(x) for x in arr[1:]]
+for i in range(1, len(arr)):
+    if 2 * i &lt; len(arr): nodes[i].left = nodes[2 * i]
+    if 2 * i + 1 &lt; len(arr): nodes[i].right = nodes[2 * i + 1]
+
+root = nodes[1]
+print(root.data, '→ left', root.left.data, ', right', root.right.data)
+print(root.left.data, '→ left', root.left.left.data, ', right', root.left.right.data)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>이진 트리 순회 (Traversal)</h2><p class="desc">전위 · 중위 · 후위 순회 · 구현 · 연습문제</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>순회(traversal)</h3>
+<ul><li>순회(traversal)란 트리의 각 노드를 중복되지 않게 전부 방문(visit) 하는 것을 말하는데 트리는 비선형 구조이기 때문에 선형 구조에서와 같이 선후 연결 관계를 알 수 없다.</li><li>따라서 특별한 방법이 필요하다.</li></ul><table class="compare"><tr><th>순회</th><th>순서</th><th>설명</th></tr><tr><td class="k">전위순회(preorder traversal)</td><td>V L R</td><td>부모 노드 방문 후, 자식 노드를 좌, 우 순서로 방문한다.</td></tr><tr><td class="k">중위순회(inorder traversal)</td><td>L V R</td><td>왼쪽 자식 노드, 부모 노드, 오른쪽 자식 노드 순으로 방문한다.</td></tr><tr><td class="k">후위순회(postorder traversal)</td><td>L R V</td><td>자식 노드를 좌우 순서로 방문한 후, 부모 노드로 방문한다.</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>순회 알고리즘</h3>
+<pre class="formula">def preorder_traverse(T):   # 전위순회
+    if T:                    # T is not None
+        visit(T)             # print(T.item)
+        preorder_traverse(T.left)
+        preorder_traverse(T.right)
+
+def inorder_traverse(T):    # 중위순회
+    if T:
+        inorder_traverse(T.left)
+        visit(T)
+        inorder_traverse(T.right)
+
+def postorder_traverse(T):  # 후위순회
+    if T:
+        postorder_traverse(T.left)
+        postorder_traverse(T.right)
+        visit(T)</pre>
+</div>
+<div class="card full">
+<h3><span class="tag">4-3</span>[연습문제] 이진 트리 순회 — 첫 줄에는 트리의 정점의 총 수 V, 다음 줄에는 V-1개 간선이 나열된다. 간선은 그것을 이루는 두 정점으로 표기된다(부모 자식 순). 이진 트리를 표현하여 전위·중위·후위 순회한 결과를 출력하시오.</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">전위·중위·후위 순회</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">V = int(input())
+arr = list(map(int, input().split()))
+left = [0] * (V + 1)     # 부모를 인덱스로 왼쪽 자식 번호 저장
+right = [0] * (V + 1)
+par = [0] * (V + 1)      # 자식을 인덱스로 부모 저장
+for i in range(V - 1):
+    p, c = arr[2 * i], arr[2 * i + 1]
+    if left[p] == 0:
+        left[p] = c
+    else:
+        right[p] = c
+    par[c] = p
+
+root = 1
+while par[root]:          # 루트 찾기
+    root = par[root]
+
+def preorder(T):
+    if T:
+        print(T, end=' ')
+        preorder(left[T])
+        preorder(right[T])
+def inorder(T):
+    if T:
+        inorder(left[T])
+        print(T, end=' ')
+        inorder(right[T])
+def postorder(T):
+    if T:
+        postorder(left[T])
+        postorder(right[T])
+        print(T, end=' ')
+
+print('전위:', end=' '); preorder(root); print()
+print('중위:', end=' '); inorder(root); print()
+print('후위:', end=' '); postorder(root); print()
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">13
+1 2 1 3 2 4 3 5 3 6 4 7 5 8 5 9 6 10 6 11 7 12 11 13
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-4</span>수식 트리로 보는 순회</h3>
+<p>수식 <code>(A + B) * C</code> 의 수식 트리(연산자 = 내부 노드, 피연산자 = 리프)를 순회하면: 전위 → 전위 표기법(<code>* + A B C</code>), 중위 → 중위 표기법(<code>A + B * C</code>, 괄호 제외), 후위 → <b>후위 표기법</b>(<code>A B + C *</code>).</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">수식 트리 순회</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">tree = [None, '*', '+', 'C', 'A', 'B']   # 배열 표현
+def pre(i):  return [] if i &gt;= len(tree) or tree[i] is None else [tree[i]] + pre(2*i) + pre(2*i+1)
+def ino(i):  return [] if i &gt;= len(tree) or tree[i] is None else ino(2*i) + [tree[i]] + ino(2*i+1)
+def post(i): return [] if i &gt;= len(tree) or tree[i] is None else post(2*i) + post(2*i+1) + [tree[i]]
+print('전위:', ' '.join(pre(1)))
+print('중위:', ' '.join(ino(1)))
+print('후위:', ' '.join(post(1)))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch5" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>이진 탐색 트리 (BST)</h2><p class="desc">성질 · 탐색 · 삽입 · 삭제 · 성능</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">5-1</span>이진 탐색 트리</h3>
+<ul><li>데이터를 빠르게 검색할 수 있도록 체계적으로 저장 — 탐색 작업을 효율적으로 하기 위한 자료구조</li><li>모든 원소는 서로 다른 유일한 키를 갖는다.</li><li><b>key(왼쪽 서브트리) &lt; key(루트 노드) &lt; key(오른쪽 서브트리)</b></li><li>왼쪽 서브트리와 오른쪽 서브트리도 이진 탐색 트리다.</li><li><b>중위 순회하면 오름차순으로 정렬된 값</b>을 얻을 수 있다.</li><li>평균 O(log n)의 빠른 속도로 값을 검색 — BST는 선형 연결리스트 보다 더 빠른 삽입 / 삭제 / 탐색이 가능함</li></ul>
+</div>
+<div class="card full">
+<h3><span class="tag">5-2</span>탐색 연산 · 삽입 연산 · 삭제 연산</h3>
+<ul><li><b>탐색</b>: 루트에서 시작한다. 탐색할 키 값 x를 루트 노드의 키 값과 비교한다. (키 값 x = 루트 노드의 키 값)인 경우: 원하는 원소를 찾았으므로 탐색 연산 성공 / (x &lt; 루트)인 경우: 루트 노드의 왼쪽 서브트리에 대해서 탐색 연산 수행 / (x &gt; 루트)인 경우: 루트 노드의 오른쪽 서브트리에 대해서 탐색 연산 수행. 서브트리에 대해서 순환적으로 탐색 연산을 반복한다.</li><li><b>삽입</b>: 먼저 탐색 연산을 수행 — 삽입할 원소와 같은 원소가 트리에 있으면 삽입할 수 없으므로, 같은 원소가 트리에 있는지 탐색하여 확인한다. 탐색에서 탐색 실패가 결정되는 위치가 삽입 위치가 된다. 탐색 실패한 위치에 원소를 삽입한다.</li><li><b>삭제</b>: ① 리프 노드면 그냥 삭제 ② 자식이 하나면 그 자식을 부모에 연결 ③ 자식이 둘이면 오른쪽 서브트리의 최솟값(중위 후속자)으로 대체한 뒤 그 노드를 삭제</li></ul><div class="subhead">이진 탐색 트리 — 성능</div><ul><li>탐색(searching), 삽입(insertion), 삭제(deletion) 시간은 트리의 높이만큼 시간이 걸린다 — O(h), h: BST의 깊이(height)</li><li>평균의 경우: 이진 트리가 균형적으로 생성되어 있는 경우 <b>O(log n)</b></li><li>최악의 경우: 한쪽으로 치우친 경사 이진 트리의 경우 <b>O(n)</b> — 순차탐색과 시간 복잡도가 같다.</li><li>검색 알고리즘의 비교 — 배열에서의 순차 검색 O(N), 정렬된 배열에서의 순차 검색 O(N), 정렬된 배열에서의 이진탐색 O(logN) (고정 배열 크기와 삽입, 삭제 시 추가 연산 필요), 이진 탐색트리에서의 평균 O(logN) (최악의 경우 O(N), 완전 이진 트리 또는 균형트리로 바꿀 수 있다면 최악의 경우를 없앨 수 있음 — 새로운 원소를 삽입할 때 삽입 시간을 줄임, 평균과 최악의 시간이 같음 O(logN))</li><li>해쉬 검색 — O(1) (추가 저장 공간이 필요)</li></ul>
+</div>
+<div class="card full">
+<h3><span class="tag">5-3</span>BST 구현 — 탐색·삽입·삭제·중위 순회</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">BST</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">class Node:
+    def __init__(self, key):
+        self.key = key
+        self.left = self.right = None
+
+def insert(root, key):
+    if root is None:                  # 탐색 실패 위치 = 삽입 위치
+        return Node(key)
+    if key &lt; root.key:
+        root.left = insert(root.left, key)
+    elif key &gt; root.key:
+        root.right = insert(root.right, key)
+    return root                       # 같은 키는 삽입하지 않음
+
+def search(root, key, path=None):
+    path = [] if path is None else path
+    if root is None:
+        return False, path
+    path.append(root.key)
+    if key == root.key: return True, path
+    if key &lt; root.key: return search(root.left, key, path)
+    return search(root.right, key, path)
+
+def delete(root, key):
+    if root is None: return None
+    if key &lt; root.key: root.left = delete(root.left, key)
+    elif key &gt; root.key: root.right = delete(root.right, key)
+    else:
+        if root.left is None: return root.right     # 자식 0~1개
+        if root.right is None: return root.left
+        succ = root.right                           # 자식 2개: 오른쪽 최솟값
+        while succ.left: succ = succ.left
+        root.key = succ.key
+        root.right = delete(root.right, succ.key)
+    return root
+
+def inorder(t, out):
+    if t:
+        inorder(t.left, out); out.append(t.key); inorder(t.right, out)
+    return out
+
+root = None
+for k in map(int, input().split()):
+    root = insert(root, k)
+print('중위 순회(정렬됨):', inorder(root, []))
+print('13 탐색:', search(root, 13))
+print('11 탐색:', search(root, 11))
+root = delete(root, 8)
+print('8 삭제 후:', inorder(root, []), ' 새 루트:', root.key)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">8 3 10 2 5 14 11 16 13
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch6" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">6</div><div><h2>힙 (Heap)</h2><p class="desc">최대 힙 · 최소 힙 · 삽입 · 삭제 · 우선순위 큐 · 힙 정렬</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">6-1</span>힙</h3>
+<ul><li><b>완전 이진 트리</b>에 있는 노드 중에서 키 값이 가장 큰 노드나 키 값이 가장 작은 노드를 찾기 위해서 만든 자료구조</li></ul><table class="compare"><tr><th>종류</th><th>조건</th></tr><tr><td class="k">최대 힙 (max heap)</td><td>키 값이 가장 큰 노드를 찾기 위한 완전 이진 트리. 부모 노드의 키 값 &gt; 자식 노드의 키 값. 루트 노드: 키 값이 가장 큰 노드</td></tr><tr><td class="k">최소 힙 (min heap)</td><td>키 값이 가장 작은 노드를 찾기 위한 완전 이진 트리. 부모 노드의 키 값 &lt; 자식 노드의 키 값. 루트 노드: 키 값이 가장 작은 노드</td></tr></table><div class="note exam">완전 이진 트리가 아니거나, 부모-자식 대소 관계가 깨진 트리는 힙이 아닙니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-2</span>힙 연산 — 삽입 / 삭제</h3>
+<ul><li><b>삽입</b>: 완전 이진 트리를 유지하도록 <b>마지막 자리</b>에 넣고, 부모와 비교하며 자리 바꾸기(최대 힙: 삽입 노드 &gt; 부모면 교환)를 비교할 부모 노드가 없을 때까지 반복 → 자리 확정. 예) 23 삽입: (23 &gt; 부모 19) 자리바꾸기 → (23 &gt; 부모 20) 자리바꾸기 → 비교할 부모 노드가 없으므로 자리 확정</li><li><b>삭제</b>: 힙에서는 <b>루트 노드의 원소만</b>을 삭제할 수 있다. 루트 노드의 원소를 삭제하여 반환한다. 마지막 노드를 루트로 옮긴 뒤, 자식 중 더 큰(최소 힙은 더 작은) 쪽과 비교하며 내려보낸다.</li><li>힙의 키를 우선순위로 활용하여 <b>우선순위 큐</b>를 구현할 수 있다.</li><li>힙 정렬: 힙에서 순차적(오름차순)으로 값을 하나씩 제거 — 힙 정렬은 힙 자료구조를 이용해서 이진 트리와 유사한 방법으로 수행된다. 정렬을 위한 두 가지 작업: n개의 노드 삽입 연산 + n개의 노드 삭제 연산. 삽입과 삭제 연산은 각각 O(logn)이 소요되므로 전체 정렬은 <b>O(nlogn)</b>. 배열에 저장된 자료를 정렬하기에 유용하다.</li></ul>
+</div>
+<div class="card full">
+<h3><span class="tag">6-3</span>최대 힙 직접 구현</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">최대 힙</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">heap = [0] * 101      # 1번 인덱스부터 사용
+last = 0
+
+def enq(n):
+    global last
+    last += 1
+    heap[last] = n                  # 마지막 정점에 저장
+    c = last; p = c // 2
+    while p and heap[p] &lt; heap[c]:  # 부모가 있고, 부모 &lt; 자식이면 교환
+        heap[p], heap[c] = heap[c], heap[p]
+        c = p; p = c // 2
+
+def deq():
+    global last
+    tmp = heap[1]                   # 루트 백업
+    heap[1] = heap[last]            # 마지막 정점을 루트로
+    last -= 1
+    p = 1; c = p * 2
+    while c &lt;= last:                # 자식이 있으면
+        if c + 1 &lt;= last and heap[c] &lt; heap[c + 1]:
+            c += 1                  # 더 큰 자식 선택
+        if heap[p] &lt; heap[c]:
+            heap[p], heap[c] = heap[c], heap[p]
+            p = c; c = p * 2
+        else:
+            break
+    return tmp
+
+for x in map(int, input().split()):
+    enq(x)
+    print(f'{x:2} 삽입 → {heap[1:last + 1]}')
+print('삭제 순서:', [deq() for _ in range(last)])
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">20 15 19 4 13 11 23
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-4</span>heapq로 최소 힙 · 최대 힙 · 힙 정렬</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">heapq</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import heapq
+data = [7, 2, 5, 3, 4, 6]
+
+h = []
+for x in data:
+    heapq.heappush(h, x)          # 최소 힙
+print('최소 힙 배열:', h)
+print('힙 정렬:', [heapq.heappop(h) for _ in range(len(data))])
+
+mh = []
+for x in data:
+    heapq.heappush(mh, -x)        # 부호를 바꾸면 최대 힙
+print('최대 힙 순서:', [-heapq.heappop(mh) for _ in range(len(data))])
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-5</span>추천 문제 (SWEA)</h3>
+<ul><li>1231. 중위순회</li><li>1232. 사칙연산</li><li>5174. subtree</li><li>5176. 이진탐색</li><li>5177. 이진 힙</li><li>5178. 노드의 합</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>Tree 확인문제</h3>
+<details class="quiz"><summary>1. 트리의 정의에 대한 설명으로 올바른 것은?</summary><ol class="opt" type="a"><li>모든 노드는 정확히 두 개의 자식 노드를 가진다.</li><li>트리는 사이클이 존재할 수 있는 선형 구조이다.</li><li>트리는 계층적이며 1:N 관계를 갖는 비선형 자료구조이다.</li><li>트리는 항상 루트가 두 개다.</li></ol><div class="ans"><b class="ok">정답: 트리는 계층적이며 1:N 관계를 갖는 비선형 자료구조이다</b></div></details><details class="quiz"><summary>2. 트리의 용어 중 '리프 노드'는 무엇을 의미하는가?</summary><ol class="opt" type="a"><li>루트 노드</li><li>자식 노드를 모두 갖고 있는 노드</li><li>자식 노드가 하나만 있는 노드</li><li>자식 노드가 없는 노드</li></ol><div class="ans"><b class="ok">정답: 자식 노드가 없는 노드</b> — 가장 말단에 위치한 노드입니다.</div></details><details class="quiz"><summary>3. 다음 중 루트 노드에 대한 설명으로 적절한 것은?</summary><ol class="opt" type="a"><li>트리에서 가장 마지막에 생성된 노드</li><li>부모 노드가 존재하지 않는 노드</li><li>항상 형제 노드를 가진다.</li><li>리프 노드이다</li></ol><div class="ans"><b class="ok">정답: 부모 노드가 존재하지 않는 노드</b> — 트리에서 최상단에 위치합니다.</div></details><details class="quiz"><summary>4. 이진 트리에서 각 노드가 가질 수 있는 최대 자식 노드 수는?</summary><ol class="opt" type="a"><li>1</li><li>2</li><li>3</li><li>제한 없음</li></ol><div class="ans"><b class="ok">정답: 2</b></div></details><details class="quiz"><summary>5. 높이가 h인 포화 이진 트리의 노드 수는?</summary><ol class="opt" type="a"><li>2ʰ</li><li>2ʰ⁺¹-1</li><li>h+1</li><li>h²</li></ol><div class="ans"><b class="ok">정답: 2ʰ⁺¹-1</b> — 모든 레벨이 가득 찼을 때의 노드 수입니다.</div></details><details class="quiz"><summary>6. 이진 탐색 트리(BST)의 키 값 규칙은?</summary><ol class="opt" type="a"><li>부모 노드보다 왼쪽 자식은 항상 크다.</li><li>왼쪽 서브트리 &lt; 루트 &lt; 오른쪽 서브트리</li><li>모든 자식은 부모와 같다</li><li>규칙이 없다</li></ol><div class="ans"><b class="ok">정답: 왼쪽 서브트리 &lt; 루트 &lt; 오른쪽 서브트리</b></div></details><details class="quiz"><summary>7. 중위 순회의 방문 순서는?</summary><ol class="opt" type="a"><li>부모 → 왼쪽 → 오른쪽</li><li>왼쪽 → 부모 → 오른쪽</li><li>왼쪽 → 오른쪽 → 부모</li><li>오른쪽 → 부모 → 왼쪽</li></ol><div class="ans"><b class="ok">정답: 왼쪽 → 부모 → 오른쪽</b></div></details><details class="quiz"><summary>8. 다음 중 최소 힙(Min Heap)의 조건으로 옳은 것은?</summary><ol class="opt" type="a"><li>루트 노드가 항상 최대값을 가진다.</li><li>완전 이진 트리이다.</li><li>자식 노드가 없으면 트리가 아니다.</li><li>왼쪽 자식이 항상 오른쪽보다 작다</li></ol><div class="ans"><b class="ok">정답: 완전 이진 트리이다</b> — 힙은 반드시 완전 이진 트리 구조를 따라야 힙 조건이 성립합니다.</div></details><details class="quiz"><summary>9. 배열 기반 이진 트리에서 노드 i의 왼쪽 자식 인덱스는?</summary><ol class="opt" type="a"><li>i+1</li><li>2*i</li><li>i//2</li><li>2*i+1</li></ol><div class="ans"><b class="ok">정답: 2*i</b></div></details><details class="quiz"><summary>10. 서브트리(subtree)에 대한 설명으로 옳은 것은?</summary><ol class="opt" type="a"><li>노드의 부모 노드만으로 구성된 트리</li><li>루트 노드를 제외한 나머지 전체 노드</li><li>특정 노드와 그 노드의 자손 노드들로 구성된 트리</li><li>자식 노드가 없는 노드들의 모임</li></ol><div class="ans"><b class="ok">정답: 특정 노드와 그 노드의 자손 노드들로 구성된 트리</b></div></details><details class="quiz"><summary>11. 후위 순회의 방문 순서를 V, L, R로 쓰면? (단답형)</summary><div class="ans"><b class="ok">정답: L R V</b></div></details><details class="quiz"><summary>12. 이진 트리를 연결리스트로 표현할 때의 장점은?</summary><ol class="opt" type="a"><li>모든 노드를 순차적으로 접근해야 한다.</li><li>포화 트리에서만 사용할 수 있다.</li><li>메모리 낭비를 줄이고 유동적인 크기를 가질 수 있다.</li><li>부모를 바로 찾을 수 있다</li></ol><div class="ans"><b class="ok">정답: 메모리 낭비를 줄이고 유동적인 크기를 가질 수 있다</b></div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th><th>예시</th></tr><tr><td class="k">트리(Tree)</td><td>원소 간 계층적 관계를 가지는 비선형(1:N 관계) 자료구조. 루트에서 시작해 여러 자식 노드로 분기하는 구조</td><td>가계도, 조직도</td></tr><tr><td class="k">루트 노드(Root Node)</td><td>트리의 최상위 노드</td><td>가계도에서 가장 위 조상</td></tr><tr><td class="k">형제 노드</td><td>계층 구조에서 같은 부모를 공유</td><td>나와 동생</td></tr><tr><td class="k">트리의 높이</td><td>루트에서 가장 깊은 노드까지의 거리 (= 최대 레벨)</td><td></td></tr><tr><td class="k">이진 탐색 트리</td><td>왼쪽 &lt; 루트 &lt; 오른쪽. 탐색, 삽입, 삭제가 평균 O(log n)의 시간 복잡도를 가짐</td><td></td></tr><tr><td class="k">힙</td><td>완전 이진 트리 + 부모/자식 대소 관계. 루트가 최대/최소 → 우선순위 큐</td><td></td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>트리 = 사이클 없는 계층 구조. 용어(차수·레벨·높이)는 모두 <b>부모-자식 간선</b>으로 정의된다.</li><li>완전 이진 트리는 <b>배열 인덱스(i → 2i, 2i+1, i//2)</b>로 포인터 없이 표현된다 — 힙이 이 성질을 쓴다.</li><li>순회는 "부모를 언제 방문하느냐"의 차이: 전위(먼저)·중위(가운데)·후위(나중).</li><li>BST의 속도는 <b>높이</b>가 결정한다 — 균형이면 O(log n), 편향이면 O(n).</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 기본 Tree」(2025-09-16, 74장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

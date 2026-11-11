@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>그래프 기본과 탐색 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 13 · 10/06 응용 그래프 기본과 탐색</span>
+    <h1>그래프 기본과 탐색 개념정리</h1>
+    <p class="sub">그래프의 정의·유형·인접·경로 → 인접 행렬 · 인접 리스트 · 간선 배열 → DFS · BFS · 다중 시작점 BFS → 서로소 집합(Union-Find, 경로 압축, rank)까지, 강의 슬라이드 64장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 4개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 12개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 그래프 기본</a><a href="#ch2">2. 그래프 표현</a><a href="#ch3">3. DFS · BFS</a><a href="#ch4">4. 서로소 집합</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 한 도시에서 전염병이 시작됐습니다</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">0-1</span>도시마다 사람들의 왕래가 많아 전염병이 퍼질 위험이 있습니다</h3>
+<table class="compare"><tr><th>질문</th><th>방법</th></tr><tr><td class="k">감염이 모든 도시로 퍼질 수 있는지 확인하려면?</td><td>그래프 탐색 (DFS) — 경로를 깊이 따라가며 방문합니다. 모든 도시를 방문했다면 전염이 전체로 퍼질 수 있는 상태입니다.</td></tr><tr><td class="k">몇 단계 만에 각 도시로 퍼지는지 알고 싶다면?</td><td>BFS — 가까운 도시부터 차례로 탐색하므로 감염 단계(거리)를 알 수 있습니다.</td></tr><tr><td class="k">두 도시가 같은 권역(연결 요소)인지 빠르게 알고 싶다면?</td><td>Union-Find (서로소 집합)</td></tr></table><div class="subhead">학습 목표</div><ul><li>그래프의 용어(정점·간선·인접·경로·사이클)와 유형을 이해한다.</li><li>인접 행렬·인접 리스트·간선 배열로 그래프를 표현할 수 있다.</li><li>DFS와 BFS로 그래프를 탐색할 수 있다.</li><li>서로소 집합(Disjoint Set)의 Make-Set · Find-Set · Union을 구현하고 경로 압축·rank로 최적화할 수 있다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>그래프 기본</h2><p class="desc">정의 · 최대 간선 수 · 유형 · 인접 · 경로 · 사이클</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>그래프</h3>
+<ul><li>그래프는 아이템(사물 또는 추상적 개념)들과 이들 사이의 연결 관계를 표현한다.</li><li><b>정점(Vertex)들의 집합과 이들을 연결하는 간선(Edge)들의 집합</b>으로 구성된 자료 구조 — |V| : 정점의 개수, |E| : 그래프에 포함된 간선의 개수</li><li><b>|V| 개의 정점을 가지는 그래프는 최대 |V|(|V| - 1) / 2개의 간선을 가질 수 있습니다.</b> 예) 5개 정점이 있는 그래프의 최대 간선 수는 10(= 5*4/2)개 입니다.</li><li>선형 자료구조나 트리 자료구조로 표현하기 어려운 N:N 관계를 가지는 원소들을 표현하기에 용이하다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>그래프 유형</h3>
+<table class="compare"><tr><th>유형</th><th>설명</th></tr><tr><td class="k">무향 그래프 (Undirected Graph)</td><td>간선에 방향이 없음</td></tr><tr><td class="k">유향 그래프 (Directed Graph)</td><td>간선에 방향이 있음</td></tr><tr><td class="k">가중치 그래프 (Weighted Graph)</td><td>간선에 비용(가중치)이 있음</td></tr><tr><td class="k">사이클 없는 방향 그래프 (DAG, Directed Acyclic Graph)</td><td>방향성 비순환 그래프</td></tr><tr><td class="k">완전 그래프</td><td>정점들에 대해 가능한 모든 간선들을 가진 그래프</td></tr><tr><td class="k">부분 그래프</td><td>원래 그래프에서 일부의 정점이나 간선을 제외한 그래프</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">1-3</span>인접 (Adjacency) · 경로 · 사이클</h3>
+<ul><li>두 개의 정점에 간선이 존재(연결됨)하면 서로 <b>인접</b>해 있다고 한다.</li><li>완전 그래프에 속한 임의의 두 정점들은 모두 인접해 있다.</li><li><b>경로</b>란 간선들을 순서대로 나열한 것 — 간선들: (0, 2), (2, 4), (4, 6) / 정점들: 0 - 2 - 4 - 6</li><li>경로 중 한 정점을 최대한 한번만 지나는 경로를 <b>단순경로</b>라 한다.</li><li>시작한 정점에서 끝나는 경로를 <b>사이클(Cycle)</b>이라고 한다. 예) 1 - 3 - 5 - 1</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>그래프 표현</h2><p class="desc">인접 행렬 · 인접 리스트 · 간선 배열 · 장단점</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">2-1</span>그래프 표현 방법</h3>
+<ul><li>간선의 정보를 저장하는 방식, 메모리나 성능을 고려해서 결정</li><li><b>인접 행렬 (Adjacent matrix)</b>: |V| × |V| 크기의 2차원 배열을 이용해서 간선 정보를 저장 — 배열의 배열(포인터 배열). 두 정점을 연결하는 간선의 유무를 행렬로 표현: 행 번호와 열 번호는 그래프의 정점에 대응, 두 정점이 인접되어 있으면 1, 그렇지 않으면 0으로 표현. 무향 그래프: i번째 행의 합 = i번째 열의 합 = Vi의 차수. 유향 그래프: 행 i의 합 = Vi의 진출 차수, 열 i의 합 = Vi의 진입 차수</li><li><b>인접 리스트 (Adjacent List)</b>: 각 정점마다 해당 정점으로 나가는 간선의 정보를 저장 — 각 정점에 대한 인접 정점들을 순차적으로 표현. 하나의 정점에 대한 인접 정점들을 각각 노드로 하는 연결 리스트로 저장. 무향 그래프의 인접 리스트 노드 수 = 간선의 수 × 2</li><li><b>간선의 배열</b>: 간선(시작 정점, 끝 정점)을 배열에 연속적으로 저장</li></ul><table class="compare"><tr><th></th><th>인접 행렬</th><th>인접 리스트</th></tr><tr><td class="k">메모리</td><td>O(V²) — 희소 그래프일 경우 불필요한 메모리 낭비가 발생</td><td>O(V + E) — 메모리 효율적</td></tr><tr><td class="k">두 정점 간선 유무 확인</td><td>O(1) — 빠르다</td><td>O(정점 차수)</td></tr><tr><td class="k">한 정점의 인접 정점 모두 찾기</td><td>O(V)</td><td>O(차수)</td></tr></table>
+</div>
+<div class="card full">
+<h3><span class="tag">2-2</span>세 가지 표현 직접 만들어보기</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">인접 행렬 · 인접 리스트 · 간선 배열</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">V, E = map(int, input().split())
+edges = [tuple(map(int, input().split())) for _ in range(E)]   # 간선의 배열
+
+adj_m = [[0] * (V + 1) for _ in range(V + 1)]   # 인접 행렬
+adj_l = [[] for _ in range(V + 1)]              # 인접 리스트
+for a, b in edges:
+    adj_m[a][b] = adj_m[b][a] = 1               # 무향 그래프: 양쪽에 기록
+    adj_l[a].append(b)
+    adj_l[b].append(a)
+
+print('간선 배열:', edges)
+print('인접 행렬:')
+for i in range(1, V + 1):
+    print(' ', i, adj_m[i][1:], '차수 =', sum(adj_m[i]))
+print('인접 리스트:')
+for i in range(1, V + 1):
+    print(' ', i, '→', adj_l[i])
+print('인접 리스트 노드 수 =', sum(len(x) for x in adj_l), '= 간선 수 x 2 =', E * 2)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">7 8
+1 2
+1 3
+2 4
+2 5
+4 6
+5 6
+6 7
+3 7
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>그래프 탐색 — DFS · BFS</h2><p class="desc">DFS(재귀·스택) · BFS · 비교 · 활용</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">3-1</span>그래프 순회(탐색)</h3>
+<ul><li>그래프 순회는 비선형구조인 그래프로 표현된 모든 자료(정점)를 빠짐없이 탐색하는 것을 의미한다.</li><li>두 가지 방법: 깊이 우선 탐색(Depth First Search, DFS), 너비 우선 탐색(Breadth First Search, BFS)</li></ul><table class="compare"><tr><th></th><th>DFS</th><th>BFS</th></tr><tr><td class="k">방식</td><td>시작 정점의 한 방향으로 갈 수 있는 경로가 있는 곳까지 깊이 탐색해 가다가 더 이상 갈 곳이 없게 되면, 가장 마지막에 만났던 갈림길 간선이 있는 정점으로 되돌아와서 다른 방향으로 탐색</td><td>시작점의 인접한 정점들을 먼저 모두 차례로 방문한 후에, 방문했던 정점을 시작점으로 하여 다시 인접한 정점들을 차례로 방문</td></tr><tr><td class="k">자료구조</td><td>스택 (또는 재귀)</td><td>큐</td></tr><tr><td class="k">과정</td><td>시작 정점 방문 → 인접 정점 push → 더 이상 방문할 곳이 없으면 pop → 모든 정점 방문할 때까지 반복</td><td>시작 정점을 큐에 enqueue → 큐에서 하나씩 꺼내 인접 정점을 enqueue → 큐가 빌 때까지 반복</td></tr><tr><td class="k">활용</td><td>경로 존재 확인, 연결 요소, 백트래킹</td><td>최단 거리 탐색, 전염 시뮬레이션, 레벨 탐색</td></tr></table>
+</div>
+<div class="card full">
+<h3><span class="tag">3-2</span>DFS · BFS 구현 (인접 리스트)</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">DFS · BFS</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from collections import deque
+V, E = map(int, input().split())
+G = [[] for _ in range(V + 1)]
+for _ in range(E):
+    a, b = map(int, input().split())
+    G[a].append(b); G[b].append(a)
+for g in G: g.sort()
+
+def dfs_rec(v, visited, order):           # 재귀 DFS
+    visited[v] = True
+    order.append(v)
+    for w in G[v]:
+        if not visited[w]:
+            dfs_rec(w, visited, order)
+    return order
+
+def dfs_stack(s):                         # 반복(스택) DFS
+    visited = [False] * (V + 1)
+    stack = [s]
+    order = []
+    while stack:
+        v = stack.pop()
+        if visited[v]: continue
+        visited[v] = True
+        order.append(v)
+        for w in reversed(G[v]):          # 작은 번호부터 방문하도록 역순 push
+            if not visited[w]:
+                stack.append(w)
+    return order
+
+def bfs(s):
+    dist = [-1] * (V + 1)
+    dist[s] = 0
+    q = deque([s])
+    order = []
+    while q:
+        v = q.popleft()
+        order.append(v)
+        for w in G[v]:
+            if dist[w] == -1:
+                dist[w] = dist[v] + 1
+                q.append(w)
+    return order, dist
+
+print('DFS(재귀):', dfs_rec(1, [False] * (V + 1), []))
+print('DFS(스택):', dfs_stack(1))
+order, dist = bfs(1)
+print('BFS      :', order)
+print('BFS 거리 :', dist[1:])
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">7 8
+1 2
+1 3
+2 4
+2 5
+4 6
+5 6
+6 7
+3 7
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">3-3</span>[연습] 10966. 물놀이를 가자 — 다중 시작점 BFS</h3>
+
+<p>N×M 크기의 격자에서 'W'는 물, 'L'은 땅이다. 각 땅 칸에서 가장 가까운 물까지의 거리(상하좌우 이동 칸 수)를 구해 <b>모든 땅의 거리 합</b>을 출력하라. (N, M ≤ 1000)</p>
+<p>땅마다 BFS를 하면 너무 느리다 → <b>모든 물 칸을 동시에 큐에 넣고</b> 한 번의 BFS로 거리를 퍼뜨린다(다중 시작점 BFS).</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">10966. 물놀이를 가자</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from collections import deque
+T = int(input())
+for tc in range(1, T + 1):
+    N, M = map(int, input().split())
+    grid = [input().strip() for _ in range(N)]
+    dist = [[-1] * M for _ in range(N)]
+    q = deque()
+    for i in range(N):
+        for j in range(M):
+            if grid[i][j] == 'W':        # 모든 물에서 동시에 시작
+                dist[i][j] = 0
+                q.append((i, j))
+    while q:
+        i, j = q.popleft()
+        for di, dj in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ni, nj = i + di, j + dj
+            if 0 &lt;= ni &lt; N and 0 &lt;= nj &lt; M and dist[ni][nj] == -1:
+                dist[ni][nj] = dist[i][j] + 1
+                q.append((ni, nj))
+    print(f'#{tc} {sum(map(sum, dist))}')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">2
+2 3
+WLL
+LLL
+3 2
+LL
+LW
+LL
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>서로소 집합 (Disjoint-sets)</h2><p class="desc">개념 · 대표자 · 연산 · 연결 리스트 표현 · 트리 표현 · 문제점 · 경로 압축 · rank</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>서로소 집합</h3>
+<ul><li>서로소 또는 상호배타 집합들은 <b>서로 중복 포함된 원소가 없는 집합들</b>이다. 다시 말해 교집합이 없다.</li><li>집합에 속한 하나의 특정 멤버를 통해 각 집합들을 구분한다. 이를 <b>대표자(representative)</b>라 한다.</li><li>상호배타 집합을 표현하는 방법: 연결 리스트, 트리</li><li>하나의 집합(a disjoint set)을 하나의 트리로 표현함 — 자식 노드가 부모 노드를 가리키며 <b>루트 노드가 대표자</b>가 된다.</li></ul><table class="compare"><tr><th>연산</th><th>설명</th></tr><tr><td class="k">Make-Set(x)</td><td>유일한 멤버 x를 포함하는 새로운 집합을 생성하는 연산</td></tr><tr><td class="k">Find-Set(x)</td><td>x를 포함하는 집합을 찾는 연산 (대표자 반환)</td></tr><tr><td class="k">Union(x, y)</td><td>x와 y를 포함하는 두 집합을 통합하는 연산</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>연결 리스트 · 트리 표현</h3>
+<ul><li><b>연결 리스트</b>: 같은 집합의 원소들은 하나의 연결리스트로 관리한다. 연결리스트의 맨 앞의 원소를 집합의 대표 원소로 삼는다. 각 원소는 집합의 대표원소를 가리키는 링크를 갖는다.</li><li><b>트리</b>: 하나의 집합을 하나의 트리로 표현. 자식 노드가 부모 노드를 가리키며 루트 노드가 대표자. 배열 p[x]에 부모를 저장</li></ul><pre class="formula">Make-Set(x)
+    p[x] ← x
+
+Find-Set(x)
+    IF x == p[x] : RETURN x
+    ELSE : RETURN Find-Set(p[x])
+
+Find-Set(x)   // 반복
+    while x != p[x]
+        x = p[x]
+    return x
+
+Union(x, y)
+    p[Find-Set(y)] ← Find-Set(x)</pre>
+</div>
+<div class="card full">
+<h3><span class="tag">4-3</span>문제점과 효율을 높이는 방법</h3>
+<ul><li><b>문제점</b>: 편향 트리가 되는 경우 Find_Set()에 시간이 오래 걸림 (O(n))</li><li><b>Rank를 이용한 Union</b>: 각 노드는 자신을 루트로 하는 subtree의 높이를 랭크(Rank)라는 이름으로 저장한다. 두 집합을 합칠 때 rank가 낮은 집합을 rank가 높은 집합에 붙인다.</li><li><b>Path compression (경로 압축)</b>: Find-Set을 행하는 과정에서 만나는 모든 노드들이 직접 root를 가리키도록 포인터를 바꿔줍니다. — Find_set() 에서 찾아진 대표 원소로 각 원소의 대표 원소를 바꾸면 경로가 단축됨. Find_set 연산은 특정 노드에서 루트까지의 경로를 찾아가면서 노드의 부모 정보를 갱신한다.</li></ul><pre class="formula">Make_Set(x)
+    p[x] ← x
+    rank[x] ← 0
+
+Find_Set(x)
+    IF x != p[x]            // x가 루트가 아닌 경우
+        p[x] ← Find_Set(p[x])   // 경로 압축
+    RETURN p[x]
+
+Union(x, y)
+    Link(Find_Set(x), Find_Set(y))
+
+Link(x, y)
+    IF rank[x] &gt; rank[y]    // rank는 트리의 높이
+        p[y] ← x
+    ELSE
+        p[x] ← y
+        IF rank[x] == rank[y]
+            rank[y]++</pre>
+</div>
+<div class="card full">
+<h3><span class="tag">4-4</span>Union-Find 구현과 경로 압축 효과</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">Union-Find</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">N = 10
+p = list(range(N))          # Make-Set: 자기 자신이 대표
+rank = [0] * N
+
+def find_naive(x):
+    steps = 0
+    while x != p[x]:
+        x = p[x]; steps += 1
+    return x, steps
+
+def find(x):                # 경로 압축
+    if x != p[x]:
+        p[x] = find(p[x])
+    return p[x]
+
+def union(x, y):            # rank를 이용한 Union
+    x, y = find(x), find(y)
+    if x == y:
+        return False        # 이미 같은 집합 (사이클!)
+    if rank[x] &gt; rank[y]:
+        p[y] = x
+    else:
+        p[x] = y
+        if rank[x] == rank[y]:
+            rank[y] += 1
+    return True
+
+# 편향 트리를 일부러 만들기: 0←1←2←…←9
+for i in range(1, N):
+    p[i] = i - 1
+print('편향 트리 p:', p)
+print('find_naive(9) →', find_naive(9))
+find(9)
+print('경로 압축 후 p:', p)
+print('find_naive(9) →', find_naive(9))
+
+p = list(range(N)); rank = [0] * N
+for a, b in [(0, 1), (2, 3), (1, 3), (5, 6), (7, 8)]:
+    union(a, b)
+print('같은 집합? 0,2:', find(0) == find(2), ' 0,5:', find(0) == find(5))
+groups = {}
+for i in range(N):
+    groups.setdefault(find(i), []).append(i)
+print('집합들:', list(groups.values()))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-5</span>추천 문제 (SWEA)</h3>
+<ul><li>10966. 물놀이를 가자</li><li>5247. 연산</li><li>5248. 그룹 나누기</li><li>7465. 창용 마을 무리의 개수</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>그래프 기본과 탐색 확인문제</h3>
+<details class="quiz"><summary>1. 그래프(Graph)의 구성 요소로 옳지 않은 것은?</summary><ol class="opt" type="a"><li>정점(Vertex)</li><li>간선(Edge)</li><li>루트(Root)</li><li>가중치(Weight)</li></ol><div class="ans"><b class="ok">정답: 루트(Root)</b> — 루트(Root)는 트리 자료구조에서만 사용하는 용어입니다.</div></details><details class="quiz"><summary>2. 인접 행렬(Adjacency Matrix) 방식의 단점으로 옳은 것은?</summary><ol class="opt" type="a"><li>희소 그래프일 경우 불필요한 메모리 낭비가 발생</li><li>정점의 차수를 쉽게 계산할 수 없음</li><li>간선 유무 확인이 느림</li><li>구현이 어렵다</li></ol><div class="ans"><b class="ok">정답: 희소 그래프일 경우 불필요한 메모리 낭비가 발생</b> — 인접 행렬은 간선이 적은 경우에도 모든 정점 쌍의 정보를 저장합니다.</div></details><details class="quiz"><summary>3. DFS 탐색 중, 방문하지 않은 정점이 더 이상 없을 때 어떻게 하나요?</summary><ol class="opt" type="a"><li>탐색을 처음부터 다시 시작한다</li><li>마지막에 방문했던 정점으로 되돌아간다.</li><li>전체 탐색을 중지한다.</li><li>인접한 모든 정점을 다시 방문한다</li></ol><div class="ans"><b class="ok">정답: 마지막에 방문했던 정점으로 되돌아간다.</b> — 스택에서 이전 정점을 꺼내 되돌아갑니다.</div></details><details class="quiz"><summary>4. 두 정점 간의 연결 여부를 2차원 배열로 표현한 그래프 저장 방식은 무엇인가요? (단답형)</summary><div class="ans"><b class="ok">정답: 인접 행렬 (Adjacency Matrix)</b></div></details><details class="quiz"><summary>5. Union-Find에서 Find 연산을 최적화하기 위한 방법으로 옳은 것은?</summary><ol class="opt" type="a"><li>Sorting</li><li>Path Compression</li><li>Hashing</li><li>Binary Search</li></ol><div class="ans"><b class="ok">정답: Path Compression</b> — 경로 압축은 트리 높이를 줄여 탐색 속도를 빠르게 합니다.</div></details><details class="quiz"><summary>6. 인접 행렬과 인접 리스트의 차이를 설명하시오. (서술형)</summary><div class="ans"><b class="ok">인접 행렬</b>: 2차원 배열로 간선 정보를 저장 → 메모리 소모 큼, 간선 유무 확인 O(1)<br><b class="ok">인접 리스트</b>: 연결 리스트로 간선 저장 → 메모리 효율적, 특정 간선 확인은 O(정점 차수)</div></details><details class="quiz"><summary>7. 그래프에서 특정 정점과 직접 연결된 모든 정점을 무엇이라 하나요? (단답형)</summary><div class="ans"><b class="ok">정답: 인접 정점 (Adjacent vertices)</b></div></details><details class="quiz"><summary>8. 다음 중 인접 행렬(Adjacency Matrix) 방식의 특징으로 옳은 것은?</summary><ol class="opt" type="a"><li>희소 그래프에서 메모리를 절약할 수 있다.</li><li>인접한 정점을 찾는 데 O(1) 시간이 걸린다.</li><li>두 정점 사이 간선 유무 확인 속도가 빠르다.</li><li>간선을 추가할 때 복잡한 자료구조가 필요하다.</li></ol><div class="ans"><b class="ok">정답: 두 정점 사이 간선 유무 확인 속도가 빠르다.</b> — O(1) 시간에 간선 유무를 확인할 수 있습니다.</div></details><details class="quiz"><summary>9. 서로소 집합(Disjoint Set)을 관리하는 주요 연산 2가지는? (단답형)</summary><div class="ans"><b class="ok">정답: Find-Set, Union</b></div></details><details class="quiz"><summary>10. 다음 중 Union-Find 자료구조가 적합하게 사용되는 경우는?</summary><ol class="opt" type="a"><li>최단 경로 찾기</li><li>두 노드가 같은 그룹에 속해 있는지 확인</li><li>정렬</li><li>문자열 검색</li></ol><div class="ans"><b class="ok">정답: 두 노드가 같은 그룹에 속해 있는지 확인</b></div></details><details class="quiz"><summary>11. 그래프의 경로(Path)에 대한 설명으로 옳은 것은?</summary><ol class="opt" type="a"><li>경로는 간선 없이 정점만으로 이루어진다.</li><li>경로에는 정점을 중복해서 포함할 수 없다.</li><li>시작 정점에서 다른 정점으로 이동하는 간선들의 순서를 말한다.</li><li>경로는 항상 사이클이다</li></ol><div class="ans"><b class="ok">정답: 시작 정점에서 다른 정점으로 이동하는 간선들의 순서를 말한다.</b></div></details><details class="quiz"><summary>12. 5개 정점이 있는 무향 그래프의 최대 간선 수는?</summary><div class="ans"><b class="ok">정답: 10</b> — |V|(|V|-1)/2 = 5×4/2</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th></tr><tr><td class="k">그래프</td><td>정점(V)과 간선(E)의 집합, N:N 관계 표현. 최대 간선 |V|(|V|-1)/2</td></tr><tr><td class="k">인접 행렬 / 인접 리스트</td><td>O(V²) 메모리, 간선 확인 O(1) / O(V+E) 메모리, 인접 정점 순회에 유리</td></tr><tr><td class="k">DFS</td><td>시작 정점 방문 → 인접 정점 push → 더 이상 방문할 곳이 없으면 pop → 모든 정점 방문할 때까지 반복</td></tr><tr><td class="k">BFS</td><td>시작 정점을 큐에 enqueue → 큐에서 하나씩 꺼내 인접 정점을 enqueue → 큐가 빌 때까지 반복. 최단 거리 탐색, 전염 시뮬레이션, 레벨 탐색</td></tr><tr><td class="k">서로소 집합 (Union-Find)</td><td>Make-Set · Find-Set · Union. 경로 압축 + rank로 거의 O(1)</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>그래프 문제는 <b>표현 선택</b>부터 — 정점이 많고 간선이 적으면 인접 리스트.</li><li>"연결되어 있나/어디까지 가나" → DFS, "몇 단계 만에" → BFS, "같은 그룹인가(동적으로 합쳐짐)" → Union-Find.</li><li>Union-Find의 Union이 False(이미 같은 집합)면 <b>사이클</b> — 다음 강의(Kruskal MST)의 핵심 도구.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 응용 그래프 기본과 탐색」(2025-10-06, 64장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

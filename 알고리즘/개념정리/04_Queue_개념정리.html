@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Queue 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 04 · 09/15 Queue</span>
+    <h1>Queue 개념정리</h1>
+    <p class="sub">큐의 개념 → 선형 큐 → 원형 큐 → 연결 큐 · deque → 우선순위 큐 · 버퍼 · 마이쮸 시뮬레이션 → BFS까지, 강의 슬라이드 98장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 6개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 11개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 큐 개념</a><a href="#ch2">2. 선형 큐</a><a href="#ch3">3. 원형 큐</a><a href="#ch4">4. 연결 큐·deque</a><a href="#ch5">5. 우선순위 큐·활용</a><a href="#ch6">6. BFS</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 은행 창구 번호표</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">0-1</span>은행 창구 번호표</h3>
+
+<p>은행에서 번호표를 뽑으면 <b>먼저 온 사람이 먼저</b> 창구로 갑니다. 실생활 예시를 통해 큐의 동작 원리를 쉽게 이해할 수 있고, 이후에는 파이썬 코드로 <code>enqueue()</code>와 <code>dequeue()</code>를 써서 구현해 볼 수 있습니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">번호표 대기열</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">waiting = []
+for num in [1, 2, 3, 4]:
+    waiting.append(num)            # 번호표 뽑기 (enqueue)
+    print(f'{num}번 대기 →', waiting)
+while waiting:
+    print(f'{waiting.pop(0)}번 고객님 창구로 오세요')   # 먼저 온 순서 (dequeue)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>큐의 개념과 특성(FIFO), 기본 연산을 이해한다.</li><li>선형 큐와 원형 큐에 대해 설명하고 이를 구현할 수 있다.</li><li>연결 큐, deque, 우선순위 큐의 특징을 이해한다.</li><li>큐의 활용(버퍼, 마이쮸 시뮬레이션)을 이해한다.</li><li>BFS(너비 우선 탐색)를 큐로 구현할 수 있다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>큐(Queue)의 개념과 특성</h2><p class="desc">선입선출 · front/rear · 기본 연산 · 연산 과정</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>큐의 특성</h3>
+<ul><li>스택과 마찬가지로 삽입과 삭제의 위치가 제한적인 자료구조 — 큐의 <b>뒤(rear)에서는 삽입만</b> 하고, 큐의 <b>앞(front)에서는 삭제만</b> 이루어지는 구조입니다.</li><li><b>선입선출구조 (FIFO: First In First Out)</b> — 가장 먼저 넣은 자료가 가장 먼저 나오는 것. 예를 들어 큐에 1, 2, 3을 차례대로 넣으면 꺼낼 때도 1, 2, 3이 순서대로 나오게 됩니다.</li><li>큐의 또 다른 예로는 서비스 대기행렬이 있습니다.</li></ul><table class="compare"><tr><th>용어</th><th>의미</th></tr><tr><td class="k">선형구조</td><td>자료 간의 관계가 1:1의 관계를 갖는다.</td></tr><tr><td class="k">front (머리)</td><td>저장된 원소 중 첫 번째 원소 (또는 삭제된 위치)</td></tr><tr><td class="k">rear (꼬리)</td><td>저장된 원소 중 마지막 원소</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>큐의 기본 연산</h3>
+<table class="compare"><tr><th>연산</th><th>기능</th></tr><tr><td class="k">enQueue(item)</td><td>큐의 뒤쪽(rear 다음)에 원소를 삽입하는 연산</td></tr><tr><td class="k">deQueue()</td><td>큐의 앞쪽(front)에서 원소를 삭제하고 반환하는 연산</td></tr><tr><td class="k">createQueue()</td><td>공백 상태의 큐를 생성하는 연산</td></tr><tr><td class="k">isEmpty()</td><td>큐가 공백상태인지를 확인하는 연산</td></tr><tr><td class="k">isFull()</td><td>큐가 포화상태인지를 확인하는 연산</td></tr><tr><td class="k">Qpeek()</td><td>큐의 앞쪽(front)에서 원소를 삭제 없이 반환하는 연산</td></tr></table>
+</div>
+<div class="card full">
+<h3><span class="tag">1-3</span>큐의 연산 과정</h3>
+<div class="trace">① 공백 큐 생성 : createQueue()        front = rear = -1   [ _ , _ , _ ]
+② 원소 A 삽입 : enQueue(A)            front=-1 rear=0     [ A , _ , _ ]
+③ 원소 B 삽입 : enQueue(B)            front=-1 rear=1     [ A , B , _ ]
+④ 원소 반환/삭제 : deQueue()  → A     front=0  rear=1     [ _ , B , _ ]
+⑤ 원소 C 삽입 : enQueue(C)            front=0  rear=2     [ _ , B , C ]
+⑥ 원소 반환/삭제 : deQueue()  → B     front=1  rear=2     [ _ , _ , C ]
+⑦ 원소 반환/삭제 : deQueue()  → C     front=2  rear=2     [ _ , _ , _ ]  (공백)</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>선형 큐</h2><p class="desc">1차원 배열 · 초기·공백·포화 상태 · enQueue/deQueue/isEmpty/isFull/Qpeek · 구현 · 문제점</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>선형 큐 — 1차원 배열을 이용한 큐</h3>
+<ul><li>큐의 크기 = 배열의 크기</li><li><b>front</b>: 마지막으로 삭제된 인덱스 (저장된 첫 번째 원소의 바로 앞)</li><li><b>rear</b>: 저장된 마지막 원소의 인덱스</li></ul><div class="subhead">상태 표현</div><table class="compare"><tr><th>상태</th><th>조건</th></tr><tr><td class="k">초기 상태</td><td>front = rear = -1</td></tr><tr><td class="k">공백 상태</td><td>front == rear</td></tr><tr><td class="k">포화 상태</td><td>rear == n-1 (n: 배열의 크기, n-1: 배열의 마지막 인덱스)</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>삽입 enQueue(item) · 삭제 deQueue()</h3>
+
+<p><b>enQueue</b>: 마지막 원소 뒤에 새로운 원소를 삽입하기 위해 ① rear 값을 하나 증가시켜 새로운 원소를 삽입할 자리를 마련하고 ② 그 인덱스에 해당하는 배열원소 Q[rear]에 item을 저장.</p>
+<p><b>deQueue</b>: 가장 앞에 있는 원소를 삭제하기 위해 ① front 값을 하나 증가시켜 큐에 남아 있는 첫 번째 원소로 이동 ② 새로운 첫 번째 원소를 리턴함으로써 삭제와 동일한 기능함.</p>
+<p><b>isEmpty</b>: front == rear 이면 공백. <b>isFull</b>: rear == n-1 이면 포화. <b>Qpeek</b>: 현재 front의 한 자리 뒤(front+1)에 있는 원소, 즉 큐의 첫 번째에 있는 원소를 반환.</p>
+</div>
+<div class="card full">
+<h3><span class="tag">2-3</span>선형 큐 구현 — 1, 2, 3을 차례로 삽입하고 세 개를 차례로 꺼내서 출력</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">선형 큐</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">n = 3
+q = [0] * n
+front = rear = -1
+
+def is_empty():
+    return front == rear
+def is_full():
+    return rear == len(q) - 1
+def enqueue(item):
+    global rear
+    if is_full():
+        print('Queue_Full')
+    else:
+        rear = rear + 1
+        q[rear] = item
+def dequeue():
+    global front
+    if is_empty():
+        print('Queue_Empty')
+        return None
+    front = front + 1
+    return q[front]
+def qpeek():
+    if is_empty():
+        print('Queue_Empty')
+        return None
+    return q[front + 1]
+
+enqueue(1); enqueue(2); enqueue(3)
+print('peek:', qpeek())
+print(dequeue(), dequeue(), dequeue())
+enqueue(4)     # 앞이 비었는데도 포화로 인식!
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-4</span>선형 큐 이용 시의 문제점 — 잘못된 포화상태 인식</h3>
+<ul><li>선형 큐를 이용하여 원소의 삽입과 삭제를 계속할 경우, 배열의 앞부분에 활용할 수 있는 공간이 있음에도 불구하고, <b>rear = n-1인 상태 즉, 포화상태로 인식</b>하여 더 이상의 삽입을 수행하지 않게 됨</li><li>해결 방법 1 — 매 연산이 이루어질 때마다 저장된 원소들을 배열의 앞부분으로 모두 이동시킴: 원소 이동에 많은 시간이 소요되어 큐의 효율성이 급격히 떨어짐</li><li>해결 방법 2 — 1차원 배열을 사용하되, 논리적으로는 배열의 처음과 끝이 연결되어 원형 형태의 큐를 이룬다고 가정하고 사용 → <b>원형 큐</b></li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>원형 큐</h2><p class="desc">초기 공백 상태 · 인덱스 순환(mod) · front 자리 비우기 · 선형 vs 원형 · 구현</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>원형 큐의 구조</h3>
+<ul><li><b>초기 공백 상태</b>: front = rear = 0</li><li><b>Index의 순환</b>: front와 rear의 위치가 배열의 마지막 인덱스인 n-1를 가리킨 후, 그 다음에는 논리적 순환을 이루어 배열의 처음 인덱스인 0으로 이동해야 함 — 이를 위해 나머지 연산자 <code>mod</code>를 사용함</li><li><b>front 변수</b>: 공백 상태와 포화 상태 구분을 쉽게 하기 위해 front가 있는 자리는 사용하지 않고 항상 빈자리로 둠</li></ul><table class="compare"><tr><th></th><th>삽입 위치</th><th>삭제 위치</th></tr><tr><td class="k">선형큐</td><td>rear = rear + 1</td><td>front = front + 1</td></tr><tr><td class="k">원형큐</td><td>rear = (rear + 1) mod n</td><td>front = (front + 1) mod n</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>원형 큐의 상태와 연산</h3>
+<table class="compare"><tr><th>연산</th><th>설명</th></tr><tr><td class="k">공백상태</td><td>front == rear</td></tr><tr><td class="k">포화상태</td><td>삽입할 rear의 다음 위치 == 현재 front — (rear + 1) mod n == front</td></tr><tr><td class="k">enQueue(item)</td><td>rear 값을 조정하여 새로운 원소를 삽입할 자리를 마련함: rear ← (rear + 1) mod n; 그 인덱스에 해당하는 배열원소 cQ[rear]에 item을 저장</td></tr><tr><td class="k">deQueue()</td><td>front 값을 조정하여 삭제할 자리를 준비함: front ← (front+1) mod n; 새로운 front 원소를 리턴함으로써 삭제와 동일한 기능함</td></tr></table><div class="note tip">크기가 n인 원형 큐에는 front 자리를 비워 두므로 <b>최대 n-1개</b>까지 저장됩니다.</div>
+</div>
+<div class="card full">
+<h3><span class="tag">3-3</span>원형 큐 구현</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">원형 큐</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">n = 4
+cq = [0] * n
+front = rear = 0
+
+def is_empty():
+    return front == rear
+def is_full():
+    return (rear + 1) % len(cq) == front
+def enqueue(item):
+    global rear
+    if is_full():
+        print(f'  Queue_Full (item {item})')
+        return
+    rear = (rear + 1) % len(cq)
+    cq[rear] = item
+def dequeue():
+    global front
+    if is_empty():
+        print('  Queue_Empty')
+        return None
+    front = (front + 1) % len(cq)
+    return cq[front]
+
+for x in [1, 2, 3, 4]:
+    enqueue(x)                          # 4는 Full (n-1개까지)
+print('front', front, 'rear', rear, cq)
+print('deq', dequeue(), dequeue())
+enqueue(5); enqueue(6)                  # 앞의 빈 공간을 재사용!
+print('front', front, 'rear', rear, cq)
+while not is_empty():
+    print('deq', dequeue())
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>연결 큐 · deque</h2><p class="desc">단순 연결 리스트를 이용한 큐 · 상태 · 연산 과정 · 구현 · collections.deque</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">4-1</span>연결 큐의 구조</h3>
+<ul><li>단순 연결 리스트(Linked List)를 이용한 큐</li><li>큐의 원소: 단순 연결 리스트의 노드</li><li>큐의 원소 순서: 노드의 연결 순서. 링크로 연결되어 있음</li><li><b>front</b>: 첫 번째 노드를 가리키는 링크</li><li><b>rear</b>: 마지막 노드를 가리키는 링크</li></ul><table class="compare"><tr><th>상태</th><th>조건</th></tr><tr><td class="k">초기 상태</td><td>front = rear = null</td></tr><tr><td class="k">공백 상태</td><td>front = rear = null</td></tr></table><div class="trace">① 공백 큐 생성 : createLinkedQueue();   front=null rear=null
+② 원소 A 삽입 : enQueue(A);            front→[A]←rear
+③ 원소 B 삽입 : enQueue(B);            front→[A]→[B]←rear
+④ 원소 삭제   : deQueue();             front→[B]←rear
+⑤ 원소 C 삽입 : enQueue(C);            front→[B]→[C]←rear
+⑥ 원소 삭제   : deQueue();             front→[C]←rear
+⑦ 원소 삭제   : deQueue();             front=null rear=null</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-2</span>연결 큐 구현</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">연결 큐</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">class Node:
+    def __init__(self, item, n=None):
+        self.item = item
+        self.next = n
+
+def enqueue(item):              # 연결 큐의 삽입 연산
+    global front, rear
+    newNode = Node(item)        # 새로운 노드 생성
+    if front == None:           # 큐가 비어있다면
+        front = newNode
+    else:
+        rear.next = newNode
+    rear = newNode
+
+def is_empty():
+    return front == None
+
+def dequeue():                  # 연결 큐의 삭제 연산
+    global front, rear
+    if is_empty():
+        print('큐가 비어있음')
+        return None
+    item = front.item
+    front = front.next
+    if front == None:
+        rear = None
+    return item
+
+def qpeek():
+    return front.item
+
+def print_q():
+    f = front
+    s = []
+    while f:
+        s.append(f.item)
+        f = f.next
+    print('front →', ' → '.join(map(str, s)) if s else '(empty)')
+
+front = None
+rear = None
+enqueue('A'); enqueue('B'); print_q()
+print('deQueue:', dequeue()); enqueue('C'); print_q()
+print('deQueue:', dequeue(), dequeue()); print_q()
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-3</span>deque (덱)</h3>
+<ul><li>컨테이너 자료형 중 하나로 <b>양쪽 끝에서 빠르게 추가와 삭제</b>를 할 수 있는 리스트류 컨테이너 — <code>from collections import deque</code></li><li>append(x): 오른쪽에 x 추가 / popleft(): 왼쪽에서 요소를 제거하고 반환, 요소가 없으면 IndexError</li><li>appendleft(x), pop() 도 O(1)</li><li><code>list.pop(0)</code>은 뒤의 원소를 모두 당기므로 O(n) — 큐로는 deque가 효율적</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">deque와 성능 비교</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from collections import deque
+import time
+
+q = deque()
+q.append(1); q.append(2); q.append(3)
+print(q.popleft(), q)
+q.appendleft(0); print(q)
+
+N = 50000
+t = time.perf_counter()
+lst = list(range(N))
+while lst: lst.pop(0)
+t1 = time.perf_counter() - t
+t = time.perf_counter()
+dq = deque(range(N))
+while dq: dq.popleft()
+t2 = time.perf_counter() - t
+print(f'list.pop(0): {t1*1000:.1f}ms   deque.popleft(): {t2*1000:.1f}ms')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch5" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>우선순위 큐 · 큐의 활용</h2><p class="desc">우선순위 큐 · 배열 구현 · 문제점 · 버퍼 · 키보드 버퍼 · 마이쮸 시뮬레이션</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">5-1</span>우선순위 큐 (Priority Queue)</h3>
+<ul><li><b>우선순위를 가진 항목들을 저장하는 큐</b></li><li>FIFO 순서가 아니라 <b>우선순위가 높은 순서대로 먼저 나가게</b> 됩니다.</li><li>적용 분야: 시뮬레이션 시스템, 네트워크 트래픽 제어, 운영체제의 태스크 스케줄링</li></ul><div class="subhead">배열을 이용한 우선순위 큐</div><ul><li>배열을 이용하여 자료를 저장</li><li>원소를 삽입하는 과정에서 우선순위를 비교하여 적절한 위치에 삽입하는 구조</li><li>가장 앞에 최고 우선순위의 원소가 위치하게 됨</li><li><b>문제점</b>: 배열을 사용하므로, 삽입이나 삭제 연산이 일어날 때 원소의 재배치가 발생 — 이에 소요되는 시간이나 메모리 낭비가 큼</li></ul><div class="note tip">실전에서는 힙(heap)으로 구현한 <code>heapq</code>를 사용합니다 — 삽입/삭제 O(log n). (Tree 강의의 힙 참고)</div><div class="ide">
+  <div class="ide-bar"><span class="ide-title">우선순위 큐</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import heapq
+# 1) 배열 + 정렬 위치에 삽입
+pq = []
+def insert(item):
+    i = 0
+    while i &lt; len(pq) and pq[i] &lt;= item:   # 우선순위(작은 값) 비교
+        i += 1
+    pq.insert(i, item)                     # 원소 재배치 발생 O(n)
+for x in [5, 1, 4, 2, 3]:
+    insert(x)
+    print('삽입', x, '→', pq)
+print('삭제:', pq.pop(0))
+
+# 2) heapq (최소 힙)
+h = []
+for task in [(3, '청소'), (1, '긴급 버그'), (2, '회의')]:
+    heapq.heappush(h, task)
+while h:
+    print(heapq.heappop(h))
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-2</span>큐의 활용 — 버퍼(Buffer)</h3>
+<ul><li><b>버퍼</b>: 데이터를 한 곳에서 다른 한 곳으로 전송하는 동안 일시적으로 그 데이터를 보관하는 메모리의 영역</li><li><b>버퍼링</b>: 버퍼를 활용하는 방식 또는 버퍼를 채우는 동작을 의미한다.</li><li>버퍼는 일반적으로 입출력 및 네트워크와 관련된 기능에서 이용된다.</li><li>순서대로 입력/출력/전달되어야 하므로 <b>FIFO 방식의 자료구조인 큐</b>가 활용된다.</li></ul><div class="subhead">키보드 버퍼</div><div class="flow"><span>사용자 키보드 입력</span><i>→</i><span>키보드 입력 버퍼(큐)에 A B C D 저장</span><i>→</i><span>Enter 키 입력이 들어오면</span><i>→</i><span>프로그램 실행 영역으로 순서대로 전달</span></div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-3</span>[연습] 마이쮸 시뮬레이션</h3>
+
+<p>창고에 마이쮸가 N개 있다. 1번 사람이 줄을 선다 → 줄의 맨 앞 사람이 마이쮸를 받고 다시 줄을 선다. 처음 줄을 선 사람은 1개, 다시 줄을 서면 2개, … i번째로 받을 때는 i개를 받는다. 받은 사람이 다시 줄 서면, 새로운 사람(다음 번호)이 줄을 선다. <b>마지막 마이쮸를 받는 사람은 몇 번?</b> 줄을 설 때마다 다음 정보를 화면에 출력: 큐에 있는 사람 수, 현재 1인당 나눠주는 사탕의 수, 현재까지 나눠준 사탕의 수.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">마이쮸 시뮬레이션</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from collections import deque
+N = int(input())          # 마이쮸 개수
+q = deque()
+new = 1                   # 다음에 줄 설 새로운 사람 번호
+got = {}                  # 사람별로 다음에 받을 개수
+q.append(new); got[new] = 1; new += 1
+given = 0
+while True:
+    p = q.popleft()
+    k = got[p]
+    if given + k &gt;= N:
+        print(f'{p}번이 마지막 마이쮸를 받습니다! (남은 {N - given}개)')
+        break
+    given += k
+    got[p] = k + 1
+    q.append(p)                       # 받은 사람이 다시 줄 서고
+    q.append(new); got[new] = 1; new += 1   # 새로운 사람이 줄을 섬
+    print(f'큐 {len(q)}명, {p}번이 {k}개 받음, 누적 {given}개')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">20
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch6" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">6</div><div><h2>BFS (너비우선탐색)</h2><p class="desc">BFS 개념 · 예제 · 알고리즘 · 구현 · 거리 기록 · 연습문제</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">6-1</span>BFS — Breadth First Search</h3>
+<ul><li>너비우선탐색은 탐색 시작점의 <b>인접한 정점들을 먼저 모두 차례로 방문</b>한 후에, 방문했던 정점을 시작점으로 하여 다시 인접한 정점들을 차례로 방문하는 방식</li><li>인접한 정점들에 대해 탐색을 한 후, 차례로 다시 너비우선탐색을 진행해야 하므로, <b>선입선출 형태의 자료구조인 큐</b>를 활용함</li><li>예제 그래프를 BFS로 탐색하면 시작 정점에서 가까운 순서(레벨)대로 방문 — 미로 최단 거리, 레벨 탐색, 최단 경로 문제 등에 자주 사용됨</li></ul><div class="trace">        A
+      / | \
+     B  C  D        A → B C D (1단계) → E F G H I (2단계)
+    / \    / \
+   E   F  G   H
+          |
+          I</div>
+</div>
+<div class="card full">
+<h3><span class="tag">6-2</span>BFS 알고리즘 (입력 파라미터: 그래프 G와 탐색 시작점 v)</h3>
+<pre class="formula">def BFS(G, v, n):            # 그래프 G, 탐색 시작점 v
+    visited = [0] * (n+1)    # n : 정점의 개수
+    queue = []               # 큐 생성
+    queue.append(v)          # 시작점 v를 큐에 삽입
+    while queue:             # 큐가 비어있지 않은 경우
+        t = queue.pop(0)     # 큐의 첫번째 원소 반환
+        if not visited[t]:   # 방문되지 않은 곳이라면
+            visited[t] = True    # 방문한 것으로 표시
+            visit(t)             # 정점 t에서 할 일
+            for i in G[t]:       # t와 연결된 모든 정점에 대해
+                if not visited[i]:   # 방문되지 않은 곳이라면
+                    queue.append(i)  # 큐에 넣기</pre><p>개선형: 큐에 <b>넣을 때</b> 방문 표시를 하면 같은 정점이 큐에 중복으로 들어가지 않습니다. 이때 <code>visited[w] = visited[t] + 1</code> 로 저장하면 <b>시작점으로부터의 거리</b>가 기록됩니다.</p>
+</div>
+<div class="card full">
+<h3><span class="tag">6-3</span>BFS 구현 — 방문 순서와 거리</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">BFS</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">from collections import deque
+V, E = map(int, input().split())
+data = list(map(int, input().split()))
+G = [[] for _ in range(V + 1)]
+for i in range(E):
+    a, b = data[2 * i], data[2 * i + 1]
+    G[a].append(b)
+    G[b].append(a)
+
+def bfs(G, v, n):
+    visited = [0] * (n + 1)
+    queue = deque([v])
+    visited[v] = 1                  # 넣을 때 방문 표시 (거리 = 1부터)
+    order = []
+    while queue:
+        t = queue.popleft()
+        order.append(t)
+        for w in G[t]:
+            if not visited[w]:
+                queue.append(w)
+                visited[w] = visited[t] + 1   # 거리 기록
+    return order, visited
+
+order, visited = bfs(G, 1, V)
+print('방문 순서:', '-'.join(map(str, order)))
+print('시작점으로부터 간선 거리:', {i: visited[i] - 1 for i in range(1, V + 1)})
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">7 8
+1 2 1 3 2 4 2 5 4 6 5 6 6 7 3 7
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-4</span>[연습문제] 연결되어 있는 두 개의 정점 사이의 간선을 순서대로 나열해 놓은 것 — 모든 정점을 너비우선탐색하여 경로를 출력하시오. 시작 정점을 1로 시작</h3>
+
+<p>입력: <code>1, 2, 1, 3, 2, 4, 2, 5, 4, 6, 5, 6, 6, 7, 3, 7</code> → 출력 결과의 예: <code>1-2-3-4-5-7-6</code></p>
+<p>위 IDE의 입력이 바로 이 그래프입니다. 실행해서 결과를 확인해 보세요.</p>
+</div>
+<div class="card">
+<h3><span class="tag">6-5</span>추천 문제 (SWEA)</h3>
+<ul><li>5097. 회전</li><li>5099. 피자 굽기</li><li>5102. 노드의 거리</li><li>5105. 미로의 거리</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>Queue 확인문제</h3>
+<details class="quiz"><summary>1. 큐(Queue)의 데이터 처리 방식은?</summary><div class="ans"><b class="ok">정답: FIFO, 선입선출</b> — 큐는 First-In-First-Out(선입선출) 구조로, 먼저 들어온 데이터가 먼저 나갑니다.</div></details><details class="quiz"><summary>2. 다음 중 큐의 기본 연산이 아닌 것은?</summary><ol class="opt" type="a"><li>enqueue</li><li>dequeue</li><li>push</li><li>peek</li></ol><div class="ans"><b class="ok">정답: push</b> — push는 스택 연산이고, 큐는 enqueue, dequeue, peek 등을 사용합니다.</div></details><details class="quiz"><summary>3. 다음 중 큐의 종류가 아닌 것은?</summary><ol class="opt" type="a"><li>선형 큐</li><li>원형 큐</li><li>그래프 큐</li><li>우선순위 큐</li></ol><div class="ans"><b class="ok">정답: 그래프 큐</b> — 그래프 큐는 존재하지 않으며, 선형 큐, 원형 큐, 우선순위 큐는 실제 큐의 다양한 형태입니다.</div></details><details class="quiz"><summary>4. 선형 큐의 단점은?</summary><ol class="opt" type="a"><li>구현이 어렵다</li><li>사용한 공간을 재사용할 수 없다</li><li>속도가 느리다</li><li>메모리를 무제한으로 사용한다</li></ol><div class="ans"><b class="ok">정답: 사용한 공간을 재사용할 수 없다</b> — 선형 큐는 앞부분이 비어도 다시 사용할 수 없기 때문에 낭비가 생깁니다.</div></details><details class="quiz"><summary>5. 선형 큐의 단점을 보완한 큐는? (단답형)</summary><div class="ans"><b class="ok">정답: 원형 큐</b></div></details><details class="quiz"><summary>6. 우선순위 큐가 사용되는 분야는?</summary><ol class="opt" type="a"><li>시뮬레이션 시스템</li><li>네트워크 트래픽 제어</li><li>운영체제 태스크 스케줄링</li><li>모두 해당</li></ol><div class="ans"><b class="ok">정답: 모두 해당</b></div></details><details class="quiz"><summary>7. 다음 중 큐가 아닌 다른 자료구조를 사용하는 것이 적절한 것은?</summary><ol class="opt" type="a"><li>프린터 대기열</li><li>명령어 실행 기록(실행 취소)</li><li>은행 번호표</li><li>키보드 버퍼</li></ol><div class="ans"><b class="ok">정답: 명령어 실행 기록</b> — 명령어 실행 기록은 후입선출 방식의 스택이 적절합니다.</div></details><details class="quiz"><summary>8. 큐를 사용하는 그래프 탐색 방법은?</summary><ol class="opt" type="a"><li>DFS</li><li>BFS</li><li>이진 탐색</li><li>정렬</li></ol><div class="ans"><b class="ok">정답: BFS</b> — 너비 우선 탐색으로, 큐를 사용해 가장 가까운 노드부터 탐색합니다.</div></details><details class="quiz"><summary>9. 다음 중 큐가 아닌 스택 구조를 사용하는 예는?</summary><ol class="opt" type="a"><li>프린터 출력</li><li>브라우저 뒤로가기</li><li>콜센터 대기</li><li>버퍼</li></ol><div class="ans"><b class="ok">정답: 브라우저 뒤로가기</b> — 후입선출 방식의 스택 구조를 사용합니다.</div></details><details class="quiz"><summary>10. 버퍼에서 큐를 사용하는 이유는 무엇인가요?</summary><ol class="opt" type="a"><li>가장 최근 요청을 먼저 처리하기 위해</li><li>먼저 들어온 요청부터 순서대로 처리하기 위해</li><li>데이터를 한꺼번에 처리하기 위해</li><li>저장 공간을 최소화하기 위해</li></ol><div class="ans"><b class="ok">정답: 먼저 들어온 요청부터 순서대로 처리하기 위해</b> — 버퍼는 순차적인 데이터 흐름을 관리하므로 큐(FIFO) 구조가 적합합니다.</div></details><details class="quiz"><summary>11. 파이썬 리스트로 큐를 구현할 때 dequeue에 해당하는 코드는?</summary><ol class="opt" type="a"><li>return q.pop()</li><li>return q.pop(0)</li><li>q.append(x)</li><li>q.insert(0, x)</li></ol><div class="ans"><b class="ok">정답: return q.pop(0)</b> — 큐는 뒤에 추가하고(append), 앞에서 제거(pop(0))하는 방식으로 동작합니다.</div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th><th>예시</th></tr><tr><td class="k">큐(Queue)</td><td>먼저 들어온 데이터가 먼저 나가는 선입선출(FIFO) 자료구조. 삽입(enQueue), 삭제(deQueue), 공백(isEmpty), 포화(isFull) 연산. 선형 큐, 원형 큐, 연결 큐, 우선순위 큐</td><td>은행 대기열</td></tr><tr><td class="k">FIFO</td><td>먼저 들어온 데이터가 먼저 나가는 자료 처리 방식</td><td>프린터 대기열</td></tr><tr><td class="k">버퍼(Buffer)</td><td>입력과 출력 속도가 다른 장치 간에 데이터를 임시로 저장해주는 공간. 데이터를 모아 두었다가 순서대로 처리되도록 도와주는 중간 완충 역할. 큐를 사용하여 먼저 들어온 데이터부터 차례대로 처리함</td><td>키보드 버퍼, 동영상 스트리밍</td></tr><tr><td class="k">BFS</td><td>그래프 탐색 기법으로, 현재 정점에 인접한 정점들을 먼저 탐색. 큐를 사용하여 탐색 순서를 유지하며, 가까운 노드부터 차례대로 방문. 미로 최단 거리, 레벨 탐색, 최단 경로 문제 등에 자주 사용됨</td><td>미로 최단 거리</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>큐는 <b>뒤(rear)로 넣고 앞(front)에서 꺼낸다</b>.</li><li>선형 큐는 앞 공간을 재사용하지 못한다 → <b>원형 큐(mod 순환)</b>, 크기 제한이 싫으면 <b>연결 큐</b>, 파이썬 실전은 <b>deque</b>.</li><li>우선순위 큐는 FIFO가 아니라 우선순위 순서 — 배열 구현은 재배치 비용이 크고 힙이 효율적.</li><li>BFS = 큐 + visited, <code>visited[w] = visited[t] + 1</code> 로 <b>최단 거리</b>까지 얻는다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 기본 Queue」(2025-09-15, 98장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>

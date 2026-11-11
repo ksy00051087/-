@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SW문제해결 응용 — 시작하기 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · 알고리즘 07 · 09/18 응용 시작하기</span>
+    <h1>SW문제해결 응용 — 시작하기 개념정리</h1>
+    <p class="sub">SW 문제해결 역량 → 복잡도 분석 → 파일로 입력 받기 → 진법 변환 → 비트 연산 · 2의 보수 · XOR → 실수 표현까지, 강의 슬라이드 102장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 6개 장</span><span>🐍 개념별 실행 가능한 파이썬 IDE</span><span>❓ 확인문제 10개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 글자 인식(OCR)으로 읽었고, 깨진 글자는 표준 알고리즘·파이썬 공식 동작 기준으로 바로잡았습니다.<br>🐍 <b>PY 표시가 있는 코드 상자는 실제 파이썬(CPython 3.12, Pyodide)</b>이 브라우저 안에서 실행됩니다. 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>. <b>입력</b> 버튼으로 stdin을 넣으면 <code>input()</code>이 그 내용을 읽습니다. 첫 실행 때 인터넷에서 파이썬을 한 번 내려받습니다(수 초). 무한 루프는 <b>■ 중지</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 문제해결 역량</a><a href="#ch2">2. 복잡도</a><a href="#ch3">3. 파일 입력</a><a href="#ch4">4. 진법</a><a href="#ch5">5. 비트 연산</a><a href="#ch6">6. 실수</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a><a href="#scratch">연습장</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 컴퓨터 입장에서 본 SW 문제해결 시작하기</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">0-1</span>컴퓨터 입장에서 본 SW 문제해결</h3>
+<ol><li>문제를 해결할 때 항상 <b>정해진 절차</b>를 따릅니다.</li><li>사람들은 나를 빠르게 만들기 위해 <b>복잡도</b>를 분석해서 가능한 적은 <b>시간</b> 안에 계산이 끝나도록 알고리즘을 설계해줍니다.</li><li>어떤 입력이 주어져도 나는 <b>알고리즘</b>에 따라 정확히 실행만 하면 됩니다.</li></ol><ul><li>SW 문제해결 능력을 키우면 효율적인 알고리즘 설계, 복잡도 분석, 비트·진수·입출력 등 컴퓨터적 사고의 기초를 다질 수 있습니다.</li><li>향후 다양한 문제 상황에서도 정확하고 빠르게 프로그램을 구현할 수 있는 기반이 됩니다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>SW 문제해결 역량과 문제 해결 과정을 이해한다.</li><li>시간 복잡도를 빅-오 표기법으로 분석하고, 입력 크기로 허용 가능한 복잡도를 추정한다.</li><li>파일에서 입력을 읽어 테스트하는 방법을 익힌다.</li><li>2진수·10진수·16진수를 왜 쓰는지 이해하고 진법 변환을 직접 구현한다.</li><li>비트 연산과 2의 보수, 실수(부동소수점) 표현을 이해한다.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>SW 문제해결 역량</h2><p class="desc">문제해결 역량 · 문제 해결 과정 · 연습 방법</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>SW 문제해결 역량이란?</h3>
+<ul><li>프로그램을 하기 위한 많은 제약 조건과 요구사항을 이해하고 최선의 방법을 찾아내는 능력</li><li><b>소프트웨어로 문제를 해결하는 전반적인 사고와 기술</b></li><li>프로그래머가 사용하는 언어나 라이브러리, 자료구조, 알고리즘에 대한 지식을 적재적소에 활용하는 능력</li></ul><div class="subhead">연습 방법</div><ul><li>문제를 많이 풀고, 다른 사람의 풀이를 보며 더 나은 방법을 찾아본다.</li><li>풀었던 문제도 다른 방법으로 다시 풀어본다.</li><li>시간을 정해 놓고 풀어본다.</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>문제 해결 과정</h3>
+<div class="flow"><span>문제를 읽고 이해한다</span><i>→</i><span>문제를 익숙한 용어로 재정의한다</span><i>→</i><span>어떻게 해결할지 계획을 세운다</span><i>→</i><span>계획을 검증한다</span><i>→</i><span>프로그램으로 구현한다</span><i>→</i><span>어떻게 풀었는지 돌아보고, 개선할 방법이 있는지 찾아본다</span></div><div class="note exam">"무작위 테스트"는 문제해결 과정에 해당하지 않습니다.</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch2" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>복잡도 분석</h2><p class="desc">알고리즘 · 시간 복잡도 · 빅-오 · 입력 크기와 반복 횟수 · log의 밑 2 · 효율적인 알고리즘의 가치</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>알고리즘과 시간 복잡도</h3>
+<ul><li>알고리즘: 유한한 단계를 통해 문제를 해결하기 위한 절차나 방법. 다시 말하면 어떠한 문제를 해결하기 위한 절차라고 할 수 있습니다.</li><li>시간 복잡도(Time Complexity): 실제 걸리는 시간을 측정하거나, 실행되는 명령문의 개수를 계산</li><li>빅-오(O) 표기법: 입력 크기 n이 무한대로 커질 때의 복잡도를 간단히 표현하기 위해 사용하는 표기법 — 시간 복잡도 함수 중에서 가장 큰 영향력을 주는 n에 대한 항만을 표시, 계수(Coefficient)는 생략하여 표시</li></ul><div class="big-o"><span>O(1)</span><i>&lt;</i><span>O(log n)</span><i>&lt;</i><span>O(n)</span><i>&lt;</i><span>O(n log n)</span><i>&lt;</i><span>O(n²)</span><i>&lt;</i><span>O(n³)</span><i>&lt;</i><span>O(2ⁿ)</span><i>&lt;</i><span>O(n!)</span></div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-2</span>코드를 보고 시간 복잡도 맞히기</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">반복 구조와 시간 복잡도</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">n = int(input())
+cnt = 0
+for i in range(n):          # O(n)
+    cnt += 1
+print('단일 반복   :', cnt)
+
+cnt = 0
+for i in range(n):          # O(n^2)
+    for j in range(n):
+        cnt += 1
+print('이중 반복   :', cnt)
+
+cnt = 0
+for i in range(n):          # 연속된 반복은 더한다 → O(n)
+    cnt += 1
+for x in range(n):
+    cnt += 1
+print('연속 반복   :', cnt)
+
+cnt = 0
+for i in range(50):         # 상수 번 → O(1)
+    cnt += 1
+print('상수 반복   :', cnt)
+
+cnt = 0
+i = 1
+while i &lt; n:                # 매번 2배 → O(log n)
+    i *= 2
+    cnt += 1
+print('2배씩 증가  :', cnt)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">1024
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-3</span>O(log n) — "몇 번 반복하는 프로그램이라고 추정해도 될까?"</h3>
+<ul><li>컴퓨터 분야에서 log의 밑 수는 10이 아니라 <b>2</b></li><li>n을 계속 2로 나누어 1이 될 때까지의 횟수 = log₂ n</li><li>2의 몇 승이 1억이 되는지 계산기를 사용해서 알 수 있음 → 2²⁷ ≈ 1.34억, 즉 1억 개 데이터도 이진 탐색이면 약 27번</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">log₂ n 체감</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import math
+for n in [10, 1000, 10**6, 10**8]:
+    print(f'n = {n:&gt;11,}  log2 n ≈ {math.log2(n):5.1f}  -&gt;  이진탐색 약 {math.ceil(math.log2(n))}번')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-4</span>입력 크기로 허용 가능한 알고리즘 추정 (1초 ≈ 약 1억 번 단순 연산 기준)</h3>
+<table class="compare"><tr><th>입력 크기 N</th><th>허용 가능한 복잡도 (대략)</th></tr><tr><td class="k">N ≤ 10</td><td>O(N!)</td></tr><tr><td class="k">N ≤ 20</td><td>O(2ᴺ)</td></tr><tr><td class="k">N ≤ 500</td><td>O(N³)</td></tr><tr><td class="k">N ≤ 5,000</td><td>O(N²)</td></tr><tr><td class="k">N ≤ 1,000,000</td><td>O(N log N)</td></tr><tr><td class="k">N ≤ 1억</td><td>O(N)</td></tr><tr><td class="k">그 이상</td><td>O(log N), O(1)</td></tr></table><div class="note tip">Python은 C보다 느려서 실제로는 1초에 약 1천만~수천만 번 수준으로 보수적으로 잡습니다. (PyPy는 더 빠름)</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-5</span>효율적인 알고리즘의 중요성</h3>
+<ul><li>효율적인 알고리즘은 슈퍼컴퓨터보다 더 큰 가치가 있음</li><li>값비싼 H/W의 기술 개발보다 효율적인 알고리즘 개발이 훨씬 경제적임</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">O(n) vs O(1)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">import time
+def sum_loop(n):
+    s = 0
+    for i in range(1, n + 1):
+        s += i
+    return s
+n = 3_000_000
+t = time.perf_counter(); a = sum_loop(n); t1 = time.perf_counter() - t
+t = time.perf_counter(); b = n * (n + 1) // 2; t2 = time.perf_counter() - t
+print(a == b, f'O(n) 반복: {t1*1000:.1f}ms  vs  O(1) 공식: {t2*1000:.4f}ms')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch3" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>표준 입출력 방법 — 파일로 입력 받기</h2><p class="desc">input.txt 활용 · sys.stdin · 파일 출력</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>입력을 매번 손으로 치지 않는 방법</h3>
+<ol><li>sample_input.txt 내용을 열고 복사하여, input.txt 파일에 붙인다.</li><li>코드 맨 위에 <code>import sys; sys.stdin = open("input.txt", "r")</code> 를 작성한다.</li><li>문제를 푼다. 테스트 할 때 마다 수동 입력할 필요가 없다.</li><li><b>제출할 때는 sys.stdin 줄을 주석 처리</b>한다.</li></ol><pre class="formula">import sys
+sys.stdin = open("input.txt", "r")   # 제출 시 주석 처리!
+
+T = int(input())
+for tc in range(1, T + 1):
+    ...</pre><div class="note tip">이 페이지의 IDE에서는 <b>입력</b> 칸이 바로 input.txt 역할을 합니다 — 코드 실행 전에 자동으로 sys.stdin에 연결됩니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>[도전] 두 수를 파일에서 입력 받고, 두 수의 합과 곱 출력하기</h3>
+<ul><li>두 수를 input.txt 파일에서 입력받기</li><li>두 수의 합과 곱을 output.txt 파일에 출력하기</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">파일 입출력</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># (1) input.txt 만들기 — 실제로는 직접 만든 파일이 있다고 가정
+with open('input.txt', 'w') as f:
+    f.write('3 5\n')
+
+# (2) 파일에서 입력 받기
+import sys
+sys.stdin = open('input.txt', 'r')
+a, b = map(int, input().split())
+
+# (3) 결과를 파일로 출력하기
+with open('output.txt', 'w') as f:
+    f.write(f'{a + b} {a * b}\n')
+
+print(open('output.txt').read())
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch4" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>진법 (Base)</h2><p class="desc">2진수 · 10진수 · 16진수 · 왜 쓰는가 · 진법 변환 구현 · 연습문제</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>왜 여러 진법을 쓰는가?</h3>
+<table class="compare"><tr><th>진법</th><th>특징</th></tr><tr><td class="k">2진수</td><td>컴퓨터가 사용하는 수 — 사람은 이해하기 어렵지만, 연산 속도가 매우 빠름</td></tr><tr><td class="k">10진수</td><td>2진수를 사람이 이해하기 편하도록 변환 시 사용</td></tr><tr><td class="k">16진수</td><td>2진수를 사람이 이해하기 편하도록, 짧게 변환 시 사용 (4비트 = 16진수 한 자리)</td></tr></table><p>예) <code>1001011011011100</code> 은 총 16비트이면서, 2바이트입니다. 16진수로 쓰면 <code>96DC</code> — 훨씬 짧습니다.</p>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>10진수 → 2진수 / 16진수 직접 구현</h3>
+
+<p>10진수를 진법으로 계속 나누어 <b>나머지를 역순</b>으로 읽습니다.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">진법 변환</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def to_base(tar, base):
+    digits = '0123456789ABCDEF'
+    if tar == 0:
+        return '0'
+    result = ''
+    while tar != 0:
+        result = digits[tar % base] + result   # 나머지를 앞에 붙임 (역순)
+        tar //= base
+    return result
+
+def from_base(s, base):
+    digits = '0123456789ABCDEF'
+    v = 0
+    for ch in s:
+        v = v * base + digits.index(ch)
+    return v
+
+n = int(input())
+print('2진수 :', to_base(n, 2), '| bin():', bin(n))
+print('16진수:', to_base(n, 16), '| hex():', hex(n))
+print('되돌리기:', from_base(to_base(n, 2), 2), from_base('96DC', 16), int('96DC', 16))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">38620
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-3</span>[연습] 0과 1로 이루어진 1차 배열에서 7개씩 수를 묶어, 10진수로 출력하기</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">7비트씩 묶어 10진수</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">bits = input().strip()
+res = []
+for i in range(0, len(bits), 7):
+    chunk = bits[i:i + 7]
+    v = 0
+    for b in chunk:
+        v = v * 2 + int(b)
+    res.append(v)
+print(*res, sep=', ')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">0000000111100000011000000111100110000110000111100111100111111001100111
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-4</span>[연습] 16진수 문자로 이루어진 1차 배열이 주어질 때, 앞에서부터 7bit씩 묶어 10진수로 변환하여 출력하기</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">16진수 → 7비트 묶음</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">hexs = input().strip()
+bits = ''.join(format(int(h, 16), '04b') for h in hexs)   # 16진수 한 자리 = 4비트
+print(bits)
+print([int(bits[i:i + 7], 2) for i in range(0, len(bits), 7)])
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">0F97A3
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch5" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>비트 연산 (Bitwise Operation)</h2><p class="desc">연산자 · 비트 확인 · 2의 보수 · XOR 성질 · 연습문제</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">5-1</span>비트 연산이란?</h3>
+<ul><li>컴퓨터의 CPU는 내부적으로 비트 연산을 사용하여 덧셈, 뺄셈, 곱셈 등을 계산함</li><li>사람이 사용하는 사칙연산(+, *, /, -)이 아닌 컴퓨터가 사용하는 연산인 "비트 연산"을 이해해봅니다.</li><li>더 나아가, 프로그래밍에서 비트연산을 활용한 코딩 방법을 익혀봅니다.</li><li>암호화, 그래픽, 네트워크 등 분야에서 계산을 빠르게 하기 위해 사용됩니다.</li></ul><table class="compare"><tr><th>연산자</th><th>연산자의 기능</th></tr><tr><td class="k">&amp;</td><td>비트 단위로 AND 연산을 한다. (둘 다 1이면 1)</td></tr><tr><td class="k">|</td><td>비트 단위로 OR 연산을 한다. (하나라도 1이면 1)</td></tr><tr><td class="k">^</td><td>비트 단위로 XOR 연산을 한다. (같으면 0 다르면 1)</td></tr><tr><td class="k">~</td><td>단항 연산자로서 피연산자의 모든 비트를 반전시킨다.</td></tr><tr><td class="k">&lt;&lt;</td><td>피연산자의 비트 열을 왼쪽으로 이동시킨다. (Left Shift: ×2)</td></tr><tr><td class="k">&gt;&gt;</td><td>피연산자의 비트 열을 오른쪽으로 이동시킨다. (Right Shift: 우측 비트들이 제거됨, //2)</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">5-2</span>비트 연산 실습</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">비트 연산자</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">a, b = 0b1100, 0b1010
+print(f'a     = {a:04b}')
+print(f'b     = {b:04b}')
+print(f'a &amp; b = {a &amp; b:04b}')
+print(f'a | b = {a | b:04b}')
+print(f'a ^ b = {a ^ b:04b}')
+print(f'~a    = {~a}   (모든 비트 반전 → -(a+1))')
+print(f'a &lt;&lt; 1 = {a &lt;&lt; 1:05b} ({a &lt;&lt; 1})   a &gt;&gt; 2 = {a &gt;&gt; 2:02b} ({a &gt;&gt; 2})')
+n = 0b10110
+for j in range(5):
+    print(f'n의 {j}번째 비트:', 1 if n &amp; (1 &lt;&lt; j) else 0)   # i &amp; (1&lt;&lt;j) : j번째 비트 확인
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-3</span>2의 보수 — 컴퓨터가 2의 보수를 사용하여 음수를 관리하는 이유</h3>
+<ul><li>뺄셈을 덧셈 회로로 처리할 수 있고, 0의 표현이 하나뿐이기 때문</li><li>-5를 2의 보수로 표현하는 방법 (가정: 수를 8-bit로 저장하는 경우) — 5 = 00000101 → 비트를 뒤집고(11111010) 1을 더함 → <b>11111011</b></li><li>최상위 비트(MSB, 부호 비트)가 1이면 음수</li><li>해석: 4비트 1011 → MSB는 1이 되었고(음수), 나머지 비트에 대해 2의 보수를 취하면 101 → 크기 5 → -5</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">2의 보수 출력</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">def bit_print(i):              # 8비트로 출력
+    output = ''
+    for j in range(7, -1, -1):
+        output += '1' if i &amp; (1 &lt;&lt; j) else '0'
+    print(f'{i:3} : {output}')
+
+for i in range(-5, 6):
+    bit_print(i)
+
+x = 5
+print('~x + 1 =', ~x + 1, '(2의 보수 = 음수)')
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-4</span>XOR 연산의 성질</h3>
+<ul><li><code>a ^ a = 0</code>, <code>a ^ 0 = a</code></li><li><b>같은 값으로 XOR 연산을 두 번 반복하면 원래 값으로 복귀</b> — 간단한 암호화, 값 교환(swap)에 활용</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">XOR 두 번 = 원래 값</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">msg = [ord(c) for c in 'SSAFY']
+key = 0b10101010
+enc = [c ^ key for c in msg]
+dec = [c ^ key for c in enc]
+print(enc, ''.join(chr(c) for c in dec))
+
+a, b = 7, 12
+a ^= b; b ^= a; a ^= b      # 임시 변수 없이 swap
+print(a, b)
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-5</span>[도전] 비트연산 문제 풀어보기 (SWEA 10726. 이진수 표현)</h3>
+
+<p>정수 N, M 이 주어질 때, M의 이진수 표현의 마지막 N 비트가 모두 1로 켜져 있는지 아닌지를 판별하여 출력하라. 모두 켜져 있다면 ON, 아니면 OFF.</p>
+<p>핵심: 마지막 N비트가 모두 1인 마스크 = <code>(1 &lt;&lt; N) - 1</code>. <code>M &amp; mask == mask</code> 이면 ON.</p><div class="ide">
+  <div class="ide-bar"><span class="ide-title">이진수 표현 (10726)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">T = int(input())
+for tc in range(1, T + 1):
+    N, M = map(int, input().split())
+    mask = (1 &lt;&lt; N) - 1
+    print(f'#{tc}', 'ON' if M &amp; mask == mask else 'OFF')
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+4 0
+4 30
+4 47
+5 31
+1 1
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-6</span>[연습] 암호 비트패턴 — 16진수 문자로 이루어진 1차 배열이 주어질 때, 왼쪽부터 순차적으로 암호 비트패턴을 찾아 차례대로 출력하시오. 암호는 연속되어 있다.</h3>
+<table class="compare"><tr><th>패턴</th><th>숫자</th></tr><tr><td class="k">001101</td><td>0</td></tr><tr><td class="k">010011</td><td>1</td></tr><tr><td class="k">111011</td><td>2</td></tr><tr><td class="k">110001</td><td>3</td></tr><tr><td class="k">100011</td><td>4</td></tr><tr><td class="k">110111</td><td>5</td></tr><tr><td class="k">001011</td><td>6</td></tr><tr><td class="k">111101</td><td>7</td></tr><tr><td class="k">011001</td><td>8</td></tr><tr><td class="k">101111</td><td>9</td></tr></table><div class="ide">
+  <div class="ide-bar"><span class="ide-title">암호 비트패턴</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">code = {'001101': 0, '010011': 1, '111011': 2, '110001': 3, '100011': 4,
+        '110111': 5, '001011': 6, '111101': 7, '011001': 8, '101111': 9}
+hexs = input().strip()
+bits = ''.join(format(int(h, 16), '04b') for h in hexs)
+res = []
+i = 0
+while i + 6 &lt;= len(bits):
+    if bits[i:i + 6] in code:
+        res.append(code[bits[i:i + 6]])
+        i += 6
+    else:
+        i += 1          # 패턴이 시작될 때까지 한 칸씩
+print(bits)
+print(res)
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">0269FAC9A0
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="ch6" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">6</div><div><h2>실수 (Floating Point)</h2><p class="desc">부동소수점 · IEEE 754 · 근사값 오차 · 비교 방법</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">6-1</span>실수 표현</h3>
+<ul><li>Python에서는 <b>64비트 부동소수점</b>으로 실수를 표현함 — 실수를 저장하기 위한 형식 (IEEE 754, 64bit: 부호 1 + 지수 11 + 가수 52 비트)</li><li>컴퓨터는 실수를 <b>근사적으로</b> 표현 — 이진법으로 표현할 수 없는 형태의 실수(예: 0.1)는 정확한 값이 아니라 근사 값으로 저장되는데, 이때 생기는 작은 오차가 계산 과정에서 다른 결과를 가져올 수 있다.</li><li>f-string <code>{t2:.2f}</code> : t2 값을 소수점 셋째자리에서 반올림하여 표현</li></ul><div class="ide">
+  <div class="ide-bar"><span class="ide-title">실수 오차</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">a = 0.1 + 0.2
+print(a, a == 0.3)
+print(f'{a:.20f}')                      # 실제 저장된 근사값
+print(f'{a:.2f}')                       # 소수점 셋째자리에서 반올림
+import math
+print(math.isclose(a, 0.3), abs(a - 0.3) &lt; 1e-9)   # 실수는 오차 범위로 비교
+print((0.1).hex())                      # 이진 부동소수점 내부 표현
+from decimal import Decimal
+print(Decimal('0.1') + Decimal('0.2'))  # 정확한 10진 소수가 필요하면 Decimal
+</textarea></div>
+  <div class="ide-io">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false"></textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>시작하기 확인문제</h3>
+<details class="quiz"><summary>1. SW 문제해결 역량이란?</summary><ol class="opt" type="a"><li>주어진 문제를 수학적으로 해결하는 능력</li><li>소프트웨어로 문제를 해결하는 전반적인 사고와 기술</li><li>프로그래밍 언어를 빠르게 배우는 능력</li><li>컴퓨터를 조립하고 다루는 능력</li></ol><div class="ans"><b class="ok">정답: 소프트웨어로 문제를 해결하는 전반적인 사고와 기술</b></div></details><details class="quiz"><summary>2. 아래 중 문제해결 과정에 해당하지 않는 것은?</summary><ol class="opt" type="a"><li>문제 이해</li><li>계획 세우기</li><li>무작위 테스트</li><li>해결 방법 구현</li></ol><div class="ans"><b class="ok">정답: 무작위 테스트</b> — 문제해결 과정: 문제를 읽고 이해 → 익숙한 용어로 재정의 → 계획 → 검증 → 구현 → 어떻게 풀었는지 돌아보고, 개선할 방법이 있는지 찾아본다.</div></details><details class="quiz"><summary>3. <code>print(0b11100)</code> 의 출력 결과는?</summary><div class="ans"><b class="ok">정답: 28</b> — 16+8+4 = 28</div></details><details class="quiz"><summary>4. <code>print(0b1010 ^ 0b1110)</code> 의 출력 결과는?</summary><div class="ans"><b class="ok">정답: 4</b> — 1010 ^ 1110 = 0100</div></details><details class="quiz"><summary>5. <code>print(1 &lt;&lt; 5)</code> 의 출력 결과는?</summary><div class="ans"><b class="ok">정답: 32</b></div></details><details class="quiz"><summary>6. 다음 중 시간 복잡도가 가장 높은 것은?</summary><ol class="opt" type="a"><li>O(n log n)</li><li>O(n²)</li><li>O(2ⁿ)</li><li>O(n!)</li></ol><div class="ans"><b class="ok">정답: O(n!)</b></div></details><details class="quiz"><summary>7. 평균적으로 O(n log n) 알고리즘의 예로 적절한 것은?</summary><ol class="opt" type="a"><li>버블 정렬</li><li>퀵 정렬</li><li>순차 검색</li><li>카운팅</li></ol><div class="ans"><b class="ok">정답: 퀵 정렬</b></div></details><details class="quiz"><summary>8. <code>def bit_count(n): return bin(n).count('1')</code> 일 때 <code>bit_count(13)</code> 의 결과는?</summary><div class="ans"><b class="ok">정답: 3</b> — 13 = 0b1101</div></details><details class="quiz"><summary>9. 같은 값으로 XOR 연산을 두 번 반복하면?</summary><ol class="opt" type="a"><li>0이 된다</li><li>원래 값으로 복귀한다</li><li>2배가 된다</li><li>음수가 된다</li></ol><div class="ans"><b class="ok">정답: 원래 값으로 복귀한다</b></div></details><details class="quiz"><summary>10. 0.1 + 0.2 == 0.3 이 False 인 이유는?</summary><div class="ans"><b class="ok">정답: 실수는 이진 부동소수점으로 근사 저장되어 작은 오차가 생기기 때문</b></div></details>
+</div>
+  </div>
+</section>
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 큰 줄기</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>키워드</th><th>설명</th><th>예시</th></tr><tr><td class="k">빅오 표기법</td><td>복잡도의 점근적 상한</td><td>O(1), O(n), O(log n)</td></tr><tr><td class="k">비트 연산</td><td>데이터에 대한 비트 단위 연산</td><td>&amp;, |, ^, ~, &lt;&lt;, &gt;&gt;</td></tr><tr><td class="k">진법 변환</td><td>숫자를 다른 진법으로 바꾸는 계산</td><td>10진수 ↔ 2진수, 16진수</td></tr><tr><td class="k">2의 보수</td><td>비트를 뒤집고 1을 더해 음수를 표현</td><td>-5 = 11111011 (8bit)</td></tr><tr><td class="k">실수</td><td>Python은 64비트 부동소수점으로 표현 (근사값)</td><td>3.14</td></tr><tr><td class="k">XOR 성질</td><td>XOR 연산을 두 번 반복하면 원래 값으로 복귀하는 성질</td><td>a ^ k ^ k == a</td></tr></table>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li>문제를 받으면 <b>입력 크기 → 허용 복잡도</b>부터 추정한다 (log의 밑은 2).</li><li>input.txt + sys.stdin으로 테스트를 자동화하고, 제출 전 주석 처리.</li><li>컴퓨터의 수는 2진수 — 16진수는 사람이 읽기 위한 축약, 음수는 2의 보수, 실수는 근사값.</li><li>비트 연산 <code>i &amp; (1&lt;&lt;j)</code>, <code>(1&lt;&lt;N)-1</code> 마스크는 자주 쓰는 도구.</li></ul>
+</div>
+  </div>
+</section>
+<section class="section" id="scratch" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">✎</div><div><h2>자유 연습장</h2><p class="desc">아무 코드나 작성해서 실행해 보세요</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>빈 연습장</h3>
+<div class="ide">
+  <div class="ide-bar"><span class="ide-title">자유 연습장</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="toggle-in" type="button">입력</button><button class="reset" type="button">↺ 초기화</button><button class="stop" type="button">■ 중지</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false"># 여기에 자유롭게 코드를 작성하세요
+N = int(input())
+arr = list(map(int, input().split()))
+print(N, sum(arr))
+</textarea></div>
+  <div class="ide-io has-in">
+    <div class="ide-in"><div class="ide-lbl"><span>입력 (stdin · input()으로 읽음)</span></div><textarea spellcheck="false">5
+1 2 3 4 5
+</textarea></div>
+    <div class="ide-out"><div class="ide-lbl"><span>출력</span><span class="time"></span></div><pre></pre></div>
+  </div>
+</div>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「SW문제해결 응용 시작하기」(2025-09-18, 102장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<div id="py-status"></div>
+<script>
+(function(){
+  var PYO = window.__PYODIDE_BASE || 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  var CM  = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  var status = document.getElementById('py-status');
+  function setStatus(t, cls, hide){ status.textContent=t; status.className='show '+(cls||''); if(hide){ setTimeout(function(){status.className='';}, hide);} }
+
+  /* ---------- 에디터 (CodeMirror가 없으면 textarea) ---------- */
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var editors = [];
+  function plainTab(ta){
+    ta.addEventListener('keydown', function(e){
+      if(e.key==='Tab'){ e.preventDefault(); var s=ta.selectionStart, en=ta.selectionEnd; ta.value=ta.value.slice(0,s)+'    '+ta.value.slice(en); ta.selectionStart=ta.selectionEnd=s+4; }
+    });
+  }
+  function initEditors(useCM){
+    document.querySelectorAll('.ide').forEach(function(box, idx){
+      var ta = box.querySelector('.ide-code textarea');
+      var original = ta.value;
+      var ed;
+      if(useCM && window.CodeMirror){
+        var cm = CodeMirror.fromTextArea(ta, {mode:'python', lineNumbers:true, indentUnit:4, tabSize:4, indentWithTabs:false, matchBrackets:true, viewportMargin:Infinity,
+          extraKeys:{ 'Tab':function(c){ if(c.somethingSelected()) c.indentSelection('add'); else c.replaceSelection('    ','end'); },
+                      'Shift-Tab':function(c){ c.indentSelection('subtract'); },
+                      'Ctrl-Enter':function(){ run(box); }, 'Cmd-Enter':function(){ run(box); },
+                      'Ctrl-/':'toggleComment' }});
+        ed = { get:function(){return cm.getValue();}, set:function(v){cm.setValue(v);} };
+      } else {
+        plainTab(ta);
+        ta.addEventListener('keydown', function(e){ if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); run(box);} });
+        ta.rows = Math.min(28, Math.max(5, original.split('\n').length+1));
+        ed = { get:function(){return ta.value;}, set:function(v){ta.value=v;} };
+      }
+      box._ed = ed; box._orig = original;
+      var inTa = box.querySelector('.ide-in textarea'); box._origIn = inTa.value;
+      box.querySelector('.run').onclick = function(){ run(box); };
+      box.querySelector('.stop').onclick = function(){ stop(box); };
+      box.querySelector('.reset').onclick = function(){ ed.set(box._orig); inTa.value = box._origIn; box.querySelector('.ide-out pre').innerHTML=''; };
+      box.querySelector('.toggle-in').onclick = function(){ box.querySelector('.ide-io').classList.toggle('has-in'); };
+      plainTab(inTa);
+    });
+  }
+
+  /* ---------- 파이썬 실행기 (Web Worker + Pyodide) ---------- */
+  var WORKER_SRC = [
+    "importScripts('"+PYO+"pyodide.js');",
+    "var py=null; var ready=loadPyodide({indexURL:'"+PYO+"'}).then(function(p){py=p; postMessage({type:'ready'});}).catch(function(e){postMessage({type:'fail', s:String(e)});});",
+    "var RUNNER = `\nimport sys, io, traceback, time\nsys.setrecursionlimit(3000)\nsys.stdin = io.StringIO(__stdin)\n__g = {'__name__':'__main__'}\n__t = time.perf_counter()\ntry:\n    exec(compile(__src, '<코드>', 'exec'), __g)\nexcept SystemExit:\n    pass\nexcept BaseException as __e:\n    __tb = traceback.extract_tb(__e.__traceback__)\n    __tb = [f for f in __tb if f.filename == '<코드>']\n    __lines = ['Traceback (most recent call last):']\n    for f in __tb:\n        __lines.append(f'  {f.lineno}번째 줄: ' + (__src.splitlines()[f.lineno-1].strip() if 0 < f.lineno <= len(__src.splitlines()) else ''))\n    __lines.append(f'{type(__e).__name__}: {__e}')\n    sys.stderr.write(chr(10).join(__lines) + chr(10))\nsys.stdout.flush()\n__elapsed = time.perf_counter() - __t\n`;",
+    "onmessage=async function(e){ await ready; var d=e.data;",
+    "  py.setStdout({write:function(b){ postMessage({type:'out', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  py.setStderr({write:function(b){ postMessage({type:'err', s:new TextDecoder().decode(b)}); return b.length; }});",
+    "  try{ py.globals.set('__src', d.code); py.globals.set('__stdin', d.stdin); await py.runPythonAsync(RUNNER); postMessage({type:'done', t:py.globals.get('__elapsed')}); }",
+    "  catch(err){ postMessage({type:'err', s:String(err)}); postMessage({type:'done'}); } };"
+  ].join('\n');
+
+  var worker=null, workerReady=false, pending=[], current=null, mainPy=null, mode='worker';
+  function spawn(){
+    workerReady=false;
+    try{ worker = new Worker(URL.createObjectURL(new Blob([WORKER_SRC], {type:'text/javascript'}))); }
+    catch(e){ worker=null; mode='main'; return; }
+    setStatus('🐍 Python 불러오는 중… (첫 실행만 몇 초)');
+    worker.onmessage = function(e){
+      var m=e.data;
+      if(m.type==='ready'){ workerReady=true; setStatus('🐍 Python 준비 완료', 'ok', 1800); flush(); }
+      else if(m.type==='fail'){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)', 'bad'); if(current){ write(current,'Python 로드 실패: '+m.s+'\n','err'); finish(current);} }
+      else if(m.type==='out'){ if(current) write(current, m.s); }
+      else if(m.type==='err'){ if(current) write(current, m.s, 'err'); }
+      else if(m.type==='done'){ if(current){ finish(current, m.t); } next(); }
+    };
+    worker.onerror = function(){ worker=null; mode='main'; setStatus('워커 대신 페이지에서 실행합니다', '', 2000); flush(); };
+  }
+  function write(box, s, cls){
+    var pre=box.querySelector('.ide-out pre');
+    if(box._buf===undefined) box._buf='';
+    var span=document.createElement('span'); if(cls) span.className=cls; span.textContent=s; pre.appendChild(span);
+    if(pre.childNodes.length>3000){ pre.removeChild(pre.firstChild); }
+    pre.scrollTop=pre.scrollHeight;
+  }
+  function finish(box, t){
+    box.classList.remove('running');
+    var lbl=box.querySelector('.ide-out .time');
+    lbl.textContent = (typeof t==='number') ? ('실행 시간 '+(t*1000).toFixed(1)+'ms') : '';
+    if(!box.querySelector('.ide-out pre').textContent) write(box,'(출력 없음)\n','sys');
+    current=null;
+  }
+  function next(){ if(pending.length){ var b=pending.shift(); exec(b);} }
+  function flush(){ if(!current) next(); }
+  function exec(box){
+    current=box; box.querySelector('.ide-out pre').innerHTML='';
+    var code=box._ed.get(), stdin=box.querySelector('.ide-in textarea').value;
+    if(mode==='worker' && worker){ worker.postMessage({code:code, stdin:stdin}); }
+    else { execMain(box, code, stdin); }
+  }
+  function execMain(box, code, stdin){
+    var go=function(){
+      mainPy.setStdout({write:function(b){ write(box,new TextDecoder().decode(b)); return b.length; }});
+      mainPy.setStderr({write:function(b){ write(box,new TextDecoder().decode(b),'err'); return b.length; }});
+      mainPy.globals.set('__src', code); mainPy.globals.set('__stdin', stdin);
+      var R = WORKER_SRC.match(/var RUNNER = `([\s\S]*?)`;/)[1];
+      mainPy.runPythonAsync(R).then(function(){ finish(box, mainPy.globals.get('__elapsed')); next(); })
+        .catch(function(e){ write(box,String(e)+'\n','err'); finish(box); next(); });
+    };
+    if(mainPy) return go();
+    setStatus('🐍 Python 불러오는 중…');
+    loadJS(PYO+'pyodide.js').then(function(){ return loadPyodide({indexURL:PYO}); })
+      .then(function(p){ mainPy=p; setStatus('🐍 Python 준비 완료','ok',1800); go(); })
+      .catch(function(){ setStatus('Python을 불러오지 못했습니다 (인터넷 연결 확인)','bad'); write(box,'Python 로드 실패 — 인터넷 연결을 확인하세요.\n','err'); finish(box); });
+  }
+  function run(box){
+    if(box.classList.contains('running')) return;
+    box.querySelector('.ide-out pre').innerHTML=''; box.querySelector('.ide-out .time').textContent='';
+    box.classList.add('running');
+    if(mode==='worker' && !worker) spawn();
+    if(mode==='worker' && worker && !workerReady){ write(box,'Python 준비 중… 잠시 후 자동 실행됩니다.\n','sys'); pending.push(box); return; }
+    if(current){ pending.push(box); write(box,'대기 중…\n','sys'); return; }
+    exec(box);
+  }
+  function stop(box){
+    if(mode!=='worker'){ write(box,'\n(이 모드에서는 중지할 수 없습니다)\n','sys'); return; }
+    pending = pending.filter(function(b){ return b!==box; });
+    if(current===box){
+      worker.terminate(); worker=null; workerReady=false; current=null;
+      write(box,'\n■ 실행을 중지했습니다.\n','sys'); box.classList.remove('running');
+      var rest=pending; pending=[]; spawn(); pending=rest;
+    } else { box.classList.remove('running'); write(box,'■ 취소했습니다.\n','sys'); }
+  }
+  window.__runIDE = run;
+
+  /* ---------- 시작 ---------- */
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js')
+    .then(function(){ return Promise.all([loadJS(CM+'mode/python/python.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js'), loadJS(CM+'addon/comment/comment.min.js')]); })
+    .then(function(){ initEditors(true); }, function(){ initEditors(false); });
+})();
+</script>
+</body>
+</html>
