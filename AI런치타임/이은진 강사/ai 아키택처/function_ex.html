@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Example HTML page demonstrating basic document structure."
+    />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      // 함수 정의
+      // 2가지 방법 : 함수 정의, 함수 표현식
+      function add(x, y) {
+        return x + y;
+      }
+      let result = add(3, 5);
+      console.log(result);
+      // 함수를 이름없이 만들 수 있음... 익명 함수 (anonymous function)
+      // 1회성으로 넘길때 자주 쓴다
+
+      result = (function (x, y) {
+        return x + y;
+      })(3, 42);
+      console.log(result);
+    </script>
+  </body>
+</html>

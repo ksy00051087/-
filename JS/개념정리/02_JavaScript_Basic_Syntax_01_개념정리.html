@@ -306,22 +306,26 @@ details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
   <div class="ide-code"><textarea spellcheck="false">const calculateCartTotal = function (items) {
-  let total = 0
+  let total = 0;
   for (const item of items) {
-    total += item.price * item.quantity
+    total += item.price * item.quantity;
   }
-  return total
-}
+  return total;
+};
 
 const cart = [
-  { name: '키보드', price: 30000, quantity: 1 },
-  { name: '마우스', price: 15000, quantity: 2 }
-]
-const total = calculateCartTotal(cart)
-const shipping = total &gt;= 50000 ? 0 : 3000      // 삼항 연산자
-console.log(`상품 합계: ${total}원`)
-console.log(`배송비: ${shipping}원`)
-console.log(`결제 금액: ${total + shipping}원`)
+  { name: "키보드", price: 30000, quantity: 1 },
+  { name: "마우스", price: 15000, quantity: 2 },
+];
+
+const total = calculateCartTotal(cart);
+console.log(`상품 합계: ${total}원`);
+
+const shipping = total &gt;= 50000 ? 0 : 3000; // 삼항 연산자
+console.log(`배송비: ${shipping}원`);
+
+const payment = total + shipping;
+console.log(`결제 금액: ${payment}원`);
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -346,20 +350,23 @@ console.log(`결제 금액: ${total + shipping}원`)
   <div class="ide-bar"><span class="ide-title js">원시 자료형</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const a = 'bar'
-console.log(a)                 // bar
-console.log(a.toUpperCase())   // BAR (새 문자열을 반환)
-console.log(a)                 // bar (원본은 불변)
+  <div class="ide-code"><textarea spellcheck="false">// 1. 문자열 메서드는 새 문자열을 반환 (원본 불변)
+const a = "bar";
+const upper = a.toUpperCase();
+console.log(upper); // BAR
+console.log(a); // bar
 
-let b = 10
-let c = b                      // 값이 복사됨
-c = 20
-console.log(c)                 // 20
-console.log(b)                 // 10
+// 2. 값이 복사됨
+let b = 10;
+let c = b;
+c = 20;
+console.log(c); // 20
+console.log(b); // 10
 
-let text = 'apple'
-text[0] = 'S'
-console.log(text)              // apple
+// 3. 문자열은 한 글자씩 바꿀 수 없음
+let text = "apple";
+text[0] = "S";
+console.log(text); // apple
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -371,16 +378,21 @@ console.log(text)              // apple
   <div class="ide-bar"><span class="ide-title js">참조 자료형</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const obj1 = { name: 'Alice', age: 30 }
-const obj2 = obj1              // 주소가 복사됨 → 같은 객체를 가리킴
-obj2.age = 40
-console.log(obj1.age)          // 40
-console.log(obj2.age)          // 40
-console.log(obj1 === obj2)     // true (같은 객체)
+  <div class="ide-code"><textarea spellcheck="false">// 1. 주소가 복사됨 → 같은 객체를 가리킴
+const obj1 = { name: "Alice", age: 30 };
+const obj2 = obj1;
+obj2.age = 40;
+console.log(obj1.age); // 40
+console.log(obj2.age); // 40
 
-const arr1 = [1, 2]
-const arr2 = [1, 2]
-console.log(arr1 === arr2)     // false (내용이 같아도 다른 객체)
+const isSame = obj1 === obj2;
+console.log(isSame); // true
+
+// 2. 내용이 같아도 다른 객체
+const arr1 = [1, 2];
+const arr2 = [1, 2];
+const isSameArr = arr1 === arr2;
+console.log(isSameArr); // false
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -397,16 +409,30 @@ console.log(arr1 === arr2)     // false (내용이 같아도 다른 객체)
   <div class="ide-bar"><span class="ide-title js">Number</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const a = 13
-const b = -5
-const c = 3.14          // float - 숫자표현
-const d = 2.998e8       // 2.998 * 10^8 = 299,800,000
-const e = Infinity
-const f = -Infinity
-const g = NaN           // Not a Number를 나타내는 값
-console.log(a, b, c, d, e, f, g)
-console.log(typeof g)   // NaN도 타입은 number
-console.log(0.1 + 0.2)
+  <div class="ide-code"><textarea spellcheck="false">const a = 13;
+console.log(a);
+
+const b = -5;
+console.log(b);
+
+const c = 3.14; // float
+console.log(c);
+
+const d = 2.998e8; // 2.998 * 10^8
+console.log(d); // 299800000
+
+const e = Infinity;
+console.log(e);
+
+const f = -Infinity;
+console.log(f);
+
+const g = NaN; // Not a Number
+console.log(g);
+console.log(typeof g); // "number"
+
+const sum = 0.1 + 0.2;
+console.log(sum); // 0.30000000000000004
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -418,17 +444,25 @@ console.log(0.1 + 0.2)
   <div class="ide-bar"><span class="ide-title js">String · 템플릿 리터럴</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const firstName = 'Tony'
-const lastName = 'Stark'
-const fullName = firstName + lastName
-console.log(fullName)            // TonyStark
-console.log('3' * 'a')           // NaN
+  <div class="ide-code"><textarea spellcheck="false">// 1. 문자열 연결
+const firstName = "Tony";
+const lastName = "Stark";
+const fullName = firstName + lastName;
+console.log(fullName); // TonyStark
 
-const age = 100
-const message = `홍길동은 ${age}세입니다.`
-console.log(message)
-console.log(`여러 줄도
-그대로 쓸 수 있고, 계산도 됩니다: ${age + 1}`)
+// 2. 문자열끼리 곱하기 → NaN
+const result = "3" * "a";
+console.log(result); // NaN
+
+// 3. 템플릿 리터럴
+const age = 100;
+const message = `홍길동은 ${age}세입니다.`;
+console.log(message);
+
+// 4. 여러 줄 + 계산
+const multiLine = `여러 줄도
+그대로 쓸 수 있고, 계산도 됩니다: ${age + 1}`;
+console.log(multiLine);
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -440,15 +474,31 @@ console.log(`여러 줄도
   <div class="ide-bar"><span class="ide-title js">null · undefined</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">let x = null
-console.log(x, typeof x)        // null 'object'
-let y
-console.log(y, typeof y)        // undefined 'undefined'
-console.log(null + 1)           // 1  (null → 0)
-console.log(undefined + 1)      // NaN
-function noReturn () {}
-console.log(noReturn())         // undefined
-console.log(null == undefined, null === undefined)
+  <div class="ide-code"><textarea spellcheck="false">// 1. null — 의도적인 값 없음
+let x = null;
+console.log(x);
+console.log(typeof x); // "object"
+
+// 2. undefined — 아직 할당 안 됨
+let y;
+console.log(y);
+console.log(typeof y); // "undefined"
+
+// 3. 연산
+const nullPlus = null + 1;
+console.log(nullPlus); // 1 (null → 0)
+
+const undefinedPlus = undefined + 1;
+console.log(undefinedPlus); // NaN
+
+// 4. return 없는 함수
+function noReturn() {}
+const returned = noReturn();
+console.log(returned); // undefined
+
+// 5. 비교
+console.log(null == undefined); // true
+console.log(null === undefined); // false
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -460,15 +510,28 @@ console.log(null == undefined, null === undefined)
   <div class="ide-bar"><span class="ide-title js">자동 형변환 (truthy · falsy)</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const values = [
-  ['0', 0], ['-0', -0], ['NaN', NaN], ['1', 1], ['-5', -5],
-  ["''", ''], ["'a'", 'a'], ["' '", ' '],
-  ['null', null], ['undefined', undefined], ['[]', []], ['{}', {}]
-]
-for (const [label, v] of values) {
-  console.log(label, '→', Boolean(v))
+  <div class="ide-code"><textarea spellcheck="false">// falsy 값
+console.log(Boolean(0)); // false
+console.log(Boolean(-0)); // false
+console.log(Boolean(NaN)); // false
+console.log(Boolean("")); // false
+console.log(Boolean(null)); // false
+console.log(Boolean(undefined)); // false
+
+// truthy 값
+console.log(Boolean(1)); // true
+console.log(Boolean(-5)); // true
+console.log(Boolean("a")); // true
+console.log(Boolean(" ")); // true (공백도 문자)
+console.log(Boolean([])); // true
+console.log(Boolean({})); // true
+
+// if 문에서 자동 형변환
+if ("") {
+  console.log("빈 문자열은 true?");
+} else {
+  console.log("빈 문자열은 false");
 }
-if ('') { console.log('빈 문자열은 true?') } else { console.log('빈 문자열은 false') }
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -485,19 +548,32 @@ if ('') { console.log('빈 문자열은 true?') } else { console.log('빈 문자
   <div class="ide-bar"><span class="ide-title js">할당 · 증감</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">let a = 0
-a += 10; console.log(a)   // 10
-a -= 3;  console.log(a)   // 7
-a *= 10; console.log(a)   // 70
-a %= 7;  console.log(a)   // 0
+  <div class="ide-code"><textarea spellcheck="false">// 1. 할당 연산자
+let a = 0;
 
-let x = 3
-const y = x++             // 후위: 반환 후 증가
-console.log(x, y)         // 4 3
+a += 10;
+console.log(a); // 10
 
-let m = 0
-const n = ++m             // 전위: 증가 후 반환
-console.log(m, n)         // 1 1
+a -= 3;
+console.log(a); // 7
+
+a *= 10;
+console.log(a); // 70
+
+a %= 7;
+console.log(a); // 0
+
+// 2. 후위 증가 — 반환 후 증가
+let x = 3;
+const y = x++;
+console.log(x); // 4
+console.log(y); // 3
+
+// 3. 전위 증가 — 증가 후 반환
+let m = 0;
+const n = ++m;
+console.log(m); // 1
+console.log(n); // 1
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -509,20 +585,26 @@ console.log(m, n)         // 1 1
   <div class="ide-bar"><span class="ide-title js">== vs ===</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">console.log(3 &gt; 2, 'A' &lt; 'B', 'Z' &lt; 'a', '가' &lt; '나')
-console.log('--- == (동등) ---')
-console.log(1 == 1)        // true
-console.log('hello' == 'hello')  // true
-console.log('1' == 1)      // true
-console.log(0 == false)    // true
-console.log('' == [])      // true  (!)
-console.log(null == undefined)   // true
-console.log('--- === (일치) ---')
-console.log(1 === 1)       // true
-console.log('hello' === 'hello') // true
-console.log('1' === 1)     // false
-console.log(0 === false)   // false
-console.log([1] === [1])   // false (다른 객체)
+  <div class="ide-code"><textarea spellcheck="false">// 1. 비교 연산자
+console.log(3 &gt; 2); // true
+console.log("A" &lt; "B"); // true
+console.log("Z" &lt; "a"); // true
+console.log("가" &lt; "나"); // true
+
+// 2. == (동등) — 형변환 후 비교
+console.log(1 == 1); // true
+console.log("hello" == "hello"); // true
+console.log("1" == 1); // true
+console.log(0 == false); // true
+console.log("" == []); // true (!)
+console.log(null == undefined); // true
+
+// 3. === (일치) — 타입까지 비교
+console.log(1 === 1); // true
+console.log("hello" === "hello"); // true
+console.log("1" === 1); // false
+console.log(0 === false); // false
+console.log([1] === [1]); // false (다른 객체)
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -534,16 +616,26 @@ console.log([1] === [1])   // false (다른 객체)
   <div class="ide-bar"><span class="ide-title js">논리 연산자 · 단축 평가</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">console.log(true &amp;&amp; false, true || false, !true)
-console.log(1 &amp;&amp; 0)     // 0
-console.log(0 &amp;&amp; 1)     // 0
-console.log(4 &amp;&amp; 7)     // 7
-console.log(1 || 0)     // 1
-console.log(0 || 1)     // 1
-console.log(4 || 7)     // 4
-console.log('' || 0)    // 0
-const nickname = ''
-console.log(nickname || '익명')   // 기본값 패턴
+  <div class="ide-code"><textarea spellcheck="false">// 1. 기본 논리 연산
+console.log(true &amp;&amp; false); // false
+console.log(true || false); // true
+console.log(!true); // false
+
+// 2. &amp;&amp; — 앞이 falsy면 앞, 아니면 뒤
+console.log(1 &amp;&amp; 0); // 0
+console.log(0 &amp;&amp; 1); // 0
+console.log(4 &amp;&amp; 7); // 7
+
+// 3. || — 앞이 truthy면 앞, 아니면 뒤
+console.log(1 || 0); // 1
+console.log(0 || 1); // 1
+console.log(4 || 7); // 4
+console.log("" || 0); // 0
+
+// 4. 기본값 패턴
+const nickname = "";
+const displayName = nickname || "익명";
+console.log(displayName); // 익명
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -560,14 +652,14 @@ console.log(nickname || '익명')   // 기본값 패턴
   <div class="ide-bar"><span class="ide-title js">if 문</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const name = 'customer'
+  <div class="ide-code"><textarea spellcheck="false">const name = "customer";
 
-if (name === 'admin') {
-  console.log('관리자님 환영해요')
-} else if (name === 'customer') {
-  console.log('고객님 환영해요')
+if (name === "admin") {
+  console.log("관리자님 환영해요");
+} else if (name === "customer") {
+  console.log("고객님 환영해요");
 } else {
-  console.log(`반갑습니다. ${name}님`)
+  console.log(`반갑습니다. ${name}님`);
 }
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
@@ -580,13 +672,13 @@ if (name === 'admin') {
   <div class="ide-bar"><span class="ide-title js">삼항 연산자</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const age = 20
-const message = (age &gt;= 18) ? '성인' : '미성년자'
-console.log(message)    // '성인'
+  <div class="ide-code"><textarea spellcheck="false">const age = 20;
+const message = age &gt;= 18 ? "성인" : "미성년자";
+console.log(message); // 성인
 
-for (const a of [7, 18, 45]) {
-  console.log(a, a &gt;= 18 ? '성인' : '미성년자')
-}
+const childAge = 7;
+const childMessage = childAge &gt;= 18 ? "성인" : "미성년자";
+console.log(childMessage); // 미성년자
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -613,13 +705,16 @@ for ([초기문]; [조건문]; [증감문]) {
   <div class="ide-bar"><span class="ide-title js">while · for</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">let i = 0
+  <div class="ide-code"><textarea spellcheck="false">// 1. while
+let i = 0;
 while (i &lt; 6) {
-  console.log('while', i)
-  i += 1
+  console.log("while", i);
+  i += 1;
 }
-for (let i = 0; i &lt; 6; i++) {
-  console.log('for', i)
+
+// 2. for
+for (let j = 0; j &lt; 6; j++) {
+  console.log("for", j);
 }
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
@@ -637,24 +732,31 @@ for (variable of iterable) {
   <div class="ide-bar"><span class="ide-title js">for...in · for...of</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const fruits = { a: 'apple', b: 'banana' }
+  <div class="ide-code"><textarea spellcheck="false">// 1. for...in — 객체의 속성 이름
+const fruits = { a: "apple", b: "banana" };
 for (const property in fruits) {
-  console.log(property)            // a, b  (속성 이름)
-  console.log(fruits[property])    // apple, banana
+  console.log(property); // a, b
+  console.log(fruits[property]); // apple, banana
 }
 
-const numbers = [0, 1, 2, 3]
+// 2. for...of — 배열의 값
+const numbers = [0, 1, 2, 3];
 for (const number of numbers) {
-  console.log(number)              // 0, 1, 2, 3 (값)
+  console.log(number); // 0, 1, 2, 3
 }
 
-const str = 'abc'
-for (const ch of str) console.log(ch)   // 문자열도 iterable
+// 3. 문자열도 iterable
+const str = "abc";
+for (const ch of str) {
+  console.log(ch);
+}
 
+// 4. 일반 객체는 iterable이 아님 → TypeError
 try {
-  for (const capital of { korea: '서울' }) {}   // 일반 객체는 iterable이 아님
+  for (const capital of { korea: "서울" }) {
+  }
 } catch (e) {
-  console.error(e.name + ': ' + e.message)
+  console.error(e.name + ": " + e.message);
 }
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
@@ -667,15 +769,20 @@ try {
   <div class="ide-bar"><span class="ide-title js">배열에 for...in 쓰면?</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const arr = ['a', 'b', 'c']
-Array.prototype.extra = '추가된 속성'   // 프로토타입 오염 예시
+  <div class="ide-code"><textarea spellcheck="false">const arr = ["a", "b", "c"];
+Array.prototype.extra = "추가된 속성"; // 프로토타입 오염 예시
+
+// 1. for...in — 인덱스가 문자열 + extra까지 나옴
 for (const i in arr) {
-  console.log('in:', i, typeof i)       // '0','1','2' 문자열 + extra까지!
+  console.log("in:", i, typeof i);
 }
+
+// 2. for...of — 값만 깔끔하게
 for (const v of arr) {
-  console.log('of:', v)
+  console.log("of:", v);
 }
-delete Array.prototype.extra
+
+delete Array.prototype.extra;
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -687,15 +794,18 @@ delete Array.prototype.extra
   <div class="ide-bar"><span class="ide-title js">const와 반복문</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">for (const x of [1, 2, 3]) {
-  console.log(x)                // OK
+  <div class="ide-code"><textarea spellcheck="false">// 1. for...of 에서는 const 가능
+for (const x of [1, 2, 3]) {
+  console.log(x);
 }
+
+// 2. 일반 for 에서는 i++ 때문에 TypeError
 try {
   for (const i = 0; i &lt; 3; i++) {
-    console.log(i)              // 첫 번째는 출력되고, i++ 에서 TypeError
+    console.log(i); // 첫 번째만 출력
   }
 } catch (e) {
-  console.error(e.name + ': ' + e.message)
+  console.error(e.name + ": " + e.message);
 }
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
@@ -716,23 +826,38 @@ try {
   <div class="ide-bar"><span class="ide-title js">선언식 · 표현식</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">console.log(add(1, 2))           // 선언식: 선언 전에 호출 가능
-function add (num1, num2) {
-  return num1 + num2
+  <div class="ide-code"><textarea spellcheck="false">// 1. 선언식 — 선언 전에 호출 가능
+const addResult = add(1, 2);
+console.log(addResult); // 3
+
+function add(num1, num2) {
+  return num1 + num2;
 }
 
+// 2. 표현식 — 선언 전 호출 시 TDZ → ReferenceError
 try {
-  console.log(sub(2, 1))         // 표현식: TDZ → ReferenceError
+  console.log(sub(2, 1));
 } catch (e) {
-  console.error(e.name + ': ' + e.message)
+  console.error(e.name + ": " + e.message);
 }
+
 const sub = function (num1, num2) {
-  return num1 - num2
+  return num1 - num2;
+};
+
+const subResult = sub(2, 1);
+console.log(subResult); // 1
+
+// 3. 함수 타입
+console.log(typeof add); // "function"
+console.log(typeof sub); // "function"
+
+// 4. return 뒤에 값이 없으면 undefined
+function noValue() {
+  return;
 }
-console.log(sub(2, 1))
-console.log(typeof add, typeof sub)
-function noValue () { return }
-console.log(noValue())
+const value = noValue();
+console.log(value); // undefined
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -744,17 +869,27 @@ console.log(noValue())
   <div class="ide-bar"><span class="ide-title js">기본 · 나머지 매개변수</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const greeting = function (name = 'Anonymous') {
-  return `Hi ${name}`
-}
-console.log(greeting())          // Hi Anonymous
-console.log(greeting('Alice'))
+  <div class="ide-code"><textarea spellcheck="false">// 1. 기본 매개변수
+const greeting = function (name = "Anonymous") {
+  return `Hi ${name}`;
+};
 
-const myFunc = function (param1, param2, ...restPrams) {
-  return [param1, param2, restPrams]
-}
-console.log(myFunc(1, 2, 3, 4, 5))   // [1, 2, [3, 4, 5]]
-console.log(myFunc(1, 2))            // [1, 2, []]
+const greet1 = greeting();
+console.log(greet1); // Hi Anonymous
+
+const greet2 = greeting("Alice");
+console.log(greet2); // Hi Alice
+
+// 2. 나머지 매개변수
+const myFunc = function (param1, param2, ...restParams) {
+  return [param1, param2, restParams];
+};
+
+const result1 = myFunc(1, 2, 3, 4, 5);
+console.log(result1); // [1, 2, [3, 4, 5]]
+
+const result2 = myFunc(1, 2);
+console.log(result2); // [1, 2, []]
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -766,19 +901,32 @@ console.log(myFunc(1, 2))            // [1, 2, []]
   <div class="ide-bar"><span class="ide-title js">인자 개수 불일치</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const threeArgs = function (param1, param2, param3) {
-  return [param1, param2, param3]
-}
-console.log(threeArgs())         // [undefined, undefined, undefined]
-console.log(threeArgs(1))        // [1, undefined, undefined]
-console.log(threeArgs(2, 3))     // [2, 3, undefined]
+  <div class="ide-code"><textarea spellcheck="false">// 1. 인자가 적을 때 → 남은 매개변수는 undefined
+const threeArgs = function (param1, param2, param3) {
+  return [param1, param2, param3];
+};
 
-const noArgs = function () { return 0 }
-console.log(noArgs(1, 2, 3))     // 0
+const none = threeArgs();
+console.log(none); // [undefined, undefined, undefined]
+
+const one = threeArgs(1);
+console.log(one); // [1, undefined, undefined]
+
+const two = threeArgs(2, 3);
+console.log(two); // [2, 3, undefined]
+
+// 2. 인자가 많을 때 → 남는 인자는 무시
+const noArgs = function () {
+  return 0;
+};
+const zero = noArgs(1, 2, 3);
+console.log(zero); // 0
+
 const twoArgs = function (param1, param2) {
-  return [param1, param2]
-}
-console.log(twoArgs(1, 2, 3))    // [1, 2]
+  return [param1, param2];
+};
+const cut = twoArgs(1, 2, 3);
+console.log(cut); // [1, 2]
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -790,22 +938,32 @@ console.log(twoArgs(1, 2, 3))    // [1, 2]
   <div class="ide-bar"><span class="ide-title js">Spread syntax</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">function myFunc (x, y, z) {
-  return x + y + z
+  <div class="ide-code"><textarea spellcheck="false">// 1. 함수 호출 시 인자 확장
+function myFunc(x, y, z) {
+  return x + y + z;
 }
-let numbers = [1, 2, 3]
-console.log(myFunc(...numbers))        // 6 — 함수 호출 시 인자 확장
+const numbers = [1, 2, 3];
+const sum = myFunc(...numbers);
+console.log(sum); // 6
 
-function myFunc2 (x, y, ...restArgs) {  // 나머지 매개변수 (압축)
-  return [x, y, restArgs]
+// 2. 나머지 매개변수 (압축)
+function myFunc2(x, y, ...restArgs) {
+  return [x, y, restArgs];
 }
-console.log(myFunc2(1, 2, 3, 4, 5))    // [1, 2, [3, 4, 5]]
-console.log(myFunc2(1, 2))             // [1, 2, []]
+const rest1 = myFunc2(1, 2, 3, 4, 5);
+console.log(rest1); // [1, 2, [3, 4, 5]]
 
-const merged = [...numbers, 4, 5]       // 배열과의 활용
-console.log(merged)
-const base = { a: 1 }
-console.log({ ...base, b: 2 })          // 객체와의 사용
+const rest2 = myFunc2(1, 2);
+console.log(rest2); // [1, 2, []]
+
+// 3. 배열과의 활용
+const merged = [...numbers, 4, 5];
+console.log(merged); // [1, 2, 3, 4, 5]
+
+// 4. 객체와의 활용
+const base = { a: 1 };
+const copied = { ...base, b: 2 };
+console.log(copied); // { a: 1, b: 2 }
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -822,17 +980,27 @@ console.log({ ...base, b: 2 })          // 객체와의 사용
   <div class="ide-bar"><span class="ide-title js">화살표 함수 작성 과정</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">const arrow1 = function (name) {
-  return `hello, ${name}`
-}
-// 1. function 키워드 삭제 후 화살표 작성
-const arrow2 = (name) =&gt; { return `hello, ${name}` }
-// 2. 인자의 소괄호 삭제 (인자가 1개일 경우에만 가능)
-const arrow3 = name =&gt; { return `hello, ${name}` }
-// 3. 중괄호와 return 삭제 (함수 본문이 return을 포함한 표현식 1개일 경우에만 가능)
-const arrow4 = name =&gt; `hello, ${name}`
+  <div class="ide-code"><textarea spellcheck="false">// 0. 함수 표현식
+const arrow1 = function (name) {
+  return `hello, ${name}`;
+};
+console.log(arrow1("Kim"));
 
-console.log(arrow1('Kim'), arrow2('Kim'), arrow3('Kim'), arrow4('Kim'))
+// 1. function 키워드 삭제 후 화살표 작성
+const arrow2 = (name) =&gt; {
+  return `hello, ${name}`;
+};
+console.log(arrow2("Kim"));
+
+// 2. 인자의 소괄호 삭제 (인자가 1개일 때만)
+const arrow3 = name =&gt; {
+  return `hello, ${name}`;
+};
+console.log(arrow3("Kim"));
+
+// 3. 중괄호와 return 삭제 (본문이 표현식 1개일 때만)
+const arrow4 = name =&gt; `hello, ${name}`;
+console.log(arrow4("Kim"));
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -844,20 +1012,26 @@ console.log(arrow1('Kim'), arrow2('Kim'), arrow3('Kim'), arrow4('Kim'))
   <div class="ide-bar"><span class="ide-title js">화살표 함수 심화</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">// 1. 인자가 없다면 () 또는 _ 로 표시 가능
-const noArgs1 = () =&gt; 'No args'
-const noArgs2 = _ =&gt; 'No args'
-console.log(noArgs1(), noArgs2())
+  <div class="ide-code"><textarea spellcheck="false">// 1. 인자가 없다면 () 또는 _ 로 표시
+const noArgs1 = () =&gt; "No args";
+console.log(noArgs1());
 
-// 2-1. object를 return 한다면 return 을 명시적으로 작성해야 함
-const returnObject1 = () =&gt; { return { key: 'value' } }
-// 2-2. return을 작성하지 않으려면 객체를 소괄호로 감싸야 함
-const returnObject2 = () =&gt; ({ key: 'value' })
-console.log(returnObject1(), returnObject2())
+const noArgs2 = _ =&gt; "No args";
+console.log(noArgs2());
+
+// 2-1. object를 return 한다면 return 을 명시
+const returnObject1 = () =&gt; {
+  return { key: "value" };
+};
+console.log(returnObject1());
+
+// 2-2. return 없이 쓰려면 객체를 소괄호로 감싸기
+const returnObject2 = () =&gt; ({ key: "value" });
+console.log(returnObject2());
 
 // (주의) 소괄호 없이 쓰면 { }가 함수 본문으로 해석됨
-const wrong = () =&gt; { key: 'value' }
-console.log(wrong())    // undefined
+const wrong = () =&gt; { key: "value" };
+console.log(wrong()); // undefined
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -874,10 +1048,30 @@ console.log(wrong())    // undefined
   <div class="ide-bar"><span class="ide-title js">NaN</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">console.log(Number(undefined), Math.sqrt(-1), 7 ** NaN, 0 * Infinity, '가' / 3)
-console.log(NaN === NaN)          // false
-console.log(typeof NaN)           // 'number'
-console.log(Number.isNaN(NaN), Number.isNaN('abc'), isNaN('abc'))
+  <div class="ide-code"><textarea spellcheck="false">// 1. NaN이 나오는 경우
+const fromUndefined = Number(undefined);
+console.log(fromUndefined); // NaN
+
+const sqrt = Math.sqrt(-1);
+console.log(sqrt); // NaN
+
+const pow = 7 ** NaN;
+console.log(pow); // NaN
+
+const zeroInf = 0 * Infinity;
+console.log(zeroInf); // NaN
+
+const divide = "가" / 3;
+console.log(divide); // NaN
+
+// 2. NaN의 특징
+console.log(NaN === NaN); // false
+console.log(typeof NaN); // "number"
+
+// 3. NaN 판별
+console.log(Number.isNaN(NaN)); // true
+console.log(Number.isNaN("abc")); // false
+console.log(isNaN("abc")); // true (형변환 후 판별)
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   

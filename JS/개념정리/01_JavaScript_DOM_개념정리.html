@@ -307,12 +307,14 @@ details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button id="toggle"&gt;🌙 다크 모드&lt;/button&gt;
 &lt;p&gt;버튼 클릭 한 번으로 웹 페이지에 변화를 일으킵니다.&lt;/p&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">const body = document.querySelector('body')
-const btn = document.querySelector('#toggle')
-btn.addEventListener('click', () =&gt; {
-  const isDark = body.classList.toggle('dark-mode')
-  console.log('dark-mode:', isDark)
-})
+  <div class="ide-code"><textarea spellcheck="false">const body = document.querySelector("body");
+const btn = document.querySelector("#toggle");
+
+btn.addEventListener("click", () =&gt; {
+  const isDark = body.classList.toggle("dark-mode");
+  console.log("dark-mode:", isDark);
+});
+
 // 결과 화면의 버튼을 눌러보세요
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
@@ -367,24 +369,28 @@ btn.addEventListener('click', () =&gt; {
   <div class="ide-bar"><span class="ide-title js">let · const</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">let number = 10      // 1. 선언 및 초기값 할당
-number = 20          // 2. 재할당 (가능)
-console.log(number)
+  <div class="ide-code"><textarea spellcheck="false">// 1. let — 재할당 가능
+let number = 10;
+number = 20;
+console.log(number);
 
-const PI = 3.14
+// 2. const — 재할당 불가 (TypeError)
+const PI = 3.14;
 try {
-  PI = 3             // const 재할당 → TypeError
+  PI = 3;
 } catch (e) {
-  console.error(e.name + ': ' + e.message)
+  console.error(e.name + ": " + e.message);
 }
 
-// let number = 30   // 같은 스코프에서 재선언 → SyntaxError (주석을 풀어보세요)
+// 3. 같은 스코프에서 재선언 → SyntaxError (주석을 풀어보세요)
+// let number = 30;
 
+// 4. 블록 스코프
 {
-  let inner = 'block'
-  console.log(inner)
+  let inner = "block";
+  console.log(inner);
 }
-console.log(typeof inner)   // 블록 밖에서는 접근 불가 → undefined
+console.log(typeof inner); // 블록 밖 → undefined
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -421,13 +427,20 @@ console.log(typeof inner)   // 블록 밖에서는 접근 불가 → undefined
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;p&gt;Hello, &lt;a href="https://www.google.com/"&gt;google&lt;/a&gt;&lt;/p&gt;
 &lt;span&gt;span&lt;/span&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">console.log(document.title)
-document.title = 'Hello :)'
-console.log(document.title)
-console.log(document.body.children.length, '개의 자식 요소')
-console.log(document.querySelector('p').parentElement.tagName)
-for (const child of document.body.children) {
-  console.log(child.tagName)
+  <div class="ide-code"><textarea spellcheck="false">const title = document.title;
+console.log(title);
+
+document.title = "Hello :)";
+console.log(document.title);
+
+const children = document.body.children;
+console.log(children.length, "개의 자식 요소");
+
+const pTag = document.querySelector("p");
+console.log(pTag.parentElement.tagName);
+
+for (const child of children) {
+  console.log(child.tagName);
 }
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
@@ -456,15 +469,32 @@ for (const child of document.body.children) {
 &lt;ul&gt;
   &lt;li&gt;list1&lt;/li&gt;
   &lt;li&gt;list2&lt;/li&gt;
-&lt;/ul&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">console.log(document.querySelector('.heading'))
-console.log(document.querySelector('.content'))           // 첫 번째 하나만
-console.log(document.querySelectorAll('.content'))        // NodeList
-console.log(document.querySelectorAll('ul &gt; li'))
-console.log(document.querySelector('.없는클래스'))          // null
+&lt;/ul&gt;
+&lt;div id="container"&gt;
+  &lt;p class="text"&gt;container 안의 text&lt;/p&gt;
+&lt;/div&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const h1Tag = document.querySelector(".heading");
+console.log(h1Tag);
 
-const contents = document.querySelectorAll('.content')
-contents.forEach((p, i) =&gt; console.log(i, p.textContent))   // NodeList는 forEach 가능
+const firstContent = document.querySelector(".content");
+console.log(firstContent); // 첫 번째 하나만
+
+const contentTags = document.querySelectorAll(".content");
+console.log(contentTags); // NodeList
+
+const pTag = document.querySelector("#container &gt; .text");
+console.log(pTag.textContent);
+
+const liTags = document.querySelectorAll("ul &gt; li");
+console.log(liTags);
+
+const noneTag = document.querySelector(".없는클래스");
+console.log(noneTag); // null
+
+// NodeList는 forEach 가능
+contentTags.forEach((p, i) =&gt; {
+  console.log(i, p.textContent);
+});
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts"></iframe></div>
@@ -481,15 +511,20 @@ contents.forEach((p, i) =&gt; console.log(i, p.textContent))   // NodeList는 fo
   <div class="ide-bar"><span class="ide-title js">classList add · remove · toggle</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;h1 class="heading"&gt;DOM 조작&lt;/h1&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">const h1Tag = document.querySelector('.heading')
-console.log(h1Tag.classList)
-h1Tag.classList.add('red')            // 지정한 클래스 추가
-console.log(h1Tag.classList)
-h1Tag.classList.remove('red')         // 제거
-console.log(h1Tag.classList)
-console.log(h1Tag.classList.toggle('red'))   // 없으니 추가 → true
-console.log(h1Tag.classList.toggle('red'))   // 있으니 제거 → false
-h1Tag.classList.toggle('red')
+  <div class="ide-code"><textarea spellcheck="false">const h1Tag = document.querySelector(".heading");
+console.log(h1Tag.classList);
+
+h1Tag.classList.add("red");
+console.log(h1Tag.classList);
+
+h1Tag.classList.remove("red");
+console.log(h1Tag.classList);
+
+const added = h1Tag.classList.toggle("red");
+console.log(added); // 없으니 추가 → true
+
+const removed = h1Tag.classList.toggle("red");
+console.log(removed); // 있으니 제거 → false
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts"></iframe></div>
@@ -501,15 +536,17 @@ h1Tag.classList.toggle('red')
   <div class="ide-bar"><span class="ide-title js">일반 속성 조작</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;a href="https://www.google.com/"&gt;google&lt;/a&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">const aTag = document.querySelector('a')
-console.log(aTag.getAttribute('href'))
-aTag.setAttribute('href', 'https://www.naver.com/')
-console.log(aTag.getAttribute('href'))
-aTag.setAttribute('data-count', 3)
-console.log(typeof aTag.getAttribute('data-count'))   // 'string'
-aTag.removeAttribute('href')
-console.log(aTag.getAttribute('href'))   // null
-console.log(aTag.outerHTML)
+  <div class="ide-code"><textarea spellcheck="false">const aTag = document.querySelector("a");
+console.log(aTag.getAttribute("href"));
+
+aTag.setAttribute("href", "https://www.naver.com/");
+console.log(aTag.getAttribute("href"));
+
+aTag.setAttribute("data-count", 3);
+console.log(typeof aTag.getAttribute("data-count")); // "string"
+
+aTag.removeAttribute("href");
+console.log(aTag.getAttribute("href")); // null
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts"></iframe></div>
@@ -523,13 +560,19 @@ console.log(aTag.outerHTML)
   <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;h1 class="heading"&gt;&lt;span&gt;Hello&lt;/span&gt; World&lt;/h1&gt;
 &lt;p&gt;p&lt;/p&gt;
 &lt;div&gt;div&lt;/div&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">const h1Tag = document.querySelector('.heading')
-console.log(h1Tag.textContent)        // 태그 제외 텍스트만
-h1Tag.textContent = '내용 수정'
-console.log(h1Tag.textContent)
-const p = document.querySelector('p')
-p.textContent = '&lt;b&gt;굵게?&lt;/b&gt;'          // 태그가 해석되지 않고 문자 그대로
-document.querySelector('div').innerHTML = "&lt;b&gt;innerHTML은 해석됨&lt;/b&gt;"
+  <div class="ide-code"><textarea spellcheck="false">const h1Tag = document.querySelector(".heading");
+console.log(h1Tag.textContent); // 태그 제외 텍스트만
+
+h1Tag.textContent = "내용 수정";
+console.log(h1Tag.textContent);
+
+const pTag = document.querySelector("p");
+pTag.textContent = "&lt;b&gt;굵게?&lt;/b&gt;"; // 태그가 문자 그대로
+console.log(pTag.textContent);
+
+const divTag = document.querySelector("div");
+divTag.innerHTML = "&lt;b&gt;innerHTML은 해석됨&lt;/b&gt;";
+console.log(divTag.innerHTML);
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts"></iframe></div>
@@ -544,22 +587,24 @@ document.querySelector('div').innerHTML = "&lt;b&gt;innerHTML은 해석됨&lt;/b
   &lt;p&gt;p 태그 — 1초 뒤 아래에 다시 붙습니다&lt;/p&gt;
 &lt;/div&gt;</textarea></div>
   <div class="ide-code"><textarea spellcheck="false">// 생성
-const h1Tag = document.createElement('h1')
-h1Tag.textContent = '제목'
-console.log(h1Tag)                    // 아직 화면에는 없음 (메모리에만)
+const h1Tag = document.createElement("h1");
+h1Tag.textContent = "제목";
+console.log(h1Tag); // 아직 화면에는 없음 (메모리에만)
 
 // 추가
-const divTag = document.querySelector('div')
-divTag.appendChild(h1Tag)
-console.log(divTag.children.length)
+const divTag = document.querySelector("div");
+divTag.appendChild(h1Tag);
+console.log(divTag.children.length);
 
 // 삭제
-const pTag = document.querySelector('p')
-const removed = divTag.removeChild(pTag)
-console.log('제거된 노드:', removed)
+const pTag = document.querySelector("p");
+const removed = divTag.removeChild(pTag);
+console.log(removed);
 
-// 재사용
-setTimeout(() =&gt; divTag.appendChild(removed), 1000)   // 1초 뒤 다시 붙임
+// 재사용 — 1초 뒤 다시 붙임
+setTimeout(() =&gt; {
+  divTag.appendChild(removed);
+}, 1000);
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts"></iframe></div>
@@ -571,12 +616,16 @@ setTimeout(() =&gt; divTag.appendChild(removed), 1000)   // 1초 뒤 다시 붙�
   <div class="ide-bar"><span class="ide-title js">style 조작</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;p&gt;Lorem, ipsum dolor.&lt;/p&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">const pTag = document.querySelector('p')
-pTag.style.color = 'crimson'
-pTag.style.fontSize = '2rem'
-pTag.style.border = '1px solid black'
-console.log(pTag.style.color, pTag.style.fontSize)
-console.log(pTag.getAttribute('style'))
+  <div class="ide-code"><textarea spellcheck="false">const pTag = document.querySelector("p");
+
+pTag.style.color = "crimson";
+console.log(pTag.style.color);
+
+pTag.style.fontSize = "2rem";
+console.log(pTag.style.fontSize);
+
+pTag.style.border = "1px solid black";
+console.log(pTag.getAttribute("style"));
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts"></iframe></div>
@@ -594,12 +643,17 @@ console.log(pTag.getAttribute('style'))
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;p&gt;Hello, &lt;b&gt;world&lt;/b&gt;!&lt;/p&gt;
 &lt;ul&gt;&lt;li&gt;1&lt;/li&gt;&lt;li&gt;2&lt;/li&gt;&lt;/ul&gt;</textarea></div>
-  <div class="ide-code"><textarea spellcheck="false">const p = document.querySelector('p')
-console.log(p.childNodes)       // Text 노드도 포함 (Node)
-console.log(p.children)         // Element만 (HTMLCollection)
-const list = document.querySelectorAll('li')   // 정적 NodeList
-document.querySelector('ul').appendChild(document.createElement('li'))
-console.log('NodeList 길이:', list.length, '/ 실제 li 수:', document.querySelectorAll('li').length)
+  <div class="ide-code"><textarea spellcheck="false">const pTag = document.querySelector("p");
+console.log(pTag.childNodes); // Text 노드도 포함 (Node)
+
+console.log(pTag.children); // Element만 (HTMLCollection)
+
+const liTags = document.querySelectorAll("li"); // 정적 NodeList
+const ulTag = document.querySelector("ul");
+ulTag.appendChild(document.createElement("li"));
+
+console.log(liTags.length); // 그대로 2
+console.log(document.querySelectorAll("li").length); // 실제 3
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts"></iframe></div>
@@ -615,21 +669,24 @@ console.log('NodeList 길이:', list.length, '/ 실제 li 수:', document.queryS
   <div class="ide-bar"><span class="ide-title js">var의 스코프</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">if (true) {
-  var a = 1       // var: 블록을 무시
-  let b = 2       // let: 블록 스코프
+  <div class="ide-code"><textarea spellcheck="false">// 1. var는 블록을 무시, let은 블록 스코프
+if (true) {
+  var a = 1;
+  let b = 2;
 }
-console.log(a)
-console.log(typeof b)
+console.log(a);
+console.log(typeof b);
 
-var a = 100       // var는 재선언도 됨
-console.log(a)
+// 2. var는 재선언도 됨
+var a = 100;
+console.log(a);
 
-function f () {
-  var inside = 'function scope'
+// 3. 함수 스코프
+function f() {
+  var inside = "function scope";
 }
-f()
-console.log(typeof inside)   // 함수 바깥에서 접근 불가
+f();
+console.log(typeof inside); // 함수 바깥에서 접근 불가
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
@@ -641,25 +698,33 @@ console.log(typeof inside)   // 함수 바깥에서 접근 불가
   <div class="ide-bar"><span class="ide-title js">호이스팅 · TDZ</span><span class="hint">Ctrl+Enter 실행</span>
     <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
   
-  <div class="ide-code"><textarea spellcheck="false">console.log(name)          // undefined (var: 선언+초기화가 끌어올려짐)
-var name = '홍길동'
+  <div class="ide-code"><textarea spellcheck="false">// 1. var — 선언+초기화가 끌어올려짐
+console.log(userName); // undefined
+var userName = "홍길동";
 
+// 2. let — TDZ → ReferenceError
 try {
-  console.log(age)         // TDZ → ReferenceError
+  console.log(age);
 } catch (e) {
-  console.error(e.name + ': ' + e.message)
+  console.error(e.name + ": " + e.message);
 }
-let age = 30
+let age = 30;
 
-console.log(add(1, 2))     // 함수 선언식은 선언 전에 호출 가능
-function add (a, b) { return a + b }
+// 3. 함수 선언식 — 선언 전에 호출 가능
+console.log(add(1, 2));
+function add(a, b) {
+  return a + b;
+}
 
+// 4. 함수 표현식 — let/const 규칙 (TDZ)
 try {
-  console.log(sub(3, 1))   // 함수 표현식 → let/const 규칙 (TDZ)
+  console.log(sub(3, 1));
 } catch (e) {
-  console.error(e.name + ': ' + e.message)
+  console.error(e.name + ": " + e.message);
 }
-const sub = function (a, b) { return a - b }
+const sub = function (a, b) {
+  return a - b;
+};
 </textarea></div>
   <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
   
