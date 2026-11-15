@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django 시험대비 개념정리</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+<header class="hero"><div class="hero-inner">
+  <span class="hero-eyebrow">DJANGO · 시험 출제 범위 32주제</span>
+  <h1>Django 시험대비 핵심 개념정리</h1>
+  <p class="sub">시험에 나온다는 32개 주제를 흐름 순서(환경 → URL → Template → 요청 → Model → Form → Static/Media → Auth)로 묶어 정리했습니다. 각 주제마다 <b>핵심 개념 · 코드 · 시험 포인트</b>가 있습니다.</p>
+  <div class="hero-meta"><span>8개 파트</span><span>32개 주제</span><span>문제 페이지: 09_Django_시험대비_문제.html</span></div>
+  <div class="hero-note">빨간 박스(시험 포인트)는 헷갈리기 쉬운 함정입니다. 문제 페이지를 풀기 전에 빨간 박스만 한 번 더 훑어보세요.</div>
+</div></header>
+
+<nav class="toc-wrap"><div class="toc">
+  <a href="#p1">1 환경·앱</a><a href="#p2">2 URL</a><a href="#p3">3 Template</a><a href="#p4">4 요청·CSRF</a><a href="#p5">5 Model·ORM</a><a href="#p6">6 Form</a><a href="#p7">7 Static·Media</a><a href="#p8">8 인증</a><a href="#sum">한눈에 보기</a><a href="09_Django_시험대비_치트시트.html">치트시트</a><a href="09_Django_시험대비_문제.html">1회차(심화)</a><a href="09_Django_시험대비_문제_모음.html">문제 모음 2~5회차</a>
+</div></nav>
+
+<main>
+
+<!-- ================= PART 1 ================= -->
+<div class="part-banner" id="p1"><span>PART 1</span>개발 환경과 앱</div>
+<section class="section" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">01</div><div><h2>가상 환경과 의존성 관리</h2><p class="desc">venv · pip freeze · requirements.txt</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">개념</span>가상 환경이란</h3>
+      <p>프로젝트마다 <b>독립된 파이썬 실행 환경</b>을 만들어 패키지 버전 충돌을 막는 것. 프로젝트 A는 Django 4.2, B는 5.0을 써도 서로 영향이 없다.</p>
+      <pre class="formula"><span class="cm"># 1. 가상 환경 생성 (venv 라는 이름의 폴더 생성)</span>
+python -m venv venv
+<span class="cm"># 2. 활성화 (Windows Git Bash)</span>
+source venv/Scripts/activate
+<span class="cm">#    (macOS/Linux) source venv/bin/activate</span>
+<span class="cm"># 3. 비활성화</span>
+deactivate</pre>
+    </div>
+    <div class="card"><h3><span class="tag">개념</span>의존성 관리</h3>
+      <p><b>의존성</b> = 프로젝트가 동작하려면 필요한 패키지 목록과 버전.</p>
+      <pre class="formula">pip install django
+pip list                          <span class="cm"># 설치된 패키지 확인</span>
+pip freeze > requirements.txt     <span class="cm"># 현재 환경 패키지 목록 기록</span>
+pip install -r requirements.txt   <span class="cm"># 목록대로 한 번에 설치</span></pre>
+      <div class="note exam"><b>시험 포인트</b> · venv 폴더는 git에 올리지 않는다(<code>.gitignore</code>). 대신 <code>requirements.txt</code>를 공유하고, 받은 사람이 가상환경을 새로 만들어 <code>pip install -r</code>로 복원한다. <code>freeze</code>는 "기록", <code>-r</code>은 "설치".</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">02</div><div><h2>앱 생성과 등록 순서</h2><p class="desc">startproject → startapp → INSTALLED_APPS</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">순서</span>프로젝트 → 앱 → 등록</h3>
+      <div class="flow"><span>django-admin startproject firstpjt .</span><i>→</i><span>python manage.py startapp articles</span><i>→</i><span>INSTALLED_APPS에 등록</span></div>
+      <pre class="formula"><span class="cm"># settings.py</span>
+INSTALLED_APPS = [
+    <span class="num">'articles'</span>,                  <span class="cm"># ① 직접 만든 앱</span>
+    <span class="cm"># ② 3rd party 앱</span>
+    <span class="num">'django.contrib.admin'</span>,      <span class="cm"># ③ Django 내장 앱</span>
+    <span class="num">'django.contrib.auth'</span>,
+    ...
+]</pre>
+    </div>
+    <div class="card"><h3><span class="tag">주의</span>왜 "생성 후 등록"인가</h3>
+      <ul>
+        <li>등록을 먼저 하면 아직 없는 모듈을 찾으므로 <code>startapp</code>이 실패하거나 <b>ModuleNotFoundError</b>가 난다 → <b>반드시 생성 먼저, 등록 나중</b>.</li>
+        <li>앱 이름은 <b>복수형</b> 권장 (articles, accounts).</li>
+        <li>등록 위치 권장 순서: 직접 만든 앱 → 3rd party → 내장 앱.</li>
+        <li>프로젝트 = 앱들의 집합(설정 담당), 앱 = 실제 기능 단위(하나의 역할).</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · <code>startproject</code>는 <code>django-admin</code>, <code>startapp</code>은 <code>python manage.py</code>. 뒤의 <code>.</code>은 "현재 폴더에 생성"이라는 뜻.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART 2 ================= -->
+<div class="part-banner" id="p2"><span>PART 2</span>URL</div>
+<section class="section" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">03</div><div><h2>URL과 view 함수 연결</h2><p class="desc">요청 → urls.py → views.py → template → 응답</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">흐름</span>요청-응답 과정</h3>
+      <div class="flow"><span>요청 (URL)</span><i>→</i><span>urls.py (path 매칭)</span><i>→</i><span>views.py (함수 실행)</span><i>→</i><span>template 렌더링</span><i>→</i><span>HttpResponse</span></div>
+      <pre class="formula"><span class="cm"># urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> . <span class="kw">import</span> views
+urlpatterns = [
+    path(<span class="num">'index/'</span>, views.index, name=<span class="num">'index'</span>),
+]
+
+<span class="cm"># views.py</span>
+<span class="kw">def</span> index(request):               <span class="cm"># 첫 번째 인자는 반드시 request</span>
+    context = {<span class="num">'name'</span>: <span class="num">'Alice'</span>}
+    <span class="kw">return</span> render(request, <span class="num">'articles/index.html'</span>, context)</pre>
+    </div>
+    <div class="card"><h3><span class="tag">포인트</span>path()와 render()</h3>
+      <ul>
+        <li><code>path(route, view, name)</code> — view는 <b>함수 객체</b>를 넘긴다 (<code>views.index</code> O, <code>views.index()</code> X).</li>
+        <li>route는 앞에 <code>/</code>를 붙이지 않고 <b>끝에 <code>/</code></b>를 붙인다 (Trailing Slash).</li>
+        <li>view 함수 첫 인자는 항상 <code>request</code>(HttpRequest 객체).</li>
+        <li><code>render(request, template_name, context)</code> → HttpResponse 반환.</li>
+        <li>템플릿 경로는 <code>앱/templates/</code> <b>이후</b>부터 작성 → <code>articles/templates/articles/index.html</code>이면 <code>'articles/index.html'</code>.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · urlpatterns는 <b>위에서부터 순서대로</b> 비교하고 처음 일치한 path를 사용한다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">04</div><div><h2>Variable Routing</h2><p class="desc">URL 일부를 변수로 받아 view에 전달</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">문법</span>&lt;converter:name&gt;</h3>
+      <pre class="formula"><span class="cm"># urls.py</span>
+path(<span class="num">'articles/&lt;int:pk&gt;/'</span>, views.detail, name=<span class="num">'detail'</span>)
+path(<span class="num">'hello/&lt;str:name&gt;/'</span>, views.greeting)
+
+<span class="cm"># views.py — 변수 이름이 URL의 이름과 같아야 함</span>
+<span class="kw">def</span> detail(request, pk):
+    article = Article.objects.get(pk=pk)
+    ...</pre>
+    </div>
+    <div class="card"><h3><span class="tag">표</span>Path converters</h3>
+      <table class="compare"><tr><th>타입</th><th>매칭</th></tr>
+        <tr><td class="k">str</td><td>'/'를 제외한 비어있지 않은 문자열 (<b>기본값</b>, 생략 시 str)</td></tr>
+        <tr><td class="k">int</td><td>0 또는 양의 정수</td></tr>
+        <tr><td class="k">slug</td><td>영문·숫자·하이픈·밑줄</td></tr>
+        <tr><td class="k">uuid / path</td><td>UUID 형식 / '/' 포함 문자열</td></tr>
+      </table>
+      <div class="note exam"><b>시험 포인트</b> · <code>&lt;int:pk&gt;</code>로 받았으면 view 매개변수 이름도 반드시 <code>pk</code>. 이름이 다르면 <b>TypeError</b>(unexpected keyword argument). <code>/articles/abc/</code>는 int에 매칭 안 되므로 <b>404</b>.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">05</div><div><h2>include 함수</h2><p class="desc">URL을 앱 단위로 분리(App URL mapping)</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">왜</span>URL 분리의 필요성</h3>
+      <p>앱이 많아지면 프로젝트 <code>urls.py</code> 하나에 모든 path를 쓰기 어렵고, 같은 이름의 view(<code>index</code>)가 충돌한다. 그래서 <b>각 앱에 urls.py를 만들고</b> 프로젝트 urls.py는 <code>include()</code>로 연결만 한다.</p>
+      <pre class="formula"><span class="cm"># firstpjt/urls.py (프로젝트)</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path, include
+urlpatterns = [
+    path(<span class="num">'admin/'</span>, admin.site.urls),
+    path(<span class="num">'articles/'</span>, include(<span class="num">'articles.urls'</span>)),
+    path(<span class="num">'pages/'</span>, include(<span class="num">'pages.urls'</span>)),
+]</pre>
+    </div>
+    <div class="card"><h3><span class="tag">포인트</span>include 문법</h3>
+      <ul>
+        <li><code>include</code>는 <code>django.urls</code>에서 import (path와 같이).</li>
+        <li>인자는 <b>문자열 모듈 경로</b> <code>'articles.urls'</code> (점 표기, 파일 경로 <code>'articles/urls.py'</code> X).</li>
+        <li>앱 폴더 안의 urls.py는 <b>자동 생성되지 않으므로</b> 직접 만들어야 한다.</li>
+        <li>include 대상 모듈에는 <code>urlpatterns</code> 리스트가 있어야 한다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">06</div><div><h2>include와 URL 매칭</h2><p class="desc">일치한 앞부분은 잘라내고 나머지를 앱 urls.py로</p></div></div>
+  <div class="card-grid">
+    <div class="card full"><h3><span class="tag">동작</span>요청 URL이 쪼개지는 방식</h3>
+      <div class="flow"><span>요청 /articles/3/</span><i>→</i><span>프로젝트 urls: 'articles/' 일치</span><i>→</i><span>남은 '3/' 를 articles.urls로 전달</span><i>→</i><span>'&lt;int:pk&gt;/' 매칭 → detail(request, pk=3)</span></div>
+      <pre class="formula"><span class="cm"># 프로젝트: path('articles/', include('articles.urls'))</span>
+<span class="cm"># articles/urls.py</span>
+urlpatterns = [
+    path(<span class="num">''</span>, views.index),               <span class="cm"># /articles/</span>
+    path(<span class="num">'&lt;int:pk&gt;/'</span>, views.detail),   <span class="cm"># /articles/3/</span>
+    path(<span class="num">'create/'</span>, views.create),       <span class="cm"># /articles/create/</span>
+]</pre>
+      <div class="note exam"><b>시험 포인트</b> · 최종 URL = <b>프로젝트 prefix + 앱 path</b>. 앱 urls.py에 <code>'articles/'</code>를 또 쓰면 <code>/articles/articles/</code>가 된다. 앱 path에서 <code>''</code>(빈 문자열)은 prefix 그 자체(<code>/articles/</code>)와 매칭.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">07</div><div><h2>URL 이름과 import</h2><p class="desc">name 인자 · from . import views</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">Naming</span>URL에 이름 붙이기</h3>
+      <p>path에 <code>name='index'</code>를 붙이면 템플릿/뷰에서 <b>주소 대신 이름</b>으로 URL을 만든다. 나중에 실제 주소(route)가 바뀌어도 이름만 같으면 템플릿·redirect를 고칠 필요가 없다.</p>
+      <pre class="formula">path(<span class="num">'index/'</span>, views.index, name=<span class="num">'index'</span>)
+<span class="cm"># route를 'home/'으로 바꿔도 {% url 'index' %} 는 그대로 동작</span></pre>
+    </div>
+    <div class="card"><h3><span class="tag">import</span>명시적 상대 경로</h3>
+      <pre class="formula"><span class="cm"># articles/urls.py</span>
+<span class="kw">from</span> django.urls <span class="kw">import</span> path
+<span class="kw">from</span> . <span class="kw">import</span> views       <span class="cm"># '.' = 현재 패키지(articles)</span>
+
+<span class="cm"># 프로젝트 urls.py에서 여러 앱 views를 직접 쓸 때는 별칭</span>
+<span class="kw">from</span> articles <span class="kw">import</span> views <span class="kw">as</span> articles_views
+<span class="kw">from</span> pages <span class="kw">import</span> views <span class="kw">as</span> pages_views</pre>
+      <div class="note exam"><b>시험 포인트</b> · 앱 urls.py 안에서는 <code>from . import views</code>. 두 앱의 views를 같은 이름으로 import하면 뒤의 것이 앞의 것을 덮어쓴다 → as 별칭 또는 include로 해결.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">08</div><div><h2>DTL url 태그와 app_name</h2><p class="desc">{% url 'app_name:url_name' 인자 %}</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">문제</span>이름 충돌</h3>
+      <p>articles 앱과 pages 앱 모두 <code>name='index'</code>가 있으면 <code>{% url 'index' %}</code>가 어느 쪽인지 모른다. → <b>app_name</b>으로 이름공간(namespace)을 준다.</p>
+      <pre class="formula"><span class="cm"># articles/urls.py</span>
+app_name = <span class="num">'articles'</span>
+urlpatterns = [
+    path(<span class="num">''</span>, views.index, name=<span class="num">'index'</span>),
+    path(<span class="num">'&lt;int:pk&gt;/'</span>, views.detail, name=<span class="num">'detail'</span>),
+]</pre>
+    </div>
+    <div class="card"><h3><span class="tag">템플릿</span>url 태그</h3>
+      <pre class="formula">&lt;a href="{% url 'articles:index' %}"&gt;목록&lt;/a&gt;
+&lt;a href="{% url 'articles:detail' article.pk %}"&gt;상세&lt;/a&gt;
+<span class="cm">{# 결과: /articles/  ,  /articles/3/ #}</span></pre>
+      <ul>
+        <li>형식: <code>{% url 'app_name:name' arg1 arg2 %}</code> — 인자는 <b>공백</b>으로 구분.</li>
+        <li>Variable Routing이 있으면 인자를 꼭 넘겨야 한다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · <code>app_name</code>을 지정했다면 <b>반드시</b> <code>'articles:index'</code> 형태로 써야 한다. <code>{% url 'index' %}</code>로 쓰면 <b>NoReverseMatch</b> 에러.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">09</div><div><h2>redirect와 URL 이름</h2><p class="desc">render vs redirect · PRG 패턴</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">코드</span>redirect 사용</h3>
+      <pre class="formula"><span class="kw">from</span> django.shortcuts <span class="kw">import</span> render, redirect
+
+<span class="kw">def</span> create(request):
+    ...
+    article.save()
+    <span class="kw">return</span> redirect(<span class="num">'articles:detail'</span>, article.pk)
+
+<span class="kw">def</span> delete(request, pk):
+    ...
+    <span class="kw">return</span> redirect(<span class="num">'articles:index'</span>)</pre>
+      <p>redirect의 인자: <b>URL 이름(app_name:name)</b>과 Variable Routing 값. (절대 경로 문자열 <code>'/articles/'</code>도 가능)</p>
+    </div>
+    <div class="card"><h3><span class="tag">비교</span>render vs redirect</h3>
+      <table class="compare"><tr><th></th><th>render</th><th>redirect</th></tr>
+        <tr><td class="k">동작</td><td>템플릿을 그려서 바로 응답</td><td>클라이언트에게 "이 URL로 다시 요청해" 응답 (302)</td></tr>
+        <tr><td class="k">인자</td><td>request, 템플릿 경로, context</td><td>URL 이름 + 인자</td></tr>
+        <tr><td class="k">언제</td><td>조회(GET) 화면</td><td>생성/수정/삭제(POST) 후</td></tr>
+      </table>
+      <div class="note exam"><b>시험 포인트</b> · POST 처리 후 render하면 새로고침 시 같은 데이터가 <b>중복 제출</b>된다. 그래서 POST 후엔 redirect (Post-Redirect-Get). redirect에는 템플릿 경로(<code>'articles/detail.html'</code>)를 넣지 않는다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART 3 ================= -->
+<div class="part-banner" id="p3"><span>PART 3</span>Template (DTL)</div>
+<section class="section" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">10</div><div><h2>DTL 태그와 필터</h2><p class="desc">Variable · Filter · Tag · Comment 4가지 문법</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">문법</span>DTL Syntax 4가지</h3>
+      <table class="compare"><tr><th>문법</th><th>형태</th><th>역할</th></tr>
+        <tr><td class="k">Variable</td><td><code>{{ name }}</code></td><td>context 값 출력. 점(.)으로 속성 접근 <code>{{ article.title }}</code></td></tr>
+        <tr><td class="k">Filter</td><td><code>{{ name|lower }}</code></td><td>변수 값을 가공해서 출력</td></tr>
+        <tr><td class="k">Tag</td><td><code>{% if %}</code></td><td>반복·조건 등 로직. 대부분 <b>닫는 태그 필요</b></td></tr>
+        <tr><td class="k">Comment</td><td><code>{# 한줄 #}</code><br><code>{% comment %}…{% endcomment %}</code></td><td>주석</td></tr>
+      </table>
+    </div>
+    <div class="card"><h3><span class="tag">태그</span>자주 쓰는 Tag</h3>
+      <pre class="formula">{% for article in articles %}
+  &lt;p&gt;{{ forloop.counter }}. {{ article.title }}&lt;/p&gt;
+{% empty %}
+  &lt;p&gt;게시글이 없습니다.&lt;/p&gt;
+{% endfor %}
+
+{% if user.is_authenticated %} ... {% else %} ... {% endif %}
+
+{% extends 'base.html' %}   <span class="cm">{# 반드시 템플릿 최상단 #}</span>
+{% block content %}{% endblock content %}</pre>
+      <div class="note exam"><b>시험 포인트</b> · DTL은 파이썬 코드가 아니다: <code>{% for %}</code> 안에서 <code>range()</code>, 괄호 함수 호출, <code>[0]</code> 인덱싱 불가 → <code>{{ list.0 }}</code>. <code>{% extends %}</code>는 첫 번째 태그여야 한다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">11</div><div><h2>DTL 필터</h2><p class="desc">{{ 변수|필터:인자 }} · 체이닝</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">표</span>자주 나오는 필터</h3>
+      <table class="compare"><tr><th>필터</th><th>예시 → 결과</th></tr>
+        <tr><td class="k">length</td><td><code>{{ 'hello'|length }}</code> → 5</td></tr>
+        <tr><td class="k">lower / upper</td><td><code>{{ 'Hi'|upper }}</code> → HI</td></tr>
+        <tr><td class="k">truncatechars</td><td><code>{{ 'abcdefghij'|truncatechars:5 }}</code> → abcd… (말줄임표 포함 5글자)</td></tr>
+        <tr><td class="k">truncatewords</td><td>단어 단위로 자르기</td></tr>
+        <tr><td class="k">default</td><td><code>{{ value|default:"없음" }}</code> → 값이 False면 "없음"</td></tr>
+        <tr><td class="k">date</td><td><code>{{ article.created_at|date:"Y-m-d" }}</code></td></tr>
+        <tr><td class="k">join</td><td><code>{{ list|join:", " }}</code></td></tr>
+        <tr><td class="k">linebreaksbr</td><td>줄바꿈(\n)을 &lt;br&gt;로</td></tr>
+        <tr><td class="k">add</td><td><code>{{ 3|add:2 }}</code> → 5</td></tr>
+      </table>
+    </div>
+    <div class="card"><h3><span class="tag">규칙</span>필터 문법 규칙</h3>
+      <ul>
+        <li>파이프 <code>|</code> 뒤에 필터 이름, 인자는 <b>콜론 <code>:</code></b> 뒤에 (괄호 X).</li>
+        <li>인자는 <b>하나</b>까지만 받는다.</li>
+        <li><b>체이닝 가능</b>: <code>{{ name|lower|truncatechars:3 }}</code> → 왼쪽부터 차례로 적용.</li>
+        <li><code>|</code> 앞뒤에 공백을 넣지 않는다.</li>
+        <li>약 60개의 built-in 필터 제공.</li>
+        <li>필터는 <b>출력용 가공</b>일 뿐 원본 데이터를 바꾸지 않는다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · <code>{{ name|truncatechars(5) }}</code> ✗ / <code>{{ name|truncatechars:5 }}</code> ✓. 필터는 <code>{{ }}</code> 안에서 쓰고, 태그는 <code>{% %}</code> 안에서 쓴다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART 4 ================= -->
+<div class="part-banner" id="p4"><span>PART 4</span>요청 방식 · form · CSRF</div>
+<section class="section" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">12</div><div><h2>GET과 POST</h2><p class="desc">조회 vs 데이터 변경</p></div></div>
+  <div class="card-grid">
+    <div class="card full"><h3><span class="tag">비교</span>HTTP Method</h3>
+      <table class="compare"><tr><th></th><th>GET</th><th>POST</th></tr>
+        <tr><td class="k">목적</td><td>데이터 <b>조회</b> (서버 상태를 바꾸지 않음)</td><td>데이터 <b>생성·수정·삭제</b> (서버 상태 변경)</td></tr>
+        <tr><td class="k">데이터 위치</td><td>URL의 <b>Query String</b> (<code>?q=abc</code>)</td><td>HTTP <b>Body</b></td></tr>
+        <tr><td class="k">노출/길이</td><td>주소창에 노출, 길이 제한</td><td>주소창에 노출 X, 대용량 가능</td></tr>
+        <tr><td class="k">캐시/북마크</td><td>가능</td><td>불가</td></tr>
+        <tr><td class="k">CSRF 토큰</td><td>불필요</td><td><b>필요</b></td></tr>
+        <tr><td class="k">Django에서</td><td><code>request.GET.get('q')</code></td><td><code>request.POST.get('title')</code></td></tr>
+      </table>
+      <pre class="formula"><span class="kw">def</span> create(request):
+    <span class="kw">if</span> request.method == <span class="num">'POST'</span>:   <span class="cm"># 대문자 문자열 비교</span>
+        ...  <span class="cm"># 저장 로직</span>
+    <span class="kw">else</span>:
+        ...  <span class="cm"># 빈 폼 보여주기</span></pre>
+      <div class="note exam"><b>시험 포인트</b> · <code>request.method</code>는 <b>대문자</b> <code>'POST'</code>. HTML form의 <code>method</code> 속성 기본값은 <b>GET</b>. HTML form이 지원하는 method는 <b>GET과 POST 두 개뿐</b>.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">13</div><div><h2>HTML form과 Query String</h2><p class="desc">action · method · name 속성</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">구조</span>form → URL</h3>
+      <pre class="formula">&lt;form action="/search/" method="GET"&gt;
+  &lt;input type="text" name="query"&gt;
+  &lt;input type="text" name="page"&gt;
+  &lt;input type="submit" value="검색"&gt;
+&lt;/form&gt;
+
+<span class="cm">→ 'django' / '2' 입력 후 제출 시</span>
+/search/?query=django&amp;page=2</pre>
+    </div>
+    <div class="card"><h3><span class="tag">속성</span>핵심 속성</h3>
+      <ul>
+        <li><b>action</b>: 데이터를 보낼 URL. 비워두면 <b>현재 페이지 URL</b>로 전송.</li>
+        <li><b>method</b>: GET/POST. 생략 시 GET.</li>
+        <li><b>name</b>: 서버에서 값을 꺼낼 때의 <b>key</b>. <b>name이 없는 input은 전송되지 않는다.</b></li>
+        <li>Query String: <code>?</code>로 시작, <code>key=value</code>, 여러 개는 <code>&amp;</code>로 연결.</li>
+      </ul>
+      <pre class="formula"><span class="kw">def</span> search(request):
+    q = request.GET.get(<span class="num">'query'</span>)   <span class="cm"># 'django'</span></pre>
+      <div class="note exam"><b>시험 포인트</b> · 서버가 받는 key는 input의 <code>id</code>나 <code>type</code>이 아니라 <b><code>name</code></b>.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">14</div><div><h2>요청 방식과 Delete</h2><p class="desc">삭제는 왜 POST로?</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">코드</span>delete view</h3>
+      <pre class="formula"><span class="cm"># urls.py</span>
+path(<span class="num">'&lt;int:pk&gt;/delete/'</span>, views.delete, name=<span class="num">'delete'</span>)
+
+<span class="cm"># views.py</span>
+<span class="kw">def</span> delete(request, pk):
+    article = Article.objects.get(pk=pk)
+    <span class="kw">if</span> request.method == <span class="num">'POST'</span>:
+        article.delete()
+        <span class="kw">return</span> redirect(<span class="num">'articles:index'</span>)
+    <span class="kw">return</span> redirect(<span class="num">'articles:detail'</span>, article.pk)</pre>
+    </div>
+    <div class="card"><h3><span class="tag">템플릿</span>삭제 버튼은 form으로</h3>
+      <pre class="formula">&lt;form action="{% url 'articles:delete' article.pk %}" method="POST"&gt;
+  {% csrf_token %}
+  &lt;input type="submit" value="삭제"&gt;
+&lt;/form&gt;</pre>
+      <div class="note exam"><b>시험 포인트</b> · <code>&lt;a href&gt;</code> 링크는 항상 <b>GET</b> 요청이다. 삭제를 GET으로 열어두면 URL에 접속(크롤러, 링크 클릭)만 해도 데이터가 지워진다 → 데이터를 변경하는 요청은 <b>POST + csrf_token</b>. view에서도 <code>request.method == 'POST'</code>일 때만 삭제.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">15</div><div><h2>CSRF와 403</h2><p class="desc">Cross-Site Request Forgery</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">개념</span>CSRF란</h3>
+      <p><b>사이트 간 요청 위조</b>: 사용자가 의도하지 않은 요청을, 로그인된 사용자 권한으로 공격자가 보내게 만드는 공격.</p>
+      <p>Django는 <b>CSRF Token</b>으로 방어한다. 서버가 템플릿에 임의의 토큰을 심고, POST 요청 시 그 토큰이 함께 오는지 <code>CsrfViewMiddleware</code>가 검사한다.</p>
+      <pre class="formula">&lt;form method="POST"&gt;
+  {% csrf_token %}
+  ...
+&lt;/form&gt;
+<span class="cm">→ &lt;input type="hidden" name="csrfmiddlewaretoken" value="…"&gt;</span></pre>
+    </div>
+    <div class="card"><h3><span class="tag">에러</span>403 Forbidden</h3>
+      <ul>
+        <li>POST form에 <code>{% csrf_token %}</code>이 없으면 → <b>403 Forbidden</b> (CSRF verification failed).</li>
+        <li>403 = 서버가 요청을 이해했지만 <b>권한이 없어 거부</b>. (404 = 리소스 없음, 405 = 허용되지 않은 메서드)</li>
+        <li><b>GET 요청에는 토큰이 필요 없다</b> (데이터를 변경하지 않으므로).</li>
+        <li>토큰은 form 태그 <b>안쪽</b>에 둔다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · "POST로 보냈더니 403" → 첫 번째 원인은 csrf_token 누락.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART 5 ================= -->
+<div class="part-banner" id="p5"><span>PART 5</span>Model · Migrations · ORM</div>
+<section class="section" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">16</div><div><h2>migrate와 DB 테이블</h2><p class="desc">makemigrations(설계도) → migrate(반영)</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">흐름</span>Model → Table</h3>
+      <pre class="formula"><span class="cm"># articles/models.py</span>
+<span class="kw">class</span> Article(models.Model):
+    title = models.CharField(max_length=<span class="num">10</span>)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+    updated_at = models.DateTimeField(auto_now=<span class="kw">True</span>)</pre>
+      <div class="flow"><span>models.py 작성</span><i>→</i><span>makemigrations<br>(0001_initial.py 생성)</span><i>→</i><span>migrate<br>(DB에 테이블 생성)</span></div>
+      <pre class="formula">python manage.py makemigrations
+python manage.py migrate
+python manage.py showmigrations          <span class="cm"># [X] 적용 여부 확인</span>
+python manage.py sqlmigrate articles 0001  <span class="cm"># 실행될 SQL 확인</span></pre>
+    </div>
+    <div class="card"><h3><span class="tag">결과</span>생성되는 테이블</h3>
+      <ul>
+        <li>테이블 이름: <b><code>앱이름_모델이름(소문자)</code></b> → <code>articles_article</code>.</li>
+        <li><code>id</code> 컬럼(PK, 자동 증가)은 따로 정의하지 않아도 <b>자동 생성</b>.</li>
+        <li>CharField는 <code>max_length</code> <b>필수</b>, TextField는 길이 제한 없음.</li>
+        <li><code>auto_now_add</code>: 최초 생성 시각만 / <code>auto_now</code>: 저장할 때마다 갱신.</li>
+        <li>처음 migrate하면 내장 앱(admin, auth, sessions…) 테이블(<code>auth_user</code>, <code>django_session</code> 등)도 함께 생성된다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · makemigrations는 DB를 건드리지 않는다(파일만 생성). <b>DB에 실제로 반영되는 건 migrate</b>. models.py만 고치고 migrate를 안 하면 "no such table/column" 에러.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">17</div><div><h2>추가 Migrations</h2><p class="desc">이미 테이블이 있는데 필드를 추가하면?</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">상황</span>기존 데이터에 새 필드</h3>
+      <p>이미 데이터가 있는 테이블에 <code>NOT NULL</code> 필드(예: <code>created_at</code>)를 추가하면, 기존 행에 넣을 값이 없으므로 makemigrations가 <b>기본값을 묻는다</b>.</p>
+      <pre class="formula">It is impossible to add the field 'created_at' ... without
+specifying a default.
+ 1) Provide a one-off default now
+ 2) Quit and manually define a default value in models.py
+Select an option: 1
+<span class="cm"># DateTimeField(auto_now_add) 이면 Enter → timezone.now 사용</span></pre>
+    </div>
+    <div class="card"><h3><span class="tag">포인트</span>migration 파일 규칙</h3>
+      <ul>
+        <li>models.py를 <b>변경할 때마다</b> makemigrations → migrate 다시 실행.</li>
+        <li>새 파일 <code>0002_article_created_at.py</code>가 생기며, 이전 파일(0001)에 <b>의존(dependencies)</b>한다 → git commit처럼 변경 이력.</li>
+        <li>1번 선택: 지금 기본값 입력(일회성) / 2번 선택: 종료 후 models.py에 <code>default=</code> 직접 작성.</li>
+        <li>migration 파일을 임의로 지우거나 수정하지 않는다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · 필드 추가 시 기본값을 묻는 이유 = <b>기존 레코드가 그 컬럼에 채울 값이 없어서</b>. (<code>blank=True</code>는 폼 유효성 검사 옵션이지 DB null 허용이 아님 — DB는 <code>null=True</code>)</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">18</div><div><h2>모델 인스턴스 속성</h2><p class="desc">클래스 = 테이블, 인스턴스 = 레코드(행), 필드 = 컬럼</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">대응</span>Model ↔ DB</h3>
+      <table class="compare"><tr><th>Python</th><th>DB</th></tr>
+        <tr><td class="k">Model 클래스 (Article)</td><td>테이블 (articles_article)</td></tr>
+        <tr><td class="k">클래스 변수 (title = CharField)</td><td>컬럼(필드)</td></tr>
+        <tr><td class="k">인스턴스 (article)</td><td>레코드 1개(행)</td></tr>
+        <tr><td class="k">인스턴스 속성 (article.title)</td><td>그 행의 특정 컬럼 값</td></tr>
+      </table>
+    </div>
+    <div class="card"><h3><span class="tag">코드</span>속성 접근</h3>
+      <pre class="formula">article = Article.objects.get(pk=<span class="num">1</span>)
+article.title        <span class="cm"># '제목'</span>
+article.content
+article.pk           <span class="cm"># 1  (pk == id, 같은 값)</span>
+article.id           <span class="cm"># 1</span>
+article.created_at   <span class="cm"># datetime 객체</span>
+
+article.title = <span class="num">'수정'</span>   <span class="cm"># 메모리상 값만 변경</span>
+article.save()           <span class="cm"># 이 시점에 DB 반영</span></pre>
+      <div class="note exam"><b>시험 포인트</b> · <code>pk</code>는 primary key의 별칭으로 기본적으로 <code>id</code>와 같다. 인스턴스 속성 변경은 <b>save() 전까지 DB에 반영 안 됨</b>. 템플릿에서도 <code>{{ article.title }}</code>처럼 점으로 접근.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">19</div><div><h2>pk 부여 시점</h2><p class="desc">pk는 DB에 저장될 때 생긴다</p></div></div>
+  <div class="card-grid">
+    <div class="card full"><h3><span class="tag">코드</span>save 전후 비교</h3>
+      <pre class="formula">article = Article()
+article.title = <span class="num">'first'</span>
+article.content = <span class="num">'django!'</span>
+article.pk        <span class="cm"># None  ← 아직 DB에 없음</span>
+article.save()
+article.pk        <span class="cm"># 1     ← save() 하는 순간 DB가 id 부여</span>
+
+article = Article.objects.create(title=<span class="num">'second'</span>, content=<span class="num">'!'</span>)
+article.pk        <span class="cm"># 2     ← create()는 내부에서 save()까지 함</span>
+
+article.delete()
+article.pk        <span class="cm"># None  ← 삭제 후 인스턴스의 pk는 None</span></pre>
+      <div class="note exam"><b>시험 포인트</b> · 인스턴스를 만들기만 하면(<code>Article(...)</code>) pk는 <b>None</b>. <code>save()</code> 또는 <code>create()</code>로 DB에 INSERT 될 때 pk가 부여된다. 그래서 <code>form.save(commit=False)</code> 직후에도 pk는 None이고, <code>redirect('articles:detail', article.pk)</code>는 반드시 save 이후에 해야 한다. 삭제된 pk 번호는 기본적으로 재사용하지 않는다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">20</div><div><h2>QuerySet API와 save()</h2><p class="desc">Article.objects.메서드() — CRUD</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">Create</span>저장 3가지 방법</h3>
+      <pre class="formula"><span class="cm"># 1) 인스턴스 생성 → 값 할당 → save()</span>
+article = Article()
+article.title = <span class="num">'a'</span>
+article.save()
+<span class="cm"># 2) 생성자에 키워드 인자 → save()</span>
+article = Article(title=<span class="num">'b'</span>, content=<span class="num">'b'</span>)
+article.save()
+<span class="cm"># 3) create() — save() 불필요, 객체 반환</span>
+Article.objects.create(title=<span class="num">'c'</span>, content=<span class="num">'c'</span>)</pre>
+    </div>
+    <div class="card"><h3><span class="tag">Read/Update/Delete</span></h3>
+      <table class="compare"><tr><th>메서드</th><th>반환</th><th>특징</th></tr>
+        <tr><td class="k">all()</td><td>QuerySet</td><td>전체 조회</td></tr>
+        <tr><td class="k">filter(조건)</td><td>QuerySet</td><td>없으면 <b>빈 QuerySet</b> (에러 X)</td></tr>
+        <tr><td class="k">get(조건)</td><td><b>인스턴스 1개</b></td><td>없으면 <b>DoesNotExist</b>, 2개 이상이면 <b>MultipleObjectsReturned</b> → pk처럼 고유값에 사용</td></tr>
+        <tr><td class="k">수정</td><td colspan="2">조회 → 속성 변경 → <code>save()</code></td></tr>
+        <tr><td class="k">삭제</td><td colspan="2">조회 → <code>article.delete()</code></td></tr>
+      </table>
+      <div class="note exam"><b>시험 포인트</b> · <code>objects</code> = Model Manager(모델과 QuerySet API를 잇는 다리). save()는 <b>인스턴스 메서드</b>(create는 Manager 메서드). save()는 pk가 없으면 INSERT, 있으면 UPDATE. QuerySet은 리스트처럼 for문·인덱싱 가능.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART 6 ================= -->
+<div class="part-banner" id="p6"><span>PART 6</span>Form · ModelForm</div>
+<section class="section" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">21</div><div><h2>Form과 Widget</h2><p class="desc">Form field = 유효성 검사, Widget = HTML 표현</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">Form</span>forms.Form</h3>
+      <pre class="formula"><span class="cm"># articles/forms.py</span>
+<span class="kw">from</span> django <span class="kw">import</span> forms
+
+<span class="kw">class</span> ArticleForm(forms.Form):
+    title = forms.CharField(max_length=<span class="num">10</span>)
+    content = forms.CharField(widget=forms.Textarea)</pre>
+      <p>Form 클래스는 사용자 입력 데이터를 받아 <b>유효성 검사</b>를 하고 HTML input을 자동으로 만들어준다. 템플릿: <code>{{ form }}</code>, <code>{{ form.as_p }}</code>.</p>
+    </div>
+    <div class="card"><h3><span class="tag">Widget</span>위젯의 역할</h3>
+      <ul>
+        <li>위젯은 HTML <code>&lt;input&gt;</code> 요소의 <b>렌더링 방식</b>만 결정한다.</li>
+        <li><b>유효성 검사와 무관</b>하다. (검사는 Field가 담당)</li>
+        <li>반드시 <b>form field의 <code>widget</code> 인자</b>로 지정한다. (<code>forms.Textarea</code>는 필드가 아니다)</li>
+        <li>attrs로 class 등 HTML 속성 지정: <code>forms.TextInput(attrs={'class': 'my-title'})</code></li>
+        <li>ModelForm에서는 <code>Meta.widgets = {'title': forms.TextInput(...)}</code>로도 지정.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · <code>content = forms.Textarea()</code> ✗ / <code>content = forms.CharField(widget=forms.Textarea)</code> ✓. Form vs ModelForm: 사용자 입력을 <b>DB에 저장하지 않으면</b>(검색, 로그인) Form, <b>저장하면</b> ModelForm.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">22</div><div><h2>ModelForm Meta exclude</h2><p class="desc">model · fields · exclude</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">코드</span>Meta 클래스</h3>
+      <pre class="formula"><span class="kw">class</span> ArticleForm(forms.ModelForm):
+    <span class="kw">class</span> Meta:
+        model = Article             <span class="cm"># 호출 X, 클래스 자체</span>
+        fields = <span class="num">'__all__'</span>          <span class="cm"># 모든 필드</span>
+        <span class="cm"># fields = ('title', 'content',)</span>
+        <span class="cm"># exclude = ('title',)        # title만 제외</span></pre>
+    </div>
+    <div class="card"><h3><span class="tag">포인트</span>exclude 규칙</h3>
+      <ul>
+        <li><code>fields</code>: 포함할 필드 / <code>exclude</code>: 제외할 필드. 보통 둘 중 <b>하나만</b> 사용 (같이 쓸 수는 있지만 권장 X).</li>
+        <li>요소가 하나여도 <b>튜플/리스트</b>: <code>('title',)</code> — 쉼표 없으면 문자열이 된다.</li>
+        <li><code>auto_now</code>, <code>auto_now_add</code> 필드와 <code>id</code>는 <code>editable=False</code>라 <code>'__all__'</code>이어도 <b>폼에 나오지 않는다</b>.</li>
+        <li>exclude한 필드가 필수값이면 저장 전 직접 채워야 한다 → <code>commit=False</code>.</li>
+        <li><code>model = Article()</code>처럼 인스턴스로 쓰지 않는다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · Meta의 <code>model</code>은 클래스, <code>fields</code>/<code>exclude</code>는 문자열 튜플. ModelForm의 Meta는 "어떤 모델의 어떤 필드로 폼을 만들지"에 대한 정보(데이터)일 뿐.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">23</div><div><h2>ModelForm 유효성 검사 흐름</h2><p class="desc">new + create 통합 view</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">코드</span>create view 정석</h3>
+      <pre class="formula"><span class="kw">def</span> create(request):
+    <span class="kw">if</span> request.method == <span class="num">'POST'</span>:
+        form = ArticleForm(request.POST)     <span class="cm"># ① 데이터 바인딩</span>
+        <span class="kw">if</span> form.is_valid():                   <span class="cm"># ② 유효성 검사</span>
+            article = form.save()            <span class="cm"># ③ 저장 + 객체 반환</span>
+            <span class="kw">return</span> redirect(<span class="num">'articles:detail'</span>, article.pk)
+    <span class="kw">else</span>:
+        form = ArticleForm()                 <span class="cm"># 빈 폼</span>
+    context = {<span class="num">'form'</span>: form}               <span class="cm"># ④ if/else 밖!</span>
+    <span class="kw">return</span> render(request, <span class="num">'articles/create.html'</span>, context)</pre>
+    </div>
+    <div class="card"><h3><span class="tag">흐름</span>세 가지 경우</h3>
+      <table class="compare"><tr><th>경우</th><th>결과</th></tr>
+        <tr><td class="k">GET</td><td>빈 폼 생성 → render</td></tr>
+        <tr><td class="k">POST + 유효</td><td>save() → redirect</td></tr>
+        <tr><td class="k">POST + 무효</td><td>is_valid() False → <b>에러 메시지를 담은 form</b>을 그대로 render (입력값 유지)</td></tr>
+      </table>
+      <ul>
+        <li><code>is_valid()</code>가 True면 <code>form.cleaned_data</code> 생성. False면 <code>form.errors</code>에 에러.</li>
+        <li><code>form.save(commit=False)</code>: 인스턴스만 만들고 DB 저장은 보류 → 추가 값 넣은 뒤 <code>article.save()</code>.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · context와 return render가 if/else 밖(들여쓰기 한 칸 왼쪽)에 있어야 "POST + 무효" 경우에도 응답이 나간다. 안에 넣으면 무효일 때 None 반환 → <b>ValueError(didn't return an HttpResponse)</b>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART 7 ================= -->
+<div class="part-banner" id="p7"><span>PART 7</span>Static · Media 파일</div>
+<section class="section" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">24</div><div><h2>STATIC_URL과 static 태그</h2><p class="desc">정적 파일 = 개발자가 미리 준비한 CSS/JS/이미지</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">설정</span>STATIC_URL</h3>
+      <pre class="formula"><span class="cm"># settings.py (기본으로 들어 있음)</span>
+STATIC_URL = <span class="num">'static/'</span></pre>
+      <ul>
+        <li>정적 파일에 접근할 때 쓰는 <b>URL의 접두사</b>. 실제 폴더 위치가 아니다.</li>
+        <li>기본 경로: <code>앱/static/앱이름/파일</code> → <code>articles/static/articles/sample.png</code>.</li>
+        <li>최종 URL = <code>/static/</code> + static 폴더 이후 경로 → <code>/static/articles/sample.png</code>.</li>
+      </ul>
+    </div>
+    <div class="card"><h3><span class="tag">템플릿</span>load static</h3>
+      <pre class="formula">{% extends 'base.html' %}
+{% load static %}                     <span class="cm">{# 사용 전 반드시 load #}</span>
+
+&lt;img src="{% static 'articles/sample.png' %}" alt="img"&gt;
+&lt;link rel="stylesheet" href="{% static 'style.css' %}"&gt;</pre>
+      <div class="note exam"><b>시험 포인트</b> · <code>{% load static %}</code>이 없으면 TemplateSyntaxError(Invalid block tag 'static'). 상속받는 템플릿이라도 <b>각 템플릿마다</b> load 필요하며, extends 다음 줄에 둔다. static 태그 경로에는 <code>static/</code>을 다시 쓰지 않는다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">25</div><div><h2>STATICFILES_DIRS 탐색 순서</h2><p class="desc">추가 경로 → 앱 static 폴더</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">설정</span>추가 경로</h3>
+      <pre class="formula"><span class="cm"># settings.py — 앱 밖의 공용 static 폴더 등록</span>
+STATICFILES_DIRS = [
+    BASE_DIR / <span class="num">'static'</span>,
+]</pre>
+      <p>앱 폴더의 <code>static/</code> 외에 추가로 정적 파일을 찾을 경로 <b>리스트</b>.</p>
+    </div>
+    <div class="card"><h3><span class="tag">순서</span>Django가 파일을 찾는 순서</h3>
+      <div class="flow"><span>① STATICFILES_DIRS<br>(리스트 순서대로)</span><i>→</i><span>② INSTALLED_APPS 순서대로<br>각 앱의 static/</span><i>→</i><span>처음 찾은 파일 사용</span></div>
+      <ul>
+        <li>기본 finder 순서: <code>FileSystemFinder</code>(STATICFILES_DIRS) → <code>AppDirectoriesFinder</code>(앱 static).</li>
+        <li>같은 이름 파일이 여러 곳에 있으면 <b>먼저 찾은 것</b>이 사용된다 → 앱마다 <code>static/앱이름/</code> 하위 폴더로 <b>네임스페이스</b>를 둔다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · templates 폴더도 같은 원리(DIRS → 앱 templates, INSTALLED_APPS 순). "앱 이름 폴더를 한 번 더 만드는 이유" = 이름 충돌 방지.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">26</div><div><h2>ImageField 저장 방식</h2><p class="desc">DB에는 파일 경로(문자열)만, 파일은 MEDIA_ROOT에</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">코드</span>모델 정의</h3>
+      <pre class="formula"><span class="cm"># pip install pillow  (ImageField 필수 라이브러리)</span>
+<span class="kw">class</span> Article(models.Model):
+    title = models.CharField(max_length=<span class="num">10</span>)
+    image = models.ImageField(blank=<span class="kw">True</span>, upload_to=<span class="num">'images/'</span>)
+    <span class="cm"># upload_to='%Y/%m/%d/' → 날짜별 폴더</span>
+
+<span class="cm"># settings.py</span>
+MEDIA_ROOT = BASE_DIR / <span class="num">'media'</span>   <span class="cm"># 실제 저장 폴더(절대 경로)</span>
+MEDIA_URL = <span class="num">'media/'</span>              <span class="cm"># 접근 URL 접두사</span></pre>
+    </div>
+    <div class="card"><h3><span class="tag">포인트</span>저장 구조</h3>
+      <ul>
+        <li><b>DB 컬럼</b>에는 이미지 자체가 아니라 <b>파일 경로 문자열</b>(<code>images/cat.jpg</code>)이 저장된다 (varchar, 기본 max_length=100).</li>
+        <li>실제 파일은 <code>MEDIA_ROOT/upload_to/</code> → <code>media/images/cat.jpg</code>.</li>
+        <li><code>blank=True</code>: 이미지 없이도 폼 통과(선택 입력). 빈 문자열이 저장되므로 null=True는 불필요.</li>
+        <li>같은 이름 파일 업로드 시 Django가 뒤에 <b>임의 문자열</b>을 붙여 덮어쓰기를 방지.</li>
+        <li>ImageField는 FileField를 상속 + 이미지 유효성 검사(Pillow).</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · ImageField 추가 후 makemigrations 시 Pillow가 없으면 에러. STATIC = 개발자 파일, MEDIA = 사용자가 업로드한 파일.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">27</div><div><h2>이미지 업로드와 request.FILES</h2><p class="desc">enctype + request.FILES 두 가지 필수</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">템플릿</span>form 속성</h3>
+      <pre class="formula">&lt;form action="{% url 'articles:create' %}" method="POST"
+      enctype="multipart/form-data"&gt;
+  {% csrf_token %}
+  {{ form.as_p }}
+  &lt;input type="submit"&gt;
+&lt;/form&gt;</pre>
+      <p><code>enctype="multipart/form-data"</code>: 파일 같은 바이너리 데이터를 여러 부분으로 나눠 전송하는 인코딩. 없으면 <b>파일 이름만</b> 전송되고 파일은 안 간다.</p>
+    </div>
+    <div class="card"><h3><span class="tag">view</span>request.FILES</h3>
+      <pre class="formula"><span class="cm"># 생성</span>
+form = ArticleForm(request.POST, request.FILES)
+<span class="cm"># 수정</span>
+form = ArticleForm(request.POST, request.FILES, instance=article)</pre>
+      <ul>
+        <li>파일 데이터는 <code>request.POST</code>가 아니라 <b><code>request.FILES</code></b>에 담긴다.</li>
+        <li>ModelForm 인자 순서: <b>data(POST) → files(FILES)</b>.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · 업로드가 안 되는 2대 원인: ① form에 enctype 누락 ② view에서 request.FILES 누락. 둘 다 있어야 한다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">28</div><div><h2>업로드 이미지 출력</h2><p class="desc">MEDIA URL 등록 + .url 속성</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">urls.py</span>개발 서버에서 media 제공</h3>
+      <pre class="formula"><span class="cm"># 프로젝트 urls.py</span>
+<span class="kw">from</span> django.conf <span class="kw">import</span> settings
+<span class="kw">from</span> django.conf.urls.static <span class="kw">import</span> static
+
+urlpatterns = [
+    ...
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)</pre>
+      <p>사용자가 업로드한 파일을 <code>MEDIA_URL</code> 주소로 제공(서빙)하도록 URL을 추가한다. (개발 단계용)</p>
+    </div>
+    <div class="card"><h3><span class="tag">템플릿</span>이미지 표시</h3>
+      <pre class="formula">{% if article.image %}
+  &lt;img src="{{ article.image.url }}" alt="{{ article.image }}"&gt;
+{% endif %}</pre>
+      <ul>
+        <li><code>article.image.url</code> → <code>/media/images/cat.jpg</code> (MEDIA_URL + 경로).</li>
+        <li><code>article.image</code>만 쓰면 <code>images/cat.jpg</code> (경로 문자열, 이미지 주소 아님).</li>
+        <li>업로드 이미지는 <code>{% static %}</code> 태그로 출력하지 않는다.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · 이미지가 없는 게시글에서 <code>.url</code>을 쓰면 <b>ValueError</b>(has no file associated with it) → <code>{% if article.image %}</code>로 감싼다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PART 8 ================= -->
+<div class="part-banner" id="p8"><span>PART 8</span>인증 (Authentication)</div>
+<section class="section" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">29</div><div><h2>쿠키와 세션</h2><p class="desc">무상태 HTTP에서 로그인 상태를 유지하는 방법</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">배경</span>HTTP 특징</h3>
+      <ul>
+        <li><b>비연결 지향(Connectionless)</b>: 응답 후 연결을 끊는다.</li>
+        <li><b>무상태(Stateless)</b>: 이전 요청을 기억하지 못한다 → 로그인 상태 유지 불가 → 쿠키·세션 필요.</li>
+      </ul>
+      <table class="compare"><tr><th></th><th>쿠키</th><th>세션</th></tr>
+        <tr><td class="k">저장 위치</td><td><b>클라이언트(브라우저)</b></td><td><b>서버</b> (django_session 테이블)</td></tr>
+        <tr><td class="k">내용</td><td>key-value 작은 데이터</td><td>사용자 상태 정보</td></tr>
+        <tr><td class="k">연결</td><td colspan="2">서버가 세션을 만들고 <b>세션 ID</b>를 쿠키(<code>sessionid</code>)에 담아 보냄 → 브라우저는 이후 요청마다 쿠키를 자동 전송 → 서버가 세션 ID로 사용자 식별</td></tr>
+      </table>
+    </div>
+    <div class="card"><h3><span class="tag">세부</span>쿠키 수명 · 사용 목적</h3>
+      <ul>
+        <li><b>세션 쿠키</b>: 수명 지정 X → 브라우저 종료 시 삭제.</li>
+        <li><b>지속 쿠키</b>: <code>Expires</code>/<code>Max-Age</code> 지정 → 그 시점까지 유지.</li>
+        <li>사용 목적: 세션 관리(로그인, 장바구니), 개인화(테마, 언어), 추적(행동 분석).</li>
+        <li>Django 세션 쿠키 기본 유효 기간: <b>2주</b>.</li>
+        <li>로그아웃 = 서버 세션 데이터 삭제 + 클라이언트 세션 ID 쿠키 삭제.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · 쿠키는 브라우저, 세션은 서버. 세션 ID는 쿠키에 담긴다. 쿠키는 같은 서버로 보내는 <b>모든 요청에 자동으로</b> 포함된다. 쿠키는 DB 대체 용도가 아니다.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">30</div><div><h2>AuthenticationForm 인자 구성</h2><p class="desc">첫 번째 인자는 request!</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">코드</span>login view</h3>
+      <pre class="formula"><span class="kw">from</span> django.contrib.auth.forms <span class="kw">import</span> AuthenticationForm
+<span class="kw">from</span> django.contrib.auth <span class="kw">import</span> login <span class="kw">as</span> auth_login
+
+<span class="kw">def</span> login(request):
+    <span class="kw">if</span> request.method == <span class="num">'POST'</span>:
+        form = AuthenticationForm(request, request.POST)
+        <span class="cm"># form = AuthenticationForm(request, data=request.POST)</span>
+        <span class="kw">if</span> form.is_valid():
+            auth_login(request, form.get_user())
+            <span class="kw">return</span> redirect(<span class="num">'articles:index'</span>)
+    <span class="kw">else</span>:
+        form = AuthenticationForm()
+    ...</pre>
+    </div>
+    <div class="card"><h3><span class="tag">비교</span>폼별 인자 순서 (필수 암기)</h3>
+      <table class="compare"><tr><th>폼</th><th>인자</th></tr>
+        <tr><td class="k">ArticleForm (ModelForm)</td><td><code>(request.POST)</code></td></tr>
+        <tr><td class="k">AuthenticationForm</td><td><code>(<b>request</b>, request.POST)</code></td></tr>
+        <tr><td class="k">UserCreationForm</td><td><code>(request.POST)</code></td></tr>
+        <tr><td class="k">UserChangeForm</td><td><code>(request.POST, instance=request.user)</code></td></tr>
+        <tr><td class="k">PasswordChangeForm</td><td><code>(<b>request.user</b>, request.POST)</code></td></tr>
+      </table>
+      <ul>
+        <li>AuthenticationForm은 <b>ModelForm이 아닌 일반 Form</b> (DB에 저장하지 않음 → <code>save()</code> 없음).</li>
+        <li>인증된 사용자 객체는 <code>form.get_user()</code>로 꺼낸다.</li>
+        <li><code>login(request, user)</code>가 세션을 생성. view 이름과 충돌을 피하려고 <code>as auth_login</code>.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · <code>AuthenticationForm(request.POST)</code>로 쓰면 POST가 request 자리에 들어가 데이터가 바인딩되지 않음 → is_valid()가 항상 False. 정답: <code>AuthenticationForm(request, request.POST)</code> 또는 <code>data=</code> 키워드.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">31</div><div><h2>커스텀 User와 UserCreationForm</h2><p class="desc">AbstractUser · AUTH_USER_MODEL · get_user_model()</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">설정</span>커스텀 User 모델 대체</h3>
+      <pre class="formula"><span class="cm"># accounts/models.py</span>
+<span class="kw">from</span> django.contrib.auth.models <span class="kw">import</span> AbstractUser
+<span class="kw">class</span> User(AbstractUser):
+    <span class="kw">pass</span>
+
+<span class="cm"># settings.py</span>
+AUTH_USER_MODEL = <span class="num">'accounts.User'</span>   <span class="cm"># '앱이름.모델이름'</span>
+
+<span class="cm"># accounts/admin.py</span>
+<span class="kw">from</span> django.contrib.auth.admin <span class="kw">import</span> UserAdmin
+admin.site.register(User, UserAdmin)</pre>
+      <div class="note exam"><b>시험 포인트</b> · 커스텀 User 설정은 <b>프로젝트 시작 시, 첫 migrate 전에</b> 해야 한다(중간 변경은 DB 초기화 필요). Django는 기본 User를 쓰더라도 커스텀 User 설정을 강력 권장.</div>
+    </div>
+    <div class="card"><h3><span class="tag">폼</span>UserCreationForm 재정의</h3>
+      <p><code>UserCreationForm</code>, <code>UserChangeForm</code>의 Meta.model은 <b>기본 <code>auth.User</code></b>로 작성되어 있다. 커스텀 User로 바꿨다면 상속받아 model만 교체해야 한다.</p>
+      <pre class="formula"><span class="cm"># accounts/forms.py</span>
+<span class="kw">from</span> django.contrib.auth <span class="kw">import</span> get_user_model
+<span class="kw">from</span> django.contrib.auth.forms <span class="kw">import</span> UserCreationForm
+
+<span class="kw">class</span> CustomUserCreationForm(UserCreationForm):
+    <span class="kw">class</span> Meta(UserCreationForm.Meta):
+        model = get_user_model()</pre>
+      <ul>
+        <li>재정의 안 하면: <b>AttributeError: Manager isn't available; 'auth.User' has been swapped for 'accounts.User'</b>.</li>
+        <li><code>get_user_model()</code>: 현재 활성화된 User 모델을 반환 → User를 직접 import하지 않고 참조.</li>
+        <li>회원가입 후 자동 로그인: <code>user = form.save()</code> → <code>auth_login(request, user)</code>.</li>
+        <li>UserCreationForm은 비밀번호를 <b>해시</b>해서 저장한다.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">32</div><div><h2>회원정보 수정과 instance</h2><p class="desc">instance가 없으면 '생성', 있으면 '수정'</p></div></div>
+  <div class="card-grid">
+    <div class="card"><h3><span class="tag">코드</span>update view</h3>
+      <pre class="formula"><span class="cm"># forms.py</span>
+<span class="kw">class</span> CustomUserChangeForm(UserChangeForm):
+    <span class="kw">class</span> Meta(UserChangeForm.Meta):
+        model = get_user_model()
+        fields = (<span class="num">'email'</span>, <span class="num">'first_name'</span>, <span class="num">'last_name'</span>,)
+
+<span class="cm"># views.py</span>
+<span class="kw">def</span> update(request):
+    <span class="kw">if</span> request.method == <span class="num">'POST'</span>:
+        form = CustomUserChangeForm(request.POST, instance=request.user)
+        <span class="kw">if</span> form.is_valid():
+            form.save()
+            <span class="kw">return</span> redirect(<span class="num">'articles:index'</span>)
+    <span class="kw">else</span>:
+        form = CustomUserChangeForm(instance=request.user)
+    ...</pre>
+    </div>
+    <div class="card"><h3><span class="tag">포인트</span>instance의 의미</h3>
+      <ul>
+        <li><code>instance=</code>: "이 기존 객체를 대상으로 폼을 만들어라".</li>
+        <li><b>GET</b>: <code>Form(instance=obj)</code> → 기존 값이 채워진 폼.</li>
+        <li><b>POST</b>: <code>Form(request.POST, instance=obj)</code> → 기존 객체를 <b>수정</b>(UPDATE).</li>
+        <li>POST에서 instance를 빼면 save() 시 <b>새 객체를 생성</b>(INSERT)하려 한다 → 회원정보 수정이면 새 user 생성 시도/username 중복 에러.</li>
+        <li>게시글 수정도 동일: <code>ArticleForm(request.POST, instance=article)</code>.</li>
+        <li>UserChangeForm 기본 fields는 권한(is_superuser 등)까지 모두 보여주므로 <code>fields</code>로 제한.</li>
+      </ul>
+      <div class="note exam"><b>시험 포인트</b> · 수정할 대상은 로그인한 본인 <code>request.user</code>. 비밀번호 변경은 <code>PasswordChangeForm(request.user, request.POST)</code> + <code>update_session_auth_hash(request, form.user)</code>로 로그인 유지.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SUMMARY ================= -->
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">★</div><div><h2>한눈에 보기 — 시험 직전 체크리스트</h2><p class="desc">체크하면서 확인하세요</p></div></div>
+  <div class="summary-box">
+    <h4>헷갈리는 짝꿍 정리</h4>
+    <label><input type="checkbox">makemigrations = 설계도 파일 생성 / migrate = DB 반영 · 테이블명 <code>앱_모델</code></label>
+    <label><input type="checkbox">startproject는 django-admin / startapp은 manage.py · 앱은 생성 후 INSTALLED_APPS 등록</label>
+    <label><input type="checkbox">pip freeze &gt; requirements.txt (기록) / pip install -r requirements.txt (설치)</label>
+    <label><input type="checkbox"><code>&lt;int:pk&gt;</code> ↔ <code>def detail(request, pk)</code> 이름 일치 · 기본 converter는 str</label>
+    <label><input type="checkbox">include('articles.urls') → 앞부분 잘라서 나머지를 앱으로 · <code>from django.urls import path, include</code></label>
+    <label><input type="checkbox">app_name 있으면 <code>{% url 'articles:detail' article.pk %}</code> · 없으면 NoReverseMatch</label>
+    <label><input type="checkbox">POST 처리 후 redirect('app:name', pk) · 조회는 render</label>
+    <label><input type="checkbox">필터 인자는 콜론 <code>|truncatechars:5</code> · 체이닝 가능 · DTL은 파이썬 문법 X</label>
+    <label><input type="checkbox">GET = Query String, 조회 / POST = Body, 변경, csrf_token 필요 · form 기본 method는 GET</label>
+    <label><input type="checkbox">input의 <b>name</b>이 key · name 없으면 전송 X · action 비우면 현재 URL</label>
+    <label><input type="checkbox">삭제는 POST form + csrf_token (a 태그는 GET)</label>
+    <label><input type="checkbox">csrf_token 누락 → 403 Forbidden</label>
+    <label><input type="checkbox">pk는 save()/create() 시점에 부여 · 그 전엔 None</label>
+    <label><input type="checkbox">get = 1개(없으면 DoesNotExist) / filter = QuerySet(없으면 빈 QuerySet) / create = save 포함</label>
+    <label><input type="checkbox">Widget = 렌더링만, 검증 X · <code>CharField(widget=forms.Textarea)</code></label>
+    <label><input type="checkbox">Meta: model=클래스, exclude=('title',) 튜플 · fields와 exclude 중 하나</label>
+    <label><input type="checkbox">is_valid 실패 시 에러 담긴 form 다시 render · context/render는 if 밖</label>
+    <label><input type="checkbox">STATIC_URL='static/' · {% load static %} · STATICFILES_DIRS → 앱 static 순</label>
+    <label><input type="checkbox">ImageField: DB엔 경로 문자열, 파일은 MEDIA_ROOT/upload_to · Pillow 필요</label>
+    <label><input type="checkbox">업로드 = enctype="multipart/form-data" + request.FILES</label>
+    <label><input type="checkbox">출력 = urls에 static(MEDIA_URL, document_root=MEDIA_ROOT) + <code>{{ article.image.url }}</code> + if 가드</label>
+    <label><input type="checkbox">쿠키 = 브라우저 / 세션 = 서버 · 세션 ID는 쿠키에</label>
+    <label><input type="checkbox">AuthenticationForm(request, request.POST) · PasswordChangeForm(request.user, request.POST)</label>
+    <label><input type="checkbox">커스텀 User면 UserCreationForm/UserChangeForm Meta.model = get_user_model()</label>
+    <label><input type="checkbox">수정 폼은 instance= 필수 (없으면 새로 생성)</label>
+  </div>
+  <p style="text-align:center;margin-top:24px"><a href="09_Django_시험대비_문제.html" style="display:inline-block;background:var(--navy);color:#fff;padding:12px 22px;border-radius:10px;font-weight:800;text-decoration:none">문제 풀러가기 →</a></p>
+</section>
+
+</main>
+
+<footer>Django 시험 출제 주제 32개 기반 개념정리 · 기존 개념정리(01~08) 내용을 주제별로 재구성</footer>
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>

@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django 시험대비 문제</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+<style>
+.rnav{display:flex; flex-wrap:wrap; gap:4px; width:100%;}
+.rnav a{font-size:.74rem; font-weight:700; padding:5px 10px; border-radius:7px; text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);}
+.rnav a:hover{background:var(--navy); color:#fff;} .rnav a.cur{background:var(--navy); color:#fff;}
+.blank{color:oklch(82% 0.15 85); font-weight:800;}
+.opts.ox{grid-template-columns:1fr 1fr;}
+.qbar{position:sticky; top:0; z-index:50; background:oklch(99% 0.002 258 / .97); backdrop-filter:blur(6px); border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);}
+.qbar-in{max-width:1120px; margin:0 auto; padding:10px 20px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+.qbar .score{font-weight:800; color:var(--navy); font-size:.9rem; margin-right:auto;}
+.qbar .score small{color:var(--sub); font-weight:600;}
+.qbar button, .qbar select{font:inherit; font-size:.76rem; font-weight:700; padding:7px 11px; border-radius:8px; border:1px solid var(--line); background:oklch(94% 0.008 258); color:var(--slate); cursor:pointer;}
+.qbar button:hover{background:var(--navy); color:#fff;}
+.q{background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent,var(--blue)); border-radius:12px; padding:14px 16px; margin:12px 0; font-size:.88rem;}
+.q .qhead{display:flex; gap:8px; align-items:baseline; flex-wrap:wrap;}
+.q .qn{font-family:var(--font-mono); font-weight:800; color:var(--accent,var(--blue));}
+.q .qt{font-weight:700; color:var(--navy); flex:1; min-width:0;}
+.q .topic{font-size:.68rem; font-weight:700; background:oklch(94% 0.008 258); color:var(--slate); padding:2px 8px; border-radius:999px; border:1px solid var(--line);}
+.q .kind{font-size:.66rem; font-weight:800; color:#fff; background:var(--accent,var(--blue)); padding:2px 7px; border-radius:5px;}
+.q pre.formula{white-space:pre; margin:10px 0 6px;}
+.opts{display:grid; gap:6px; margin-top:10px;}
+.opts button{font:inherit; font-size:.85rem; text-align:left; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:oklch(98% 0.003 258); color:var(--ink); cursor:pointer; display:flex; gap:8px;}
+.opts button:hover:not(:disabled){border-color:var(--accent,var(--blue)); background:oklch(96% 0.01 258);}
+.opts button b{font-family:var(--font-mono); color:var(--sub);}
+.opts button.right{background:oklch(93% 0.06 145); border-color:var(--green); color:oklch(32% 0.09 145); font-weight:700;}
+.opts button.wrong{background:oklch(93% 0.05 25); border-color:var(--red); color:oklch(36% 0.12 25); text-decoration:line-through;}
+.opts button:disabled{cursor:default;}
+.exp{display:none; margin-top:10px; padding:10px 12px; border-radius:8px; background:oklch(95% 0.02 230); border:1px solid oklch(85% 0.04 230); color:oklch(30% 0.06 250); font-size:.84rem;}
+.exp.show{display:block;}
+.exp .ansline{font-weight:800; color:var(--green); margin-bottom:4px;}
+.reveal{margin-top:10px; font:inherit; font-size:.78rem; font-weight:700; padding:7px 12px; border-radius:8px; border:1px dashed var(--accent,var(--blue)); background:transparent; color:var(--accent,var(--blue)); cursor:pointer;}
+.selfgrade{display:none; gap:6px; margin-top:8px; align-items:center; flex-wrap:wrap; font-size:.74rem; color:var(--sub);}
+.ansrow{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+.ans-in{flex:1 1 260px; min-width:0; font-family:var(--font-mono); font-size:.85rem; padding:9px 12px; border-radius:8px; border:1px solid var(--line); background:oklch(98% 0.003 258); color:var(--ink);}
+.ans-in:focus{outline:2px solid var(--accent,var(--blue)); outline-offset:0; border-color:transparent;}
+.ansrow .grade{font:inherit; font-size:.8rem; font-weight:800; padding:8px 14px; border-radius:8px; border:none; background:var(--accent,var(--blue)); color:#fff; cursor:pointer;}
+.ansrow .reveal{margin-top:0;}
+.verdict{display:none; margin-top:8px; font-weight:800; font-size:.86rem;}
+.verdict.show{display:block;} .verdict.ok{color:var(--green);} .verdict.no{color:var(--red);}
+.selfgrade.show{display:flex;}
+.selfgrade button{font:inherit; font-size:.76rem; font-weight:700; padding:6px 10px; border-radius:7px; border:1px solid var(--line); cursor:pointer; background:var(--card);}
+.selfgrade button.o{color:var(--green);} .selfgrade button.x{color:var(--red);}
+.selfgrade button.on{background:var(--navy); color:#fff;}
+.q.hide{display:none;}
+</style>
+
+<header class="hero"><div class="hero-inner">
+  <span class="hero-eyebrow">DJANGO · 시험대비 문제</span>
+  <h1>Django 시험대비 문제 64선</h1>
+  <p class="sub">32개 출제 주제마다 2문제씩. 객관식은 보기를 누르면 바로 채점되고, 단답·코드 빈칸 문제는 입력란에 답을 쓰고 Enter(또는 채점)를 누르면 자동 채점됩니다. 빈칸이 여러 개면 순서대로 / 로 구분해 쓰세요. 표현이 달라 오답 처리되면 O/X로 직접 고칠 수 있어요.</p>
+  <div class="hero-meta"><span>객관식 + 단답 + 코드 빈칸 + 출력 예측</span><span>개념정리: 09_Django_시험대비_개념정리.html</span></div>
+</div></header>
+
+<div class="qbar"><div class="qbar-in">
+  <div class="score">점수 <span id="sc">0</span> / <span id="tot">0</span> <small>· 푼 문제 <span id="done">0</span></small></div>
+  <select id="filter" aria-label="주제 필터"><option value="">전체 주제</option></select>
+  <button id="wrongOnly">틀린 것만</button>
+  <button id="shuffle">순서 섞기</button>
+  <button id="reset">초기화</button>
+  <span class="rnav"><a href="09_Django_시험대비_개념정리.html">개념정리</a><a href="09_Django_시험대비_치트시트.html">치트시트</a><a href="09_Django_시험대비_문제.html" class="cur">1회차(심화)</a><a href="09_Django_시험대비_문제_모음.html">문제 모음 2~5회차</a></span>
+</div></div>
+
+<main><div id="list"></div></main>
+<footer>Django 시험 출제 주제 32개 기반 자체 제작 문제 · 정답 확인 후 해설의 근거를 개념정리 페이지에서 다시 확인하세요</footer>
+<a id="top-btn" href="#">↑</a>
+
+<script>
+// t: 주제번호, k: mc(객관식) | sa(단답/서술), c: 코드(선택), o: 보기, a: 정답 인덱스(0부터) 또는 단답 정답, e: 해설
+const TOPICS = ["","가상 환경과 의존성 관리","앱 생성과 등록 순서","URL과 view 함수 연결","Variable Routing","include 함수","include와 URL 매칭","URL 이름과 import","DTL url 태그와 app_name","redirect와 URL 이름","DTL 태그와 필터","DTL 필터","GET과 POST","HTML form과 Query String","요청 방식과 Delete","CSRF와 403","migrate와 DB 테이블","추가 Migrations","모델 인스턴스 속성","pk 부여 시점","QuerySet API와 save()","Form과 Widget","ModelForm Meta exclude","ModelForm 유효성 검사 흐름","STATIC_URL과 static 태그","STATICFILES_DIRS 탐색 순서","ImageField 저장 방식","이미지 업로드와 request.FILES","업로드 이미지 출력","쿠키와 세션","AuthenticationForm 인자 구성","커스텀 User와 UserCreationForm","회원정보 수정과 instance"];
+const COLORS = {1:'teal',2:'teal',3:'blue',4:'blue',5:'blue',6:'blue',7:'blue',8:'blue',9:'blue',10:'purple',11:'purple',12:'orange',13:'orange',14:'orange',15:'orange',16:'indigo',17:'indigo',18:'indigo',19:'indigo',20:'indigo',21:'pink',22:'pink',23:'pink',24:'green',25:'green',26:'green',27:'green',28:'green',29:'red',30:'red',31:'red',32:'red'};
+
+const Q = [
+// 1 가상환경
+{t:1,k:'mc',q:'현재 가상 환경에 설치된 패키지 목록을 파일로 기록하는 명령어는?',o:['pip list > requirements.txt','pip freeze > requirements.txt','pip install -r requirements.txt','python -m venv requirements.txt'],a:1,e:'<code>pip freeze</code>는 설치된 패키지를 <code>패키지==버전</code> 형식으로 출력하고, <code>&gt;</code>로 파일에 저장한다. <code>-r</code>은 그 파일로 설치할 때 쓴다.'},
+{t:1,k:'mc',q:'협업 시 가상 환경 관리 방법으로 <b>옳지 않은</b> 것은?',o:['venv 폴더는 .gitignore에 추가한다','requirements.txt를 원격 저장소에 함께 올린다','팀원은 venv 폴더를 그대로 복사해 사용한다','팀원은 가상환경을 새로 만든 뒤 pip install -r requirements.txt를 실행한다'],a:2,e:'venv 폴더는 OS·경로에 종속되고 용량이 커서 공유하지 않는다. 대신 requirements.txt로 같은 의존성을 재현한다.'},
+// 2 앱 생성
+{t:2,k:'mc',q:'articles 앱을 만들고 프로젝트에서 사용하기 위한 올바른 순서는?',o:['INSTALLED_APPS 등록 → startapp articles','startapp articles → INSTALLED_APPS 등록','startproject articles → INSTALLED_APPS 등록','INSTALLED_APPS 등록 → makemigrations'],a:1,e:'아직 존재하지 않는 앱을 먼저 등록하면 해당 모듈을 찾지 못해 에러가 난다. <b>생성 → 등록</b> 순서.'},
+{t:2,k:'sa',q:'프로젝트 생성과 앱 생성 명령어의 빈칸을 채우시오.',c:"__(A)__ startproject firstpjt .\npython manage.py __(B)__ articles",a:'(A) django-admin  (B) startapp',e:'프로젝트는 <code>django-admin startproject</code>, 앱은 <code>python manage.py startapp</code>. 끝의 <code>.</code>은 현재 폴더에 프로젝트를 만든다는 뜻.'},
+// 3 URL-view
+{t:3,k:'mc',q:'다음 중 urls.py 작성이 올바른 것은?',o:["path('/index/', views.index)","path('index/', views.index())","path('index/', views.index, name='index')","path('index', 'views.index', name='index')"],a:2,e:'route는 앞에 <code>/</code> 없이 끝에 <code>/</code>를 붙이고, view는 호출하지 않은 <b>함수 객체</b>를 넘긴다.'},
+{t:3,k:'sa',q:"템플릿 파일이 <code>articles/templates/articles/index.html</code>에 있을 때, render의 두 번째 인자로 들어갈 문자열은?",c:"def index(request):\n    return render(request, ______)",a:"'articles/index.html'",e:'Django는 각 앱의 <code>templates/</code> 폴더를 기준으로 찾기 때문에 templates 이후 경로만 적는다.'},
+// 4 Variable Routing
+{t:4,k:'mc',q:"<code>path('articles/&lt;int:pk&gt;/', views.detail)</code>일 때 올바른 view 정의는?",o:['def detail(request):','def detail(pk):','def detail(request, pk):','def detail(request, article_id):'],a:2,e:'첫 인자는 request, 그 뒤 URL 변수와 <b>같은 이름</b>의 매개변수를 받는다. 이름이 다르면 TypeError.'},
+{t:4,k:'mc',q:"위 URL 패턴에서 <code>/articles/hello/</code>로 요청하면?",o:['detail(request, pk="hello") 실행','pk=0으로 변환되어 실행','404 Not Found','500 Internal Server Error'],a:2,e:'int converter는 정수만 매칭한다. 일치하는 path가 없으므로 404. 참고로 converter를 생략하면 기본값은 <b>str</b>.'},
+// 5 include
+{t:5,k:'sa',q:'프로젝트 urls.py에서 articles 앱의 urls.py로 요청을 넘기는 코드를 완성하시오.',c:"from django.urls import path, ______\n\nurlpatterns = [\n    path('articles/', ______('articles.urls')),\n]",a:'include',e:"<code>include</code>는 <code>django.urls</code>에서 import하며 인자는 <b>점 표기 문자열</b> <code>'articles.urls'</code>."},
+{t:5,k:'mc',q:'include에 대한 설명으로 <b>틀린</b> 것은?',o:['다른 URLconf(앱의 urls.py)를 참조하게 해준다','인자로 파일 경로 \'articles/urls.py\'를 넘긴다','앱 urls.py는 startapp 시 자동 생성되지 않아 직접 만들어야 한다','URL을 앱 단위로 분리해 관리할 수 있게 해준다'],a:1,e:"파일 경로가 아니라 파이썬 모듈 경로 <code>'articles.urls'</code>를 넘긴다."},
+// 6 include matching
+{t:6,k:'sa',q:'다음 설정에서 create view에 연결되는 최종 URL은?',c:"# 프로젝트 urls.py\npath('articles/', include('articles.urls'))\n\n# articles/urls.py\npath('articles/create/', views.create)",a:'/articles/articles/create/',e:'최종 URL = 프로젝트 prefix + 앱 path. 앱 urls.py에 articles/를 또 쓰면 중복된다. 의도대로라면 앱에는 <code>\'create/\'</code>만 써야 한다.'},
+{t:6,k:'mc',q:"프로젝트에 <code>path('articles/', include('articles.urls'))</code>가 있을 때 <code>/articles/</code> 요청과 매칭되는 앱 urls.py의 path는?",o:["path('articles/', views.index)","path('/', views.index)","path('', views.index)","path('index/', views.index)"],a:2,e:"include는 일치한 'articles/'를 잘라내고 남은 문자열(빈 문자열)을 앱 urlpatterns와 비교한다 → <code>''</code>."},
+// 7 URL name & import
+{t:7,k:'mc',q:'path에 name 인자를 지정하는 가장 큰 이유는?',o:['URL 처리 속도 향상','실제 URL 주소가 바뀌어도 템플릿·view 코드를 수정하지 않기 위해','view 함수 이름을 바꾸기 위해','DB 테이블 이름을 지정하기 위해'],a:1,e:'템플릿의 <code>{% url %}</code>과 <code>redirect()</code>가 이름을 참조하므로 route가 바뀌어도 이름만 같으면 그대로 동작한다.'},
+{t:7,k:'sa',q:'articles 앱의 urls.py에서 같은 앱의 views 모듈을 가져오는 import 문을 작성하시오.',a:'from . import views',e:"<code>.</code>은 현재 패키지(articles)를 뜻하는 명시적 상대 경로. 프로젝트 urls.py에서 여러 앱을 직접 import할 땐 <code>from articles import views as articles_views</code>처럼 별칭을 쓴다."},
+// 8 url tag app_name
+{t:8,k:'mc',q:"articles/urls.py에 <code>app_name = 'articles'</code>가 있고 <code>name='detail'</code>(pk 필요)인 path가 있다. 올바른 템플릿 코드는?",o:["{% url 'detail' article.pk %}","{% url 'articles.detail' article.pk %}","{% url 'articles:detail' article.pk %}","{% url 'articles:detail', article.pk %}"],a:2,e:'<code>app_name:name</code> 형식, 인자는 쉼표 없이 <b>공백</b>으로 구분.'},
+{t:8,k:'mc',q:"app_name을 지정한 상태에서 <code>{% url 'index' %}</code>를 사용하면 발생하는 에러는?",o:['TemplateDoesNotExist','NoReverseMatch','DoesNotExist','ImproperlyConfigured'],a:1,e:'이름공간이 생기면 이름만으로는 URL을 역으로 찾지 못해 <b>NoReverseMatch</b>가 발생한다.'},
+// 9 redirect
+{t:9,k:'sa',q:'게시글 저장 후 해당 게시글의 상세 페이지로 이동하는 코드를 완성하시오. (app_name=articles, name=detail)',c:"article.save()\nreturn ______",a:"redirect('articles:detail', article.pk)",e:'redirect는 URL 이름과 Variable Routing 값을 인자로 받는다. 템플릿 경로를 넣지 않는다.'},
+{t:9,k:'mc',q:'POST로 데이터를 저장한 뒤 render 대신 redirect를 사용하는 이유로 가장 알맞은 것은?',o:['render는 POST 요청에서 사용할 수 없어서','새로고침 시 같은 POST 요청이 재전송되어 중복 저장되는 것을 막기 위해','redirect가 render보다 빠르기 때문에','CSRF 토큰을 재발급하기 위해'],a:1,e:'redirect는 클라이언트에게 새 URL로 <b>GET 요청</b>을 다시 보내게 한다(PRG 패턴). 새로고침해도 GET만 반복된다.'},
+// 10 DTL 태그
+{t:10,k:'mc',q:'DTL 문법과 역할의 연결이 <b>틀린</b> 것은?',o:['{{ article.title }} — 변수 출력','{% for %} ... {% endfor %} — 반복 태그','{# 주석 #} — 한 줄 주석','{% article.title|upper %} — 필터 적용'],a:3,e:'필터는 변수와 함께 <code>{{ }}</code> 안에서 쓴다 → <code>{{ article.title|upper }}</code>. <code>{% %}</code>는 태그.'},
+{t:10,k:'sa',q:'articles가 비어있을 때 "글이 없습니다"를 출력하도록 빈칸을 채우시오.',c:"{% for article in articles %}\n  <p>{{ article.title }}</p>\n{% ______ %}\n  <p>글이 없습니다</p>\n{% endfor %}",a:'empty',e:'<code>{% empty %}</code>는 반복할 대상이 비었을 때 실행된다. 첫 요소는 <code>{{ articles.0 }}</code>처럼 점 인덱싱(파이썬의 [0] 불가).'},
+// 11 DTL 필터
+{t:11,k:'sa',q:"<code>name = 'DJANGO'</code>일 때 출력 결과는?",c:"{{ name|lower|length }}",a:'6',e:'필터는 왼쪽부터 차례로 적용(체이닝): lower → "django", length → 6.'},
+{t:11,k:'mc',q:'DTL 필터 사용법으로 올바른 것은?',o:['{{ content|truncatechars(10) }}','{{ content | truncatechars : 10 }}','{{ content|truncatechars:10 }}','{% content|truncatechars:10 %}'],a:2,e:'필터 인자는 <b>콜론</b> 뒤에, 괄호 없이, 파이프 앞뒤 공백 없이 쓴다.'},
+// 12 GET POST
+{t:12,k:'mc',q:'GET과 POST 비교로 <b>틀린</b> 것은?',o:['GET은 데이터를 Query String으로 보낸다','POST는 데이터를 HTTP Body에 담아 보낸다','GET 요청도 Django에서 CSRF 토큰이 반드시 필요하다','데이터를 변경하는 요청은 POST를 사용한다'],a:2,e:'GET은 서버 데이터를 변경하지 않으므로 CSRF 토큰이 필요 없다. 토큰은 POST 등 변경 요청에 필요.'},
+{t:12,k:'sa',q:'view에서 POST 요청인지 확인하는 조건문을 완성하시오.',c:"if request.______ == '______':",a:"request.method == 'POST'",e:'<code>request.method</code>는 <b>대문자</b> 문자열을 반환한다. <code>\'post\'</code>와 비교하면 항상 False.'},
+// 13 form Query String
+{t:13,k:'sa',q:'아래 form에서 검색어로 hello를 입력하고 제출하면 이동하는 URL은?',c:'<form action="/search/" method="GET">\n  <input type="text" name="q" id="keyword">\n  <input type="submit">\n</form>',a:'/search/?q=hello',e:'GET 방식은 input의 <b>name</b>을 key로 Query String을 만든다. id는 전송과 무관.'},
+{t:13,k:'mc',q:'HTML form에 대한 설명으로 <b>틀린</b> 것은?',o:['action을 비워두면 현재 페이지 URL로 전송된다','method를 생략하면 POST로 전송된다','name 속성이 없는 input의 값은 서버로 전송되지 않는다','Query String에서 여러 값은 &로 구분된다'],a:1,e:'method 기본값은 <b>GET</b>.'},
+// 14 Delete
+{t:14,k:'mc',q:'게시글 삭제 기능 구현 방법으로 가장 적절한 것은?',o:['<a href="/articles/1/delete/">삭제</a> 링크 사용','method="GET" form에 삭제 버튼','method="POST" form + {% csrf_token %} 사용, view에서 POST일 때만 delete()','JavaScript 없이는 삭제 기능을 만들 수 없다'],a:2,e:'a 태그는 GET 요청이다. 데이터를 지우는 요청은 POST + CSRF 토큰으로 보내야 의도치 않은 삭제를 막을 수 있다.'},
+{t:14,k:'sa',q:'delete view의 빈칸을 채우시오.',c:"def delete(request, pk):\n    article = Article.objects.get(pk=pk)\n    if request.method == 'POST':\n        article.______()\n        return redirect('articles:______')\n    return redirect('articles:detail', article.pk)",a:'delete / index',e:'인스턴스의 <code>delete()</code>로 삭제 후, 삭제된 글의 상세 페이지는 없으므로 목록(index)으로 redirect.'},
+// 15 CSRF
+{t:15,k:'mc',q:'POST form에서 {% csrf_token %}을 빼고 제출하면 발생하는 응답 상태 코드는?',o:['400 Bad Request','403 Forbidden','404 Not Found','405 Method Not Allowed'],a:1,e:'CsrfViewMiddleware가 토큰 검증에 실패해 <b>403 Forbidden</b>(CSRF verification failed)을 반환한다.'},
+{t:15,k:'mc',q:'CSRF에 대한 설명으로 옳은 것은?',o:['서버의 DB를 암호화하는 기술이다','사용자가 의도하지 않은 요청을 사용자 권한으로 보내게 만드는 공격이다','GET 요청에서만 발생하는 공격이다','csrf_token은 form 태그 바깥 아무 곳에나 두면 된다'],a:1,e:'Cross-Site Request Forgery(사이트 간 요청 위조). 토큰은 form <b>안</b>에 두어 hidden input으로 함께 전송되게 한다.'},
+// 16 migrate
+{t:16,k:'sa',q:'articles 앱의 Article 모델을 migrate하면 생성되는 테이블 이름은?',a:'articles_article',e:'기본 테이블 이름 = <b>앱이름_모델이름(소문자)</b>.'},
+{t:16,k:'mc',q:'makemigrations와 migrate에 대한 설명으로 옳은 것은?',o:['makemigrations를 실행하면 DB에 테이블이 생성된다','migrate는 models.py를 보고 migration 파일을 만든다','makemigrations는 설계도(migration 파일)를 만들고, migrate가 이를 DB에 반영한다','둘 중 하나만 실행해도 된다'],a:2,e:'makemigrations = 파일 생성(DB 변화 없음), migrate = DB 반영. id 컬럼은 자동으로 추가된다.'},
+// 17 추가 migrations
+{t:17,k:'mc',q:'데이터가 이미 있는 테이블에 created_at(auto_now_add=True) 필드를 추가하고 makemigrations를 실행하면 기본값을 묻는 이유는?',o:['DateTimeField는 항상 기본값이 필요해서','기존 레코드에 새 컬럼 값으로 채울 값이 없어서','migration 파일 이름을 정해야 해서','이미 migrate된 테이블은 수정할 수 없어서'],a:1,e:'NOT NULL 컬럼이 추가되면 기존 행들의 해당 칸을 무엇으로 채울지 정해야 한다. 1번(지금 일회성 기본값 입력) 또는 2번(종료 후 models.py에 default 작성) 선택.'},
+{t:17,k:'mc',q:'모델에 필드를 추가한 후의 올바른 절차는?',o:['migrate만 실행','기존 0001 파일을 지우고 makemigrations','makemigrations → migrate (새 0002 파일 생성)','서버만 재시작'],a:2,e:'models.py가 바뀔 때마다 새 migration 파일이 이전 파일에 의존하며 쌓인다(변경 이력). 파일을 임의로 지우지 않는다.'},
+// 18 모델 인스턴스 속성
+{t:18,k:'mc',q:'Model과 DB의 대응 관계로 <b>틀린</b> 것은?',o:['Model 클래스 — 테이블','클래스 변수(필드) — 컬럼','인스턴스 — 레코드(행)','인스턴스 메서드 — 테이블 이름'],a:3,e:'인스턴스 하나가 레코드 한 줄, <code>article.title</code> 같은 인스턴스 속성이 그 행의 컬럼 값이다.'},
+{t:18,k:'sa',q:'아래 코드 실행 후 DB에 저장된 title은?',c:"article = Article.objects.get(pk=1)   # DB title: 'old'\narticle.title = 'new'\nprint(article.title)",a:"'old' (출력은 new지만 save()를 안 해서 DB는 그대로)",e:'인스턴스 속성 변경은 메모리상의 값만 바꾼다. <code>article.save()</code>를 호출해야 UPDATE된다.'},
+// 19 pk 시점
+{t:19,k:'sa',q:'(A), (B)의 출력 결과는? (테이블은 비어 있음)',c:"article = Article(title='a', content='b')\nprint(article.pk)   # (A)\narticle.save()\nprint(article.pk)   # (B)",a:'(A) None  (B) 1',e:'pk는 DB에 INSERT될 때 부여된다. 인스턴스만 만든 상태에선 None.'},
+{t:19,k:'mc',q:'다음 중 출력 결과가 None이 <b>아닌</b> 것은?',o:["a = Article(title='x'); print(a.pk)","a = form.save(commit=False); print(a.pk)  # 새 글","a = Article.objects.create(title='x'); print(a.pk)","a = Article.objects.get(pk=3); a.delete(); print(a.pk)"],a:2,e:'create()는 내부에서 save()까지 하므로 pk가 있다. commit=False는 DB 저장 전이고, delete() 후 인스턴스의 pk는 None이 된다.'},
+// 20 QuerySet
+{t:20,k:'mc',q:'조건에 맞는 데이터가 없을 때 예외(DoesNotExist)를 발생시키는 메서드는?',o:['all()','filter()','get()','exclude()'],a:2,e:'get()은 단일 객체를 반환하며 없으면 DoesNotExist, 2개 이상이면 MultipleObjectsReturned. filter()는 빈 QuerySet을 반환.'},
+{t:20,k:'mc',q:'다음 중 별도의 save() 호출 없이 DB에 저장되는 코드는?',o:["article = Article(title='a')","article = Article(); article.title = 'a'","Article.objects.create(title='a', content='b')","article.title = 'a'"],a:2,e:'<code>create()</code>는 생성과 저장을 한 번에 하고 객체를 반환한다. 나머지는 save()가 필요하다.'},
+// 21 Form widget
+{t:21,k:'mc',q:'content를 여러 줄 입력창(textarea)으로 보여주는 올바른 코드는?',o:['content = forms.Textarea()','content = forms.CharField(widget=forms.Textarea)','content = forms.TextField()','content = forms.CharField(type=Textarea)'],a:1,e:'Widget은 필드가 아니라 form field의 <code>widget</code> 인자로 지정한다. forms에는 TextField가 없다(모델에 있음).'},
+{t:21,k:'mc',q:'Widget에 대한 설명으로 옳은 것은?',o:['입력 데이터의 유효성 검사를 담당한다','HTML input 요소의 렌더링 방식을 결정한다','DB 컬럼 타입을 결정한다','ModelForm에서는 사용할 수 없다'],a:1,e:'위젯은 화면 표현만 담당, 검증은 Field가 한다. ModelForm에서는 <code>Meta.widgets</code>로도 지정 가능.'},
+// 22 Meta exclude
+{t:22,k:'sa',q:'title 필드만 제외하고 폼을 만들도록 빈칸을 채우시오.',c:"class ArticleForm(forms.ModelForm):\n    class Meta:\n        model = Article\n        ______ = ______",a:"exclude = ('title',)",e:'요소가 하나여도 쉼표를 붙인 튜플(또는 리스트)로 작성. 쉼표가 없으면 그냥 문자열이 된다.'},
+{t:22,k:'mc',q:"<code>fields = '__all__'</code>로 Article ModelForm을 만들 때 폼에 <b>나타나지 않는</b> 필드는? (title, content, created_at(auto_now_add))",o:['title','content','created_at','모든 필드가 나타난다'],a:2,e:'auto_now / auto_now_add 필드와 id는 editable=False라 폼에 포함되지 않는다.'},
+// 23 ModelForm 흐름
+{t:23,k:'mc',q:'POST 요청에서 form.is_valid()가 False일 때 일어나는 일은? (정석 create view 기준)',o:['빈 폼으로 다시 render','에러 메시지와 입력값을 담은 form으로 다시 render','자동으로 index로 redirect','500 에러'],a:1,e:'if/else 밖의 context·render가 실행되며 바인딩된 form(에러 포함)이 그대로 전달된다.'},
+{t:23,k:'sa',q:'다음 view의 문제점은? (유효하지 않은 데이터로 POST 했을 때)',c:"def create(request):\n    if request.method == 'POST':\n        form = ArticleForm(request.POST)\n        if form.is_valid():\n            article = form.save()\n            return redirect('articles:detail', article.pk)\n    else:\n        form = ArticleForm()\n        context = {'form': form}\n        return render(request, 'articles/create.html', context)",a:'무효한 POST일 때 return이 없어 None 반환 → ValueError (didn\'t return an HttpResponse)',e:'context와 return render를 else 밖으로 한 칸 내어 써야 GET / 무효 POST 두 경우 모두 응답이 나간다.'},
+// 24 STATIC_URL
+{t:24,k:'sa',q:'<code>articles/static/articles/sample.png</code> 이미지를 출력하는 템플릿 코드를 완성하시오.',c:"{% ______ %}\n<img src=\"{% static '______' %}\">",a:"{% load static %} / 'articles/sample.png'",e:'static 태그 사용 전에 load가 필요하고, 경로는 static/ 폴더 이후부터 작성. 렌더링 결과: /static/articles/sample.png'},
+{t:24,k:'mc',q:"<code>STATIC_URL = 'static/'</code>에 대한 설명으로 옳은 것은?",o:['정적 파일이 실제로 저장된 폴더의 절대 경로','정적 파일에 접근할 때 사용하는 URL의 접두사','사용자가 업로드한 파일의 저장 경로','STATICFILES_DIRS를 대체하는 설정'],a:1,e:'STATIC_URL은 URL prefix. 실제 추가 폴더는 STATICFILES_DIRS, 업로드 파일은 MEDIA_ROOT.'},
+// 25 STATICFILES_DIRS
+{t:25,k:'mc',q:'기본 설정에서 Django가 정적 파일을 찾는 순서는?',o:['앱 static 폴더 → STATICFILES_DIRS','STATICFILES_DIRS → INSTALLED_APPS 순서의 앱 static 폴더','MEDIA_ROOT → STATICFILES_DIRS','알파벳 순서'],a:1,e:'FileSystemFinder(STATICFILES_DIRS) → AppDirectoriesFinder(앱 static, INSTALLED_APPS 순). 처음 찾은 파일을 사용.'},
+{t:25,k:'mc',q:'앱의 static 폴더 안에 앱 이름 폴더(static/articles/)를 한 번 더 만드는 이유는?',o:['Django 문법상 필수라서','다른 앱의 같은 이름 파일과 충돌해 엉뚱한 파일이 사용되는 것을 막기 위해','파일 업로드 속도 향상','STATIC_URL과 이름을 맞추기 위해'],a:1,e:'Django는 먼저 찾은 파일을 쓰므로 같은 이름 파일이 있으면 의도와 다른 파일이 나온다 → 네임스페이스 폴더로 구분.'},
+// 26 ImageField
+{t:26,k:'mc',q:'ImageField로 업로드한 이미지에 대해 DB에 실제로 저장되는 것은?',o:['이미지 바이너리 데이터','이미지 파일의 경로(문자열)','Base64로 인코딩된 이미지','이미지의 해시값'],a:1,e:'DB에는 경로 문자열(예: images/cat.jpg)만 저장되고 파일은 MEDIA_ROOT/upload_to 아래에 저장된다.'},
+{t:26,k:'sa',q:"<code>MEDIA_ROOT = BASE_DIR / 'media'</code>, <code>image = models.ImageField(upload_to='images/')</code>일 때 cat.jpg가 저장되는 위치는?",a:'BASE_DIR/media/images/cat.jpg',e:'MEDIA_ROOT + upload_to + 파일명. ImageField 사용에는 Pillow 설치가 필요하고, blank=True면 이미지 없이도 저장 가능.'},
+// 27 request.FILES
+{t:27,k:'sa',q:'이미지 업로드를 위해 form 태그와 view에 각각 필요한 것은?',c:"<form method=\"POST\" ______>\n\nform = ArticleForm(request.POST, ______)",a:'enctype="multipart/form-data" / request.FILES',e:'둘 중 하나라도 빠지면 파일이 저장되지 않는다. 파일은 request.POST가 아니라 request.FILES에 담긴다.'},
+{t:27,k:'mc',q:'이미지가 첨부된 게시글을 수정하는 view의 폼 생성 코드로 올바른 것은?',o:['ArticleForm(request.FILES, request.POST, instance=article)','ArticleForm(request.POST, request.FILES, instance=article)','ArticleForm(request.POST, instance=article)','ArticleForm(instance=article, request.FILES)'],a:1,e:'인자 순서는 data(POST) → files(FILES), 수정이므로 instance도 필요. 키워드 인자 뒤에 위치 인자는 올 수 없다.'},
+// 28 이미지 출력
+{t:28,k:'sa',q:'업로드한 이미지를 출력하는 템플릿 코드를 완성하시오. (이미지가 없는 글도 있음)',c:"{% if article.image %}\n  <img src=\"{{ ______ }}\">\n{% endif %}",a:'article.image.url',e:'.url은 MEDIA_URL이 붙은 실제 접근 주소(/media/images/cat.jpg)를 반환. 이미지가 없을 때 .url에 접근하면 ValueError라서 if로 감싼다.'},
+{t:28,k:'mc',q:'개발 서버에서 업로드 파일을 제공하기 위해 프로젝트 urls.py에 추가하는 코드는?',o:['urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)','urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)',"path('media/', include('media.urls'))",'추가할 필요 없다'],a:1,e:'MEDIA_URL로 들어온 요청을 MEDIA_ROOT 폴더의 파일로 응답하도록 URL을 등록한다.'},
+// 29 쿠키 세션
+{t:29,k:'mc',q:'쿠키와 세션에 대한 설명으로 <b>틀린</b> 것은?',o:['쿠키는 클라이언트(브라우저)에 저장된다','세션 데이터는 서버에 저장된다','세션 ID는 쿠키에 담겨 전달된다','쿠키는 사용자가 원할 때만 서버로 전송된다'],a:3,e:'브라우저는 같은 서버로 보내는 <b>모든 요청에 쿠키를 자동으로</b> 포함한다.'},
+{t:29,k:'mc',q:'쿠키와 세션이 필요한 근본적인 이유는?',o:['HTTP가 무상태(Stateless)라 이전 요청을 기억하지 못해서','HTTP가 암호화되지 않아서','DB 용량을 줄이기 위해','서버 응답 속도를 높이기 위해'],a:0,e:'HTTP는 비연결 지향·무상태 → 로그인 같은 상태를 유지하려면 쿠키·세션이 필요하다.'},
+// 30 AuthenticationForm
+{t:30,k:'mc',q:'로그인 view에서 AuthenticationForm 생성 코드로 올바른 것은?',o:['AuthenticationForm(request.POST)','AuthenticationForm(request.POST, request)','AuthenticationForm(request, request.POST)','AuthenticationForm(request.user, request.POST)'],a:2,e:'AuthenticationForm은 첫 번째 인자로 <b>request</b>를 받는다. (request.user가 첫 인자인 것은 PasswordChangeForm)'},
+{t:30,k:'sa',q:'로그인 성공 처리 빈칸을 채우시오.',c:"if form.is_valid():\n    auth_login(request, form.______())\n    return redirect('articles:index')",a:'get_user',e:'AuthenticationForm은 ModelForm이 아니라 save()가 없다. 인증된 사용자는 get_user()로 꺼내 login()에 전달해 세션을 만든다.'},
+// 31 커스텀 User
+{t:31,k:'mc',q:"커스텀 User를 설정한 뒤 UserCreationForm을 그대로 회원가입에 사용하면 발생하는 문제는?",o:['비밀번호가 평문으로 저장된다',"'auth.User' has been swapped for 'accounts.User' 에러가 발생한다",'아무 문제 없다','username 필드가 사라진다'],a:1,e:'UserCreationForm의 Meta.model은 기본 auth.User로 되어 있다. 상속 후 <code>model = get_user_model()</code>로 바꿔야 한다.'},
+{t:31,k:'sa',q:'커스텀 회원가입 폼을 완성하시오.',c:"class CustomUserCreationForm(UserCreationForm):\n    class Meta(______):\n        model = ______",a:'UserCreationForm.Meta / get_user_model()',e:'Meta도 부모의 Meta를 상속해 fields 등 기존 설정을 유지하고 model만 바꾼다. settings에는 AUTH_USER_MODEL = \'accounts.User\'.'},
+// 32 회원정보 수정 instance
+{t:32,k:'mc',q:'회원정보 수정 POST 처리 코드로 올바른 것은?',o:['CustomUserChangeForm(request.POST)','CustomUserChangeForm(request.POST, instance=request.user)','CustomUserChangeForm(request.user, request.POST)','CustomUserChangeForm(instance=request.POST)'],a:1,e:'instance로 수정할 대상(로그인한 본인)을 지정해야 UPDATE된다.'},
+{t:32,k:'mc',q:'수정 view의 POST 처리에서 instance 인자를 빠뜨리면?',o:['기존 객체가 정상적으로 수정된다','save() 시 새로운 객체를 생성하려 한다','is_valid()에서 항상 True가 된다','GET 요청으로 바뀐다'],a:1,e:'instance가 없으면 ModelForm은 "생성" 모드로 동작한다. GET에서도 instance가 있어야 기존 값이 채워진 폼이 나온다.'},
+];
+
+// 단답 자동 채점 키워드 (주제번호 → 순서대로 포함돼야 하는 키워드, 배열이면 그 중 하나, '!'로 시작하면 대소문자 구분)
+const KW = {
+ 2:['django-admin','startapp'], 3:['articles/index.html'], 5:['include'], 6:['articles/articles/create'],
+ 7:['from.importviews'], 9:[['redirect(articles:detail,article.pk)','redirect(articles:detail,article.id)']],
+ 10:['empty'], 11:['6'], 12:['method','!POST'], 13:['search/?q=hello'], 14:['delete','index'],
+ 16:['articles_article'], 18:['old'], 19:['!None','1'], 22:['exclude',['(title,)','[title]','[title,]']],
+ 23:[['none','httpresponse','return','valueerror','반환','응답']], 24:['loadstatic','articles/sample.png'],
+ 26:['media/images/cat.jpg'], 27:['multipart/form-data','request.files'], 28:['article.image.url'],
+ 30:['get_user'], 31:['usercreationform.meta','get_user_model()'],
+};
+function norm(s){return s.replace(/[\s'"`]/g,'');}
+function autoGrade(q,input){
+  const raw=norm(input), low=raw.toLowerCase(); let pos=0;
+  for(const k of (KW[q.t]||[norm(q.a)])){
+    const alts=Array.isArray(k)?k:[k]; let hit=-1, len=0;
+    for(const a of alts){
+      const cs=a.startsWith('!'), w=cs?a.slice(1):a.toLowerCase();
+      const idx=(cs?raw:low).indexOf(w,pos);
+      if(idx>=0 && (hit<0||idx<hit)){hit=idx; len=w.length;}
+    }
+    if(hit<0) return false; pos=hit+len;
+  }
+  return true;
+}
+
+const list = document.getElementById('list');
+const state = {};  // idx -> true/false
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function render(order){
+  list.innerHTML='';
+  order.forEach((i,n)=>{
+    const q=Q[i]; const d=document.createElement('div');
+    d.className='q'; d.dataset.i=i; d.dataset.t=q.t;
+    d.style.setProperty('--accent','var(--'+COLORS[q.t]+')');
+    let h='<div class="qhead"><span class="qn">'+String(n+1).padStart(2,'0')+'</span><span class="qt">'+q.q+'</span><span class="kind">'+(q.k==='mc'?'객관식':'단답')+'</span><span class="topic">#'+q.t+' '+TOPICS[q.t]+'</span></div>';
+    if(q.c) h+='<pre class="formula">'+esc(q.c)+'</pre>';
+    if(q.k==='mc'){
+      h+='<div class="opts">'+q.o.map((o,j)=>'<button data-j="'+j+'"><b>'+'①②③④'[j]+'</b><span>'+esc(o)+'</span></button>').join('')+'</div>';
+      h+='<div class="exp"><div class="ansline">정답: '+'①②③④'[q.a]+' '+esc(q.o[q.a])+'</div>'+q.e+'</div>';
+    }else{
+      h+='<div class="ansrow"><input class="ans-in" type="text" placeholder="정답을 입력하고 Enter (빈칸이 여러 개면 순서대로 / 로 구분)" autocomplete="off" spellcheck="false"><button class="grade">채점</button><button class="reveal">모르겠어요</button></div>';
+      h+='<div class="verdict"></div><div class="exp"><div class="ansline">정답: '+esc(q.a)+'</div>'+q.e+'</div>';
+      h+='<div class="selfgrade"><span>자동 채점이 틀렸다면 직접 수정:</span><button class="o">맞았어요 O</button><button class="x">틀렸어요 X</button></div>';
+    }
+    d.innerHTML=h; list.appendChild(d);
+    if(state[i]!==undefined) restore(d,q,i);
+  });
+  applyFilter(); score();
+}
+function restore(d,q,i){
+  if(q.k==='mc'){ const pick=state['p'+i]; markMC(d,q,pick); }
+  else{ d.querySelector('.ans-in').value=state['v'+i]||''; showSA(d,state[i]); }
+}
+function showSA(d,ok){
+  d.querySelector('.exp').classList.add('show'); d.querySelector('.selfgrade').classList.add('show');
+  const v=d.querySelector('.verdict'); v.className='verdict show '+(ok?'ok':'no'); v.textContent=ok?'✓ 정답!':'✗ 오답';
+  d.querySelectorAll('.selfgrade button').forEach(b=>b.classList.remove('on'));
+  d.querySelector(ok?'.selfgrade .o':'.selfgrade .x').classList.add('on');
+}
+function gradeSA(d){
+  const i=+d.dataset.i, q=Q[i], inp=d.querySelector('.ans-in'), val=inp.value.trim();
+  if(!val){ inp.focus(); inp.placeholder='먼저 답을 입력하세요 (모르면 "모르겠어요")'; return; }
+  state[i]=autoGrade(q,val); state['v'+i]=val; showSA(d,state[i]); score();
+}
+list.addEventListener('keydown',e=>{ if(e.key==='Enter' && e.target.classList.contains('ans-in')){ e.preventDefault(); gradeSA(e.target.closest('.q')); } });
+function markMC(d,q,j){
+  d.querySelectorAll('.opts button').forEach((b,k)=>{b.disabled=true; if(k===q.a) b.classList.add('right'); else if(k===j) b.classList.add('wrong');});
+  d.querySelector('.exp').classList.add('show');
+}
+list.addEventListener('click',e=>{
+  const d=e.target.closest('.q'); if(!d) return; const i=+d.dataset.i, q=Q[i];
+  const ob=e.target.closest('.opts button');
+  if(ob && !ob.disabled){ const j=+ob.dataset.j; state[i]=(j===q.a); state['p'+i]=j; markMC(d,q,j); score(); return; }
+  if(e.target.closest('.grade')){ gradeSA(d); return; }
+  if(e.target.closest('.reveal')){ state[i]=false; state['v'+i]=d.querySelector('.ans-in').value; showSA(d,false); d.querySelector('.verdict').textContent='정답을 확인하고 다시 외워두세요'; score(); return; }
+  const sg=e.target.closest('.selfgrade button');
+  if(sg){ showSA(d,sg.classList.contains('o')); state[i]=sg.classList.contains('o'); score(); }
+});
+function score(){
+  const keys=Object.keys(state).filter(k=>!/^[pv]/.test(k));
+  document.getElementById('sc').textContent=keys.filter(k=>state[k]).length;
+  document.getElementById('done').textContent=keys.length;
+  document.getElementById('tot').textContent=Q.length;
+}
+const sel=document.getElementById('filter');
+TOPICS.forEach((t,i)=>{ if(i){ const o=document.createElement('option'); o.value=i; o.textContent='#'+i+' '+t; sel.appendChild(o);} });
+let wrongOnly=false;
+function applyFilter(){
+  list.querySelectorAll('.q').forEach(d=>{
+    const i=d.dataset.i; let show=!sel.value||d.dataset.t===sel.value;
+    if(wrongOnly) show=show&&state[i]===false;
+    d.classList.toggle('hide',!show);
+  });
+}
+sel.onchange=applyFilter;
+document.getElementById('wrongOnly').onclick=e=>{wrongOnly=!wrongOnly; e.target.textContent=wrongOnly?'전체 보기':'틀린 것만'; applyFilter();};
+let order=Q.map((_,i)=>i);
+document.getElementById('shuffle').onclick=()=>{ for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [order[i],order[j]]=[order[j],order[i]];} render(order); };
+document.getElementById('reset').onclick=()=>{ for(const k in state) delete state[k]; order=Q.map((_,i)=>i); wrongOnly=false; document.getElementById('wrongOnly').textContent='틀린 것만'; sel.value=''; render(order); };
+render(order);
+</script>
+
+</body>
+</html>

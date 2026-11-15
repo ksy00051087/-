@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Django 시험 치트시트</title>
+<style>
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+</style>
+</head>
+<body>
+<style>
+.cs-wrap{max-width:1180px; margin:0 auto; padding:20px 16px 60px;}
+.cs-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,540px),1fr)); gap:14px;}
+.cs{background:var(--card); border:1px solid var(--line); border-top:4px solid var(--accent); border-radius:12px; padding:12px 14px; min-width:0; break-inside:avoid;}
+.cs h2{margin:0 0 8px; font-size:.95rem; color:var(--navy); display:flex; gap:8px; align-items:center;}
+.cs h2 span{font-size:.66rem; font-weight:800; color:#fff; background:var(--accent); padding:2px 8px; border-radius:999px;}
+.row{display:grid; grid-template-columns:132px minmax(0,1fr); gap:10px; padding:7px 0; border-top:1px dashed var(--line); font-size:.8rem; line-height:1.5;}
+.row:first-of-type{border-top:none;}
+.row .k{font-weight:800; color:var(--navy);}
+.row .k i{display:block; font-style:normal; font-family:var(--font-mono); font-size:.68rem; color:var(--accent); font-weight:700;}
+.row .v{color:#333; min-width:0; overflow-wrap:anywhere;}
+.row .v b{color:var(--red);}
+.row code{font-size:.78rem;}
+.cs pre{margin:4px 0 0; background:var(--navy-deep); color:oklch(90% 0.02 258); font-family:var(--font-mono); font-size:.74rem; padding:7px 10px; border-radius:6px; overflow-x:auto; white-space:pre;}
+.cs-top{display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px;}
+.cs-top h1{margin:0 auto 0 0; font-size:1.25rem; color:var(--navy);}
+.cs-top a, .cs-top button{font:inherit; font-size:.76rem; font-weight:700; padding:7px 11px; border-radius:8px; border:1px solid var(--line); background:oklch(94% 0.008 258); color:var(--slate); text-decoration:none; cursor:pointer;}
+.cs-top a:hover, .cs-top button:hover{background:var(--navy); color:#fff;}
+@media (max-width:560px){ .row{grid-template-columns:minmax(0,1fr); gap:2px;} }
+@media print{
+  body{background:#fff;} .cs-top a,.cs-top button,#top-btn{display:none;}
+  .cs-wrap{padding:0; max-width:none;} .cs-grid{display:block; columns:2; column-gap:10px;}
+  .cs{margin-bottom:10px; box-shadow:none;} .row{font-size:.7rem;} .cs pre{font-size:.64rem;}
+}
+</style>
+
+<div class="cs-wrap">
+<div class="cs-top">
+  <h1>Django 시험 치트시트 · 32주제</h1>
+  <a href="09_Django_시험대비_개념정리.html">개념정리</a>
+  <a href="09_Django_시험대비_문제.html">1회차(심화)</a>
+  <a href="09_Django_시험대비_문제_모음.html">문제 모음 2~5회차</a>
+  <button onclick="print()">인쇄 / PDF</button>
+</div>
+
+<div class="cs-grid">
+
+<div class="cs" style="--accent:var(--teal)"><h2><span>1</span>환경 · 앱</h2>
+  <div class="row"><div class="k">가상 환경<i>#1</i></div><div class="v"><code>python -m venv venv</code> → <code>source venv/Scripts/activate</code> → <code>deactivate</code><br><code>pip freeze &gt; requirements.txt</code>(기록) / <code>pip install -r requirements.txt</code>(설치) · <b>venv는 git에 안 올림</b></div></div>
+  <div class="row"><div class="k">앱 생성·등록<i>#2</i></div><div class="v"><code>django-admin startproject 이름 .</code> / <code>python manage.py startapp articles</code><br><b>생성 먼저 → INSTALLED_APPS 등록</b> · 앱 이름은 복수형</div></div>
+</div>
+
+<div class="cs" style="--accent:var(--blue)"><h2><span>2</span>URL</h2>
+  <div class="row"><div class="k">URL ↔ view<i>#3</i></div><div class="v">요청 → urls.py → views.py → template · <code>path('index/', views.index, name='index')</code><br>view 첫 인자 <code>request</code> · <code>render(request, 'articles/index.html', context)</code> · 위에서부터 매칭</div></div>
+  <div class="row"><div class="k">Variable Routing<i>#4</i></div><div class="v"><code>&lt;int:pk&gt;</code> ↔ <code>def detail(request, pk)</code> <b>이름 일치</b> · 기본 converter <b>str</b> · int에 문자 → 404</div></div>
+  <div class="row"><div class="k">include 함수<i>#5</i></div><div class="v"><code>from django.urls import path, include</code> · <code>include('articles.urls')</code> (<b>점 표기</b>, 파일경로 X) · 앱 urls.py는 직접 생성</div></div>
+  <div class="row"><div class="k">include 매칭<i>#6</i></div><div class="v">일치한 앞부분('articles/')을 <b>잘라내고</b> 나머지를 앱 urls로 · 최종 URL = prefix + 앱 path · 앱의 <code>''</code> = /articles/</div></div>
+  <div class="row"><div class="k">URL 이름·import<i>#7</i></div><div class="v"><code>name='index'</code> → 주소가 바뀌어도 코드 수정 X · 앱 urls.py: <code>from . import views</code></div></div>
+  <div class="row"><div class="k">url 태그·app_name<i>#8</i></div><div class="v">앱 urls.py에 <code>app_name = 'articles'</code> → <code>{% url 'articles:detail' article.pk %}</code> (인자는 공백) · 이름만 쓰면 <b>NoReverseMatch</b></div></div>
+  <div class="row"><div class="k">redirect<i>#9</i></div><div class="v"><code>from django.shortcuts import render, redirect</code> · <code>redirect('articles:detail', article.pk)</code> · <b>POST 처리 후엔 redirect</b>(중복 제출 방지)</div></div>
+</div>
+
+<div class="cs" style="--accent:var(--purple)"><h2><span>3</span>Template (DTL)</h2>
+  <div class="row"><div class="k">태그와 필터<i>#10</i></div><div class="v"><code>{{ 변수 }}</code> · <code>{{ 변수|필터 }}</code> · <code>{% 태그 %}</code> · <code>{# 주석 #}</code><br><code>{% for %}{% empty %}{% endfor %}</code> · <code>{% if %}{% endif %}</code> · <code>{% extends %}</code>는 <b>맨 첫 줄</b> · 인덱스는 <code>{{ list.0 }}</code></div></div>
+  <div class="row"><div class="k">DTL 필터<i>#11</i></div><div class="v"><code>|length</code> <code>|upper</code> <code>|lower</code> <code>|truncatechars:10</code> <code>|default:'없음'</code> <code>|date:'Y-m-d'</code><br>인자는 <b>콜론</b>(괄호 X) · 체이닝 가능(왼쪽부터) · 원본은 안 바뀜</div></div>
+</div>
+
+<div class="cs" style="--accent:var(--orange)"><h2><span>4</span>요청 · form · CSRF</h2>
+  <div class="row"><div class="k">GET vs POST<i>#12</i></div><div class="v">GET: 조회, Query String, 토큰 X, <code>request.GET</code> · POST: 생성/수정/삭제, Body, <b>csrf_token 필요</b>, <code>request.POST</code><br><code>if request.method == 'POST':</code> (<b>대문자</b>) · form 기본 method = GET</div></div>
+  <div class="row"><div class="k">form·Query String<i>#13</i></div><div class="v"><code>action</code>(보낼 URL, 비우면 현재 URL) · <code>method</code> · <code>name</code>=key (<b>name 없으면 전송 X</b>)<br><code>/search/?q=django&amp;page=2</code> → <code>request.GET.get('q')</code></div></div>
+  <div class="row"><div class="k">Delete<i>#14</i></div><div class="v">a 태그 = GET → 삭제는 <b>POST form + csrf_token</b> · view: <code>if request.method == 'POST': article.delete()</code> → <code>redirect('articles:index')</code></div></div>
+  <div class="row"><div class="k">CSRF · 403<i>#15</i></div><div class="v">사이트 간 요청 위조(Cross-Site Request Forgery) · POST form 안에 <code>{% csrf_token %}</code> · 없으면 <b>403 Forbidden</b></div></div>
+</div>
+
+<div class="cs" style="--accent:var(--indigo)"><h2><span>5</span>Model · ORM</h2>
+  <div class="row"><div class="k">migrate · 테이블<i>#16</i></div><div class="v"><code>makemigrations</code>(설계도 파일) → <code>migrate</code>(<b>DB 반영</b>) · 테이블명 <b><code>articles_article</code></b> · id 자동 생성 · CharField는 <code>max_length</code> 필수</div></div>
+  <div class="row"><div class="k">추가 Migrations<i>#17</i></div><div class="v">기존 데이터에 필드 추가 → <b>기본값을 물어봄</b>(1: 지금 입력 / 2: 종료 후 default 작성) · 0002 파일 생성 · <code>auto_now_add</code>(생성) / <code>auto_now</code>(수정마다)</div></div>
+  <div class="row"><div class="k">인스턴스 속성<i>#18</i></div><div class="v">클래스=테이블 · 인스턴스=레코드 · 필드=컬럼 · <code>article.title</code> · <code>pk == id</code> · 속성 변경은 <b>save() 해야 DB 반영</b></div></div>
+  <div class="row"><div class="k">pk 부여 시점<i>#19</i></div><div class="v"><code>Article()</code> 직후 pk = <b>None</b> → <code>save()</code>/<code>create()</code> 시 부여 · commit=False 직후도 None · delete 후 None</div></div>
+  <div class="row"><div class="k">QuerySet · save<i>#20</i></div><div class="v"><code>all()</code> · <code>filter()</code>(없으면 빈 QuerySet) · <code>get()</code>(1개, 없으면 <b>DoesNotExist</b>) · <code>create()</code>(save 불필요)<br>수정: 조회 → 속성 변경 → <code>save()</code> · 삭제: <code>delete()</code></div></div>
+</div>
+
+<div class="cs" style="--accent:var(--pink)"><h2><span>6</span>Form · ModelForm</h2>
+  <div class="row"><div class="k">Form · Widget<i>#21</i></div><div class="v"><code>forms.CharField(widget=forms.Textarea)</code> · 위젯 = <b>렌더링만</b>(검증 X) · 저장 X → <code>forms.Form</code>, 저장 O → <code>forms.ModelForm</code></div></div>
+  <div class="row"><div class="k">Meta exclude<i>#22</i></div><div class="v"><code>model = Article</code>(클래스) · <code>fields = '__all__'</code> 또는 <code>exclude = ('title',)</code>(<b>쉼표</b>) · 둘 중 하나 · auto_now 필드는 폼에 안 나옴</div></div>
+  <div class="row"><div class="k">유효성 검사 흐름<i>#23</i></div><div class="v">
+<pre>if request.method == 'POST':
+    form = ArticleForm(request.POST)
+    if form.is_valid():
+        article = form.save()
+        return redirect('articles:detail', article.pk)
+else:
+    form = ArticleForm()
+context = {'form': form}     # if/else 밖
+return render(request, 'articles/create.html', context)</pre>
+무효면 에러 담긴 form 다시 render</div></div>
+</div>
+
+<div class="cs" style="--accent:var(--green)"><h2><span>7</span>Static · Media</h2>
+  <div class="row"><div class="k">STATIC_URL · static<i>#24</i></div><div class="v"><code>STATIC_URL = 'static/'</code>(URL 접두사) · <code>{% load static %}</code> → <code>{% static 'articles/sample.png' %}</code> · 기본 위치 <code>articles/static/articles/</code></div></div>
+  <div class="row"><div class="k">STATICFILES_DIRS<i>#25</i></div><div class="v"><code>STATICFILES_DIRS = [BASE_DIR / 'static']</code> · 탐색: <b>STATICFILES_DIRS → 앱 static(INSTALLED_APPS 순)</b> · 먼저 찾은 파일 사용</div></div>
+  <div class="row"><div class="k">ImageField<i>#26</i></div><div class="v"><code>ImageField(blank=True, upload_to='images/')</code> · <b>Pillow</b> 필요 · DB엔 <b>경로 문자열</b>, 파일은 <code>MEDIA_ROOT/upload_to</code><br><code>MEDIA_ROOT = BASE_DIR / 'media'</code> · <code>MEDIA_URL = 'media/'</code></div></div>
+  <div class="row"><div class="k">업로드 · FILES<i>#27</i></div><div class="v">form: <code>enctype="multipart/form-data"</code> + view: <code>ArticleForm(request.POST, request.FILES)</code> · <b>둘 다 필수</b></div></div>
+  <div class="row"><div class="k">이미지 출력<i>#28</i></div><div class="v">urls: <code>+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)</code><br><code>{% if article.image %}&lt;img src="{{ article.image.url }}"&gt;{% endif %}</code> · 없을 때 .url → ValueError</div></div>
+</div>
+
+<div class="cs" style="--accent:var(--red)"><h2><span>8</span>인증</h2>
+  <div class="row"><div class="k">쿠키 · 세션<i>#29</i></div><div class="v">HTTP = 비연결·<b>무상태</b> · 쿠키 = <b>브라우저</b> 저장, 요청마다 자동 전송 · 세션 = <b>서버</b> 저장 · <b>세션 ID는 쿠키</b>에</div></div>
+  <div class="row"><div class="k">AuthenticationForm<i>#30</i></div><div class="v"><code>AuthenticationForm(<b>request</b>, request.POST)</code> · ModelForm 아님(save X) · <code>auth_login(request, form.get_user())</code></div></div>
+  <div class="row"><div class="k">커스텀 User<i>#31</i></div><div class="v"><code>class User(AbstractUser): pass</code> · <code>AUTH_USER_MODEL = 'accounts.User'</code> · <b>첫 migrate 전</b> 설정<br><code>class Meta(UserCreationForm.Meta): model = get_user_model()</code></div></div>
+  <div class="row"><div class="k">수정 · instance<i>#32</i></div><div class="v">GET: <code>Form(instance=request.user)</code> · POST: <code>Form(request.POST, instance=request.user)</code> · <b>instance 없으면 새로 생성</b><br>비번 변경: <code>PasswordChangeForm(request.user, request.POST)</code></div></div>
+</div>
+
+</div>
+</div>
+<a id="top-btn" href="#">↑</a>
+
+</body>
+</html>
