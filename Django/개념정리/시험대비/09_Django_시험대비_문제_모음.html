@@ -708,7 +708,7 @@ ROUNDS[8] = [
 {t:2,k:'mc',q:'INSTALLED_APPS에 articles 앱을 등록하는 올바른 값은?',o:["'articles'","articles.py","'articles/'","Articles()"],a:0,e:'앱 이름 문자열을 리스트에 추가한다.'},
 {t:2,k:'sa',q:'startapp으로 생성되는, 모델을 정의하는 파일의 빈칸은?',c:'articles/______.py',b:['models'],e:'admin.py, apps.py, models.py, tests.py, views.py 등이 생긴다(urls.py는 직접 만든다).'},
 {t:3,k:'mc',q:'views.py의 함수가 요청을 받으려면 필요한 것은?',o:['urls.py에서 views를 import하고 path로 연결','함수만 만들면 자동 연결','settings.py에 함수 등록','템플릿에서 함수 호출'],a:0,e:'URL → view 연결은 urls.py의 urlpatterns가 담당.'},
-{t:3,k:'sa',q:'Django의 디자인 패턴 MTV에서 T가 뜻하는 것은?',b:['Template'],e:'Model(데이터) · Template(화면) · View(로직).'},
+{t:3,k:'sa',q:'Django의 디자인 패턴 MTV에서 T가 뜻하는 것은?',b:['Template'],e:'Model: 데이터와 관련된 로직을 관리 / Template: 레이아웃과 화면을 처리 / View: Model &amp; Template과 관련한 로직을 처리해서 응답을 반환.'},
 {t:4,k:'mc',q:'Django 기본 path converter가 아닌 것은?',o:['float','int','str','slug'],a:0,e:'기본 converter: str, int, slug, uuid, path.'},
 {t:4,k:'sa',q:'하이픈·밑줄로 이루어진 slug 문자열 전용 converter의 빈칸은?',c:"path('posts/<______:title>/', views.detail)",b:['slug'],e:"예: 'hello-django-world'"},
 {t:5,k:'mc',q:"<code>include('articles.urls')</code>에서 <code>'articles.urls'</code>가 뜻하는 것은?",o:['articles 앱의 urls.py 모듈','실제 URL 주소','템플릿 경로','view 함수 이름'],a:0,e:'파이썬 모듈 경로(앱폴더.파일이름) 문자열.'},
