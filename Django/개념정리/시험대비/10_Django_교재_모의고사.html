@@ -291,7 +291,7 @@ details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:
   <button id="wrongOnly">틀린 것만</button>
   <button id="shuffle">순서 섞기</button>
   <button id="reset">초기화</button>
-  <div class="tabs" id="tabs"></div><span class="rnav"><a href="09_Django_시험대비_개념정리.html">개념정리</a><a href="09_Django_시험대비_치트시트.html">치트시트</a><a href="09_Django_시험대비_문제_모음.html">문제 모음 2~8회차</a><a href="10_Django_교재_모의고사.html" class="cur">교재 모의고사</a></span>
+  <div class="tabs" id="tabs"></div><span class="rnav"><a href="09_Django_시험대비_개념정리.html">개념정리</a><a href="09_Django_시험대비_치트시트.html">치트시트</a><a href="09_Django_시험대비_문제_모음.html">문제 모음 2~8회차</a><a href="10_Django_교재_개념정리.html">교재 개념정리</a><a href="10_Django_교재_모의고사.html" class="cur">교재 모의고사</a></span>
 </div></div>
 
 <main><div class="info" id="info"></div><div id="list"></div></main>
@@ -503,7 +503,7 @@ function render(){
     d.style.setProperty('--accent','var(--'+COLORS[q.t]+')');
     const src = view.charAt(0)==='r' ? '' : '<span class="src">'+q.r+'회차 '+q.no+'번</span>';
     const miss = WRONG[id] && view!=='wrong' ? '<span class="miss">오답 '+WRONG[id]+'회</span>' : (view==='wrong'?'<span class="miss">틀린 횟수 '+WRONG[id]+'</span>':'');
-    let h='<div class="qhead"><span class="qn">'+String(n+1).padStart(2,'0')+'</span><span class="qt">'+q.q+'</span><span class="kind">'+q.kind+'</span>'+src+miss+'<span class="topic">#'+q.t+' '+TOPICS[q.t]+'</span></div>';
+    let h='<div class="qhead"><span class="qn">'+String(n+1).padStart(2,'0')+'</span><span class="qt">'+q.q+'</span><span class="kind">'+q.kind+'</span>'+src+miss+'<a class="topic" style="text-decoration:none" target="_blank" title="교재 개념정리에서 보기" href="10_Django_교재_개념정리.html#t'+q.t+'">#'+q.t+' '+TOPICS[q.t]+' ↗</a></div>';
     if(q.c) h+='<pre class="formula">'+esc(q.c).replace(/_{4,}/g,'<span class="blank">______</span>')+'</pre>';
     if(q.k==='mc'){
       h+='<div class="opts">'+q.o.map((o,j)=>'<button data-j="'+j+'"><b>'+NUM[j]+'</b><span>'+esc(o)+'</span></button>').join('')+'</div>';
