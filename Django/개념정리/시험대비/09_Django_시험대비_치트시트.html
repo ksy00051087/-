@@ -294,7 +294,7 @@ details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:
 </div>
 
 <div class="cs" style="--accent:var(--pink)"><h2><span>6</span>Form · ModelForm</h2>
-  <div class="row"><div class="k">Form · Widget<i>#21</i></div><div class="v"><code>forms.CharField(widget=forms.Textarea)</code> · 위젯 = <b>렌더링만</b>(검증 X) · 저장 X → <code>forms.Form</code>, 저장 O → <code>forms.ModelForm</code></div></div>
+  <div class="row"><div class="k">Form · Widget<i>#21</i></div><div class="v"><code>forms.CharField(widget=forms.Textarea)</code> · Widget = <b>렌더링만</b>(검증 X) · 저장 X → <code>forms.Form</code>, 저장 O → <code>forms.ModelForm</code></div></div>
   <div class="row"><div class="k">Meta exclude<i>#22</i></div><div class="v"><code>model = Article</code>(클래스) · <code>fields = '__all__'</code> 또는 <code>exclude = ('title',)</code>(<b>쉼표</b>) · 둘 중 하나 · auto_now 필드는 폼에 안 나옴</div></div>
   <div class="row"><div class="k">유효성 검사 흐름<i>#23</i></div><div class="v">
 <pre>if request.method == 'POST':

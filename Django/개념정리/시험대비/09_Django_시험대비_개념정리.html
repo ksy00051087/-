@@ -256,7 +256,7 @@ deactivate</pre>
 pip list                          <span class="cm"># 설치된 패키지 확인</span>
 pip freeze > requirements.txt     <span class="cm"># 현재 환경 패키지 목록 기록</span>
 pip install -r requirements.txt   <span class="cm"># 목록대로 한 번에 설치</span></pre>
-      <div class="note exam"><b>시험 포인트</b> · venv 폴더는 git에 올리지 않는다(<code>.gitignore</code>). 대신 <code>requirements.txt</code>를 공유하고, 받은 사람이 가상환경을 새로 만들어 <code>pip install -r</code>로 복원한다. <code>freeze</code>는 "기록", <code>-r</code>은 "설치".</div>
+      <div class="note exam"><b>시험 포인트</b> · venv 폴더는 git에 올리지 않는다(<code>.gitignore</code>). 대신 <code>requirements.txt</code>를 공유하고, 받은 사람이 가상 환경을 새로 만들어 <code>pip install -r</code>로 복원한다. <code>freeze</code>는 "기록", <code>-r</code>은 "설치".</div>
     </div>
   </div>
 </section>
@@ -308,8 +308,8 @@ urlpatterns = [
     </div>
     <div class="card"><h3><span class="tag">포인트</span>path()와 render()</h3>
       <ul>
-        <li><code>path(route, view, name)</code> — view는 <b>함수 객체</b>를 넘긴다 (<code>views.index</code> O, <code>views.index()</code> X).</li>
-        <li>route는 앞에 <code>/</code>를 붙이지 않고 <b>끝에 <code>/</code></b>를 붙인다 (Trailing Slash).</li>
+        <li><code>path(URL 경로, view 함수, name)</code> — view는 <b>함수 객체</b>를 넘긴다 (<code>views.index</code> O, <code>views.index()</code> X).</li>
+        <li>URL 경로는 앞에 <code>/</code>를 붙이지 않고 <b>끝에 <code>/</code></b>를 붙인다 (Trailing Slash).</li>
         <li>view 함수 첫 인자는 항상 <code>request</code>(HttpRequest 객체).</li>
         <li><code>render(request, template_name, context)</code> → HttpResponse 반환.</li>
         <li>템플릿 경로는 <code>앱/templates/</code> <b>이후</b>부터 작성 → <code>articles/templates/articles/index.html</code>이면 <code>'articles/index.html'</code>.</li>
@@ -389,9 +389,9 @@ urlpatterns = [
   <div class="section-head"><div class="section-num">07</div><div><h2>URL 이름과 import</h2><p class="desc">name 인자 · from . import views</p></div></div>
   <div class="card-grid">
     <div class="card"><h3><span class="tag">Naming</span>URL에 이름 붙이기</h3>
-      <p>path에 <code>name='index'</code>를 붙이면 템플릿/뷰에서 <b>주소 대신 이름</b>으로 URL을 만든다. 나중에 실제 주소(route)가 바뀌어도 이름만 같으면 템플릿·redirect를 고칠 필요가 없다.</p>
+      <p>path에 <code>name='index'</code>를 붙이면 템플릿/뷰에서 <b>주소 대신 이름</b>으로 URL을 만든다. 나중에 실제 URL 경로가 바뀌어도 이름만 같으면 템플릿·redirect를 고칠 필요가 없다.</p>
       <pre class="formula">path(<span class="num">'index/'</span>, views.index, name=<span class="num">'index'</span>)
-<span class="cm"># route를 'home/'으로 바꿔도 {% url 'index' %} 는 그대로 동작</span></pre>
+<span class="cm"># URL 경로를 'home/'으로 바꿔도 {% url 'index' %} 는 그대로 동작</span></pre>
     </div>
     <div class="card"><h3><span class="tag">import</span>명시적 상대 경로</h3>
       <pre class="formula"><span class="cm"># articles/urls.py</span>
@@ -399,8 +399,8 @@ urlpatterns = [
 <span class="kw">from</span> . <span class="kw">import</span> views       <span class="cm"># '.' = 현재 패키지(articles)</span>
 
 <span class="cm"># 프로젝트 urls.py에서 여러 앱 views를 직접 쓸 때는 별칭</span>
-<span class="kw">from</span> articles <span class="kw">import</span> views <span class="kw">as</span> articles_views
-<span class="kw">from</span> pages <span class="kw">import</span> views <span class="kw">as</span> pages_views</pre>
+<span class="kw">from</span> articles <span class="kw">import</span> views <span class="kw">as</span> article_views
+<span class="kw">from</span> pages <span class="kw">import</span> views <span class="kw">as</span> page_views</pre>
       <div class="note exam"><b>시험 포인트</b> · 앱 urls.py 안에서는 <code>from . import views</code>. 두 앱의 views를 같은 이름으로 import하면 뒤의 것이 앞의 것을 덮어쓴다 → as 별칭 또는 include로 해결.</div>
     </div>
   </div>
@@ -410,7 +410,7 @@ urlpatterns = [
   <div class="section-head"><div class="section-num">08</div><div><h2>DTL url 태그와 app_name</h2><p class="desc">{% url 'app_name:url_name' 인자 %}</p></div></div>
   <div class="card-grid">
     <div class="card"><h3><span class="tag">문제</span>이름 충돌</h3>
-      <p>articles 앱과 pages 앱 모두 <code>name='index'</code>가 있으면 <code>{% url 'index' %}</code>가 어느 쪽인지 모른다. → <b>app_name</b>으로 이름공간(namespace)을 준다.</p>
+      <p>articles 앱과 pages 앱 모두 <code>name='index'</code>가 있으면 <code>{% url 'index' %}</code>가 어느 쪽인지 모른다. → <b>app_name</b>으로 네임스페이스(namespace)을 준다.</p>
       <pre class="formula"><span class="cm"># articles/urls.py</span>
 app_name = <span class="num">'articles'</span>
 urlpatterns = [
@@ -760,9 +760,9 @@ Article.objects.create(title=<span class="num">'c'</span>, content=<span class="
     content = forms.CharField(widget=forms.Textarea)</pre>
       <p>Form 클래스는 사용자 입력 데이터를 받아 <b>유효성 검사</b>를 하고 HTML input을 자동으로 만들어준다. 템플릿: <code>{{ form }}</code>, <code>{{ form.as_p }}</code>.</p>
     </div>
-    <div class="card"><h3><span class="tag">Widget</span>위젯의 역할</h3>
+    <div class="card"><h3><span class="tag">Widget</span>Widget의 역할</h3>
       <ul>
-        <li>위젯은 HTML <code>&lt;input&gt;</code> 요소의 <b>렌더링 방식</b>만 결정한다.</li>
+        <li>Widget은 HTML <code>&lt;input&gt;</code> 요소의 <b>렌더링 방식</b>만 결정한다.</li>
         <li><b>유효성 검사와 무관</b>하다. (검사는 Field가 담당)</li>
         <li>반드시 <b>form field의 <code>widget</code> 인자</b>로 지정한다. (<code>forms.Textarea</code>는 필드가 아니다)</li>
         <li>attrs로 class 등 HTML 속성 지정: <code>forms.TextInput(attrs={'class': 'my-title'})</code></li>
@@ -1084,7 +1084,7 @@ admin.site.register(User, UserAdmin)</pre>
         <li>게시글 수정도 동일: <code>ArticleForm(request.POST, instance=article)</code>.</li>
         <li>UserChangeForm 기본 fields는 권한(is_superuser 등)까지 모두 보여주므로 <code>fields</code>로 제한.</li>
       </ul>
-      <div class="note exam"><b>시험 포인트</b> · 수정할 대상은 로그인한 본인 <code>request.user</code>. 비밀번호 변경은 <code>PasswordChangeForm(request.user, request.POST)</code> + <code>update_session_auth_hash(request, form.user)</code>로 로그인 유지.</div>
+      <div class="note exam"><b>시험 포인트</b> · 수정할 대상은 로그인한 본인 <code>request.user</code>. 비밀번호 변경은 <code>PasswordChangeForm(request.user, request.POST)</code> + <code>user = form.save()</code> → <code>update_session_auth_hash(request, user)</code>로 로그인 유지.</div>
     </div>
   </div>
 </section>

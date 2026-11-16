@@ -669,7 +669,7 @@ class ArticleForm(forms.ModelForm):
       <div class="flow"><span>브라우저</span><i>→</i><span>urls.py</span><i>→</i><span>views.py</span><i>→</i><span>forms.py / models.py</span><i>→</i><span>templates</span><i>→</i><span>브라우저</span></div>
     </div>
     <div class="card">
-      <h3><span class="tag">A-2</span>1. 프로젝트 준비 및 가상환경</h3>
+      <h3><span class="tag">A-2</span>1. 프로젝트 준비 및 가상 환경</h3>
 <pre class="formula">python -m venv venv
 source venv/Scripts/activate     # Windows (git bash)
 # source venv/bin/activate       # Mac / Linux
@@ -678,8 +678,8 @@ django-admin startproject crud .
 python manage.py runserver       # http://127.0.0.1:8000 확인</pre>
       <table class="compare">
         <tr><th>명령</th><th>의미</th></tr>
-        <tr><td><code>python -m venv venv</code></td><td>가상환경 생성 (폴더명 venv)</td></tr>
-        <tr><td><code>activate</code></td><td>가상환경 진입 → 프롬프트에 (venv) 표시</td></tr>
+        <tr><td><code>python -m venv venv</code></td><td>가상 환경 생성 (폴더명 venv)</td></tr>
+        <tr><td><code>activate</code></td><td>가상 환경 진입 → 프롬프트에 (venv) 표시</td></tr>
         <tr><td><code>startproject crud .</code></td><td>현재 폴더에 프로젝트 생성 ('.' 주의)</td></tr>
       </table>
     </div>
@@ -890,7 +890,7 @@ def delete(request, pk):
         <tr><td class="k">403 Forbidden (CSRF)</td><td><code>{% csrf_token %}</code> 누락</td><td>&lt;form&gt; 안에 추가</td></tr>
         <tr><td class="k">no such table: articles_article</td><td>migrate 안 함</td><td>makemigrations → migrate</td></tr>
         <tr><td class="k">수정 화면이 빈 양식</td><td>GET 분기에 instance 누락</td><td><code>ArticleForm(instance=article)</code></td></tr>
-        <tr><td class="k">ModuleNotFoundError: django</td><td>가상환경 미활성화</td><td><code>source venv/Scripts/activate</code></td></tr>
+        <tr><td class="k">ModuleNotFoundError: django</td><td>가상 환경 미활성화</td><td><code>source venv/Scripts/activate</code></td></tr>
       </table>
     </div>
   </div>

@@ -318,7 +318,7 @@ ROUNDS[1] = [
 {t:8,k:'mc',q:'URL 패턴에서 변수로 값을 전달하는 올바른 방법은?',o:["path('user/<int:id>/', views.user_detail)","path('user/{id}/', views.user_detail)","url('user/<int:id>/', views.user_detail)","get('user/:id/', views.user_detail)"],a:0,e:'path()에서 변수는 &lt;자료형:이름&gt; 형태로 지정한다.'},
 {t:8,k:'sa',q:'문자열 변수 name을 받도록 빈칸을 채우시오.',c:"path('hello/<______:name>/', views.greeting)",b:['str'],e:"교재 예시: 'hello/&lt;str:name&gt;/'"},
 {t:9,k:'mc',q:'Django에서 앱 별로 URL 구성을 따로 할 수 있도록 해주는 것은?',o:['urls.py에서 include() 사용','views.py에서 import','models.py 연결','settings.py에 form 작성'],a:0,e:'앱의 urls.py를 메인 urls.py에 include()로 포함시킨다.'},
-{t:9,k:'sa',q:'URL 이름공간을 지정하는 변수의 빈칸은?',c:"______ = 'articles'\nurlpatterns = [ ... ]",b:['app_name'],e:'여러 앱에서 같은 URL 이름을 써도 app_name으로 충돌을 방지한다.'},
+{t:9,k:'sa',q:'URL 네임스페이스을 지정하는 변수의 빈칸은?',c:"______ = 'articles'\nurlpatterns = [ ... ]",b:['app_name'],e:'여러 앱에서 같은 URL 이름을 써도 app_name으로 충돌을 방지한다.'},
 {t:10,k:'mc',q:'Django 모델 클래스가 상속받아야 하는 클래스는?',o:['models.Model','HttpResponse','ModelForm','admin.ModelAdmin'],a:0,e:'class Article(models.Model):'},
 {t:10,k:'sa',q:'사용자 이름처럼 짧은 문자열을 저장하는 필드의 빈칸은?',c:'name = models.______(max_length=10)',b:['CharField'],e:'CharField = 짧은 문자열, TextField = 대용량 텍스트.'},
 {t:11,k:'mc',q:'모델 변경 사항으로 migration 파일을 생성하는 명령어는?',o:['python manage.py makemigrations','python manage.py runserver','python manage.py migrate','python manage.py startapp'],a:0,e:'makemigrations = 설계도 생성, migrate = DB에 실제 반영.'},
@@ -327,8 +327,8 @@ ROUNDS[1] = [
 {t:12,k:'sa',q:'ORM 명령을 바로 실행·테스트하는 Django Shell 실행 명령어의 빈칸은?',c:'python manage.py ______',b:['shell'],e:'프로젝트 코드 안에서 ORM을 바로 실행할 수 있는 특수 파이썬 환경.'},
 {t:13,k:'mc',q:'id가 1인 게시글의 제목을 수정하는 올바른 코드는?',o:["post = Post.objects.get(id=1) → post.title = '수정됨' → post.save()","Post.objects.set(id=1, title='수정됨')","Post.update(id=1, title='수정됨')","Post.objects.get(id=1).title('수정됨')"],a:0,e:'조회 → 필드 변경 → save()가 일반적인 수정 방법.'},
 {t:13,k:'sa',q:"title이 'second'로 <b>시작하는</b> 글을 찾는 Field lookup 이름은? (title__???='second')",b:['startswith'],e:"Article.objects.filter(title__startswith='second') — 필드 이름 뒤에 이중 밑줄(__) + 조회 유형."},
-{t:14,k:'mc',q:'HTTP 상태 코드 403 Forbidden의 의미는?',o:['요청이 서버에 전달되었지만 권한 때문에 거절됨','요청한 리소스가 존재하지 않음','서버 내부 오류','요청 성공'],a:0,e:'CSRF 토큰 없이 POST를 보내면 403이 나온다.'},
-{t:14,k:'sa',q:'존재하지 않는 게시글 번호로 접근하는 것처럼, 요청한 리소스가 없을 때의 상태 코드는?',b:['404'],e:'404 Not Found.'},
+{t:14,k:'mc',q:'HTTP response status code 403 Forbidden의 의미는?',o:['요청이 서버에 전달되었지만 권한 때문에 거절됨','요청한 리소스가 존재하지 않음','서버 내부 오류','요청 성공'],a:0,e:'CSRF 토큰 없이 POST를 보내면 403이 나온다.'},
+{t:14,k:'sa',q:'존재하지 않는 게시글 번호로 접근하는 것처럼, 요청한 리소스가 없을 때의 status code는?',b:['404'],e:'404 Not Found.'},
 {t:15,k:'mc',q:'CSRF 토큰의 목적은?',o:['사이트 간 요청 위조 방지','비밀번호 암호화','페이지 캐싱','세션 삭제'],a:0,e:'사용자가 의도하지 않은 악의적 POST 요청을 차단하는 보안 장치.'},
 {t:15,k:'sa',q:'POST form 안에 넣어야 하는 태그의 빈칸은?',c:'<form method="POST">\n  {% ______ %}\n  ...',b:['csrf_token'],e:'POST 폼에 {% csrf_token %}을 삽입해 사이트 간 요청 위조를 차단한다.'},
 {t:16,k:'mc',q:'Django Form이 담당하는 일이 <b>아닌</b> 것은?',o:['데이터베이스 테이블 직접 삭제','입력 화면 표시','유효성 검사','입력 데이터 처리'],a:0,e:'테이블 삭제는 DB 관리자 권한의 작업으로 Form과 관련 없다.'},
@@ -375,7 +375,7 @@ ROUNDS[2] = [
 {t:15,k:'mc',q:'redirect() 함수의 동작으로 옳은 것은?',o:['3xx 응답을 보내 브라우저가 지정한 URL로 GET 요청을 다시 보내게 한다','템플릿을 바로 렌더링한다','DB에 저장한다','403 응답을 보낸다'],a:0,e:'클라이언트에게 다른 URL로 다시 요청하라는 응답.'},
 {t:15,k:'sa',q:'글 저장 후 상세 페이지로 이동하도록 빈칸을 채우시오.',c:"article.save()\nreturn redirect('articles:______', article.pk)",b:['detail'],e:'POST → redirect 패턴.'},
 {t:16,k:'mc',q:'입력 필드에 placeholder, class 같은 HTML 속성을 지정할 때 쓰는 것은?',o:['Widget','Meta','Field lookup','ModelAdmin'],a:0,e:'Widget은 입력 필드가 HTML에서 어떻게 렌더링될지 조정한다.'},
-{t:16,k:'sa',q:'위젯에 HTML 속성을 넘기는 인자의 빈칸은?',c:"forms.TextInput(______={'class': 'my-title', 'placeholder': 'Enter the title'})",b:['attrs'],e:'attrs 딕셔너리가 HTML 속성이 된다.'},
+{t:16,k:'sa',q:'Widget에 HTML 속성을 넘기는 인자의 빈칸은?',c:"forms.TextInput(______={'class': 'my-title', 'placeholder': 'Enter the title'})",b:['attrs'],e:'attrs 딕셔너리가 HTML 속성이 된다.'},
 {t:17,k:'mc',q:'is_valid()가 유효하지 않은 입력을 만나면?',o:['False를 반환하고 오류 내용이 form 객체(errors)에 저장된다','서버 에러가 발생한다','잘못된 값이 그대로 저장된다','값이 자동으로 수정된다'],a:0,e:'오류는 사용자에게 출력될 수 있고, 잘못된 값은 저장되지 않는다.'},
 {t:17,k:'sa',q:'유효성 검사 통과 후 데이터를 저장하는 ModelForm 메서드의 빈칸은?',c:'if form.is_valid():\n    article = form.______()',b:['save'],e:'ModelForm은 save()로 저장하거나 기존 데이터를 수정한다.'},
 {t:18,k:'mc',q:'settings.py의 STATIC_URL 역할은?',o:['웹에서 정적 파일에 접근하기 위한 URL 접두사','정적 파일이 저장된 실제 폴더 경로','DB 연결 주소','미디어 파일 업로드 경로'],a:0,e:'실제 파일 경로가 아니라 브라우저가 접근할 때 쓰는 URL의 시작 부분.'},
@@ -383,7 +383,7 @@ ROUNDS[2] = [
 {t:19,k:'mc',q:'쿠키 수명에 대한 설명으로 옳은 것은?',o:['Session cookie는 현재 세션이 끝나면 삭제, Persistent cookie는 Expires/Max-Age가 지나면 삭제','Session cookie는 영구 보관된다','Persistent cookie는 브라우저를 닫으면 바로 삭제된다','모든 쿠키는 서버가 직접 지운다'],a:0,e:'쿠키 종류별 Lifetime.'},
 {t:19,k:'sa',q:'Django가 sessionid 쿠키에 기본으로 적용하는, 자바스크립트 접근을 차단하는 속성은?',b:['HttpOnly'],e:'세션 ID도 탈취되면 위험하므로 HttpOnly를 기본 적용한다.'},
 {t:20,k:'mc',q:'Django가 기본으로 사용하는 비밀번호 해싱 알고리즘은?',o:['PBKDF2','MD5','SHA-1','bcrypt'],a:0,e:'솔트와 키 스트레칭을 구현한 PBKDF2가 기본값.'},
-{t:20,k:'sa',q:'비밀번호 변경 후 로그아웃되지 않도록 세션을 갱신하는 함수의 빈칸은?',c:'form.save()\n______(request, form.user)',b:['update_session_auth_hash'],e:'새 비밀번호의 세션 데이터로 기존 세션을 자동 갱신한다.'},
+{t:20,k:'sa',q:'비밀번호 변경 후 로그아웃되지 않도록 세션을 갱신하는 함수의 빈칸은?',c:'user = form.save()\n______(request, user)',b:['update_session_auth_hash'],e:'새 비밀번호의 세션 데이터로 기존 세션을 자동 갱신한다.'},
 ];
 
 ROUNDS[3] = [
@@ -417,7 +417,7 @@ ROUNDS[3] = [
 {t:14,k:'sa',q:'이전 응답을 저장해 재요청 시 속도를 높이고 서버 부하를 줄이는 것은?',b:['캐시','Cache','캐싱'],e:'GET 요청은 캐시될 수 있다.'},
 {t:15,k:'mc',q:'csrf_token 없이 POST form을 제출하면 응답은?',o:['403 Forbidden','404 Not Found','200 OK','302 Found'],a:0,e:'CSRF verification failed. Request aborted.'},
 {t:15,k:'sa',q:'데이터 저장 후 redirect()로 3xx 응답을 반환하는 패턴의 이름은? (POST → ______ 패턴)',b:['redirect','Redirect'],e:'브라우저가 detail URL로 다시 GET 요청하게 한다.'},
-{t:16,k:'mc',q:"위젯 attrs에 <code>'maxlength': 10</code>만 지정했을 때의 설명으로 옳은 것은?",o:['브라우저 입력 제한일 뿐이며, 서버 검증까지 하려면 max_length를 지정해야 한다','서버 검증까지 자동으로 된다','DB 컬럼 길이가 바뀐다','에러가 발생한다'],a:0,e:'forms.CharField(max_length=10, …)처럼 써야 서버에서 검증한다.'},
+{t:16,k:'mc',q:"Widget attrs에 <code>'maxlength': 10</code>만 지정했을 때의 설명으로 옳은 것은?",o:['브라우저 입력 제한일 뿐이며, 서버 검증까지 하려면 max_length를 지정해야 한다','서버 검증까지 자동으로 된다','DB 컬럼 길이가 바뀐다','에러가 발생한다'],a:0,e:'forms.CharField(max_length=10, …)처럼 써야 서버에서 검증한다.'},
 {t:16,k:'sa',q:'필드를 수동으로 렌더링할 때 label의 for 값을 출력하도록 빈칸을 채우시오.',c:'<label for="{{ form.title.______ }}">Title:</label>\n{{ form.title }}',b:['id_for_label'],e:'{{ form.title.errors }}, {{ form.non_field_errors }}도 함께 쓴다.'},
 {t:17,k:'mc',q:'ModelForm에서 instance를 <code>instance=article</code>처럼 이름 붙여 넘기는 이유는?',o:['BaseModelForm 생성자에서 instance가 9번째 자리라서','instance가 첫 번째 인자라서','instance는 생략해도 자동으로 채워지기 때문','최신 문법이라서'],a:0,e:'data는 첫 번째 자리라 값만 넘겨도 되지만, instance는 앞의 8개를 모두 채워야 하므로 키워드로 넘긴다.'},
 {t:17,k:'sa',q:'수정 view에서 기존 글을 지정하도록 빈칸을 채우시오.',c:'form = ArticleForm(request.POST, ______=article)',b:['instance'],e:'instance가 있으면 save() 시 새로 만들지 않고 수정한다.'},
@@ -428,7 +428,7 @@ ROUNDS[3] = [
 {t:20,k:'mc',q:"'레인보우 테이블' 공격을 방어하기 위한 기법은?",o:['솔트(salt) 사용','키 스트레칭','2단계 인증(2FA)','HTTPS 사용'],a:0,e:'솔트를 붙여 해싱하면 같은 비밀번호도 사용자마다 다른 해시값이 된다. 키 스트레칭은 무차별 대입 공격 대응.'},
 {t:20,k:'sa',q:'비밀번호 초기화 이메일을 콘솔에서 확인하도록 설정하는 항목의 빈칸은?',c:"______ = 'django.core.mail.backends.console.EmailBackend'",b:['EMAIL_BACKEND'],e:'이메일 설정 없이 전송하면 ConnectionRefusedError가 난다.'},
 ];
-const TOPICS = ["", "웹 기초·클라이언트와 서버", "가상 환경·패키지·SQLite", "프로젝트·앱·Django 규칙", "MTV·요청과 응답·render", "DTL 변수·필터·태그", "템플릿 상속·템플릿 경로", "HTML form", "URL·Variable Routing", "include·app_name·url 태그", "Model·Field", "Migrations·Admin", "ORM 생성·조회", "ORM 수정·삭제·Field lookups", "HTTP method·상태 코드", "CSRF·redirect", "Form·Widget", "ModelForm", "Static·Media·AWS", "쿠키·세션·Custom User", "로그아웃·탈퇴·비밀번호"];
+const TOPICS = ["", "웹 기초·클라이언트와 서버", "가상 환경·패키지·SQLite", "프로젝트·앱·Django 규칙", "MTV·요청과 응답·render", "DTL 변수·필터·태그", "템플릿 상속·템플릿 경로", "HTML form", "URL·Variable Routing", "include·app_name·url 태그", "Model·Field", "Migrations·Admin", "ORM 생성·조회", "ORM 수정·삭제·Field lookups", "HTTP method·status code", "CSRF·redirect", "Form·Widget", "ModelForm", "Static·Media·AWS", "쿠키·세션·Custom User", "로그아웃·탈퇴·비밀번호"];
 const COLORS = {"1": "teal", "2": "teal", "3": "teal", "4": "blue", "5": "blue", "6": "blue", "7": "blue", "8": "purple", "9": "purple", "10": "orange", "11": "orange", "12": "indigo", "13": "indigo", "14": "pink", "15": "pink", "16": "green", "17": "green", "18": "green", "19": "red", "20": "red"};
 const ROUND_NOS = Object.keys(ROUNDS).map(Number);
 
