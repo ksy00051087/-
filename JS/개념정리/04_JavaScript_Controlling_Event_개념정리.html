@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Controlling Event 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.ide-title.js::before{content:"JS"; background:oklch(85% 0.15 95); color:oklch(25% 0.05 90);}
+.jsbox .html-src textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(85% 0.08 50); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.jsbox .html-src{border-bottom:1px solid oklch(32% 0.05 258);}
+.jsbox .js-view{width:100%; height:170px; border:0; background:#fff; display:block;}
+.jsbox .view-wrap{border-top:1px solid oklch(32% 0.05 258); background:#fff;}
+.jsbox .view-wrap .ide-lbl{background:oklch(95% 0.01 258); color:var(--slate); padding:5px 12px;}
+.jsbox .ide-out pre .warn{color:oklch(82% 0.14 85);}
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+<style>
+.jsbox .js-view{height:200px;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · JS 04 · 11/17 JavaScript Controlling Event</span>
+    <h1>JavaScript Controlling Event 개념정리</h1>
+    <p class="sub">이벤트 · event object · event handler(addEventListener) → 버블링 · target vs currentTarget · 캡처링 → 버블링의 필요성(이벤트 위임) → event handler 활용 실습 5종(click · input · todo · 로또) → preventDefault → addEventListener와 화살표 함수까지, 강의 슬라이드 64장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 6개 장 + 참고</span><span>🖱️ 직접 클릭해보는 결과 화면</span><span>❓ 확인문제 10개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다.<br>⚡ <b>결과 화면이 있는 상자는 실제로 클릭·입력</b>할 수 있습니다. HTML과 JS를 고친 뒤 <b>▶ 실행</b>(Ctrl+Enter)하면 결과 화면이 새로 그려지고, console.log는 아래 출력 칸에 찍힙니다.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 이벤트</a><a href="#ch2">2. 버블링</a><a href="#ch3">3. 캡처링과 버블링</a><a href="#ch4">4. 버블링의 필요성</a><a href="#ch5">5. handler 활용</a><a href="#ch6">6. 기본 동작 취소</a><a href="#ch7">7. 참고</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 웹 페이지를 하나의 '카페'라고 상상해봅시다</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">0-1</span>손님의 주문은 어떻게 처리될까요?</h3>
+<ol><li>손님이 키오스크에서 하는 '주문'(클릭, 입력 등)이 바로 <b style="color:var(--red)">이벤트</b>입니다.</li><li>이 주문을 받는 키오스크가 <b style="color:var(--red)">이벤트 리스너</b>입니다.</li><li>주문에 맞춰 커피를 만드는 바리스타의 행동이 <b style="color:var(--red)">이벤트 핸들러</b>입니다.</li></ol>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">카페 주문 처리</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button id="order-btn"&gt;☕ 아메리카노 주문&lt;/button&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// '주문'을 받을 키오스크(버튼) 선택
+const button = document.querySelector('#order-btn')
+
+// '바리스타'의 행동(핸들러) 정의
+const makeCoffee = function (event) {
+  console.log('커피 제조', event.type) // event 객체를 통해 주문 정보 확인 가능
+}
+
+// 키오스크에 '주문'이 들어오면 '바리스타'가 행동하도록 연결
+button.addEventListener('click', makeCoffee)
+
+// 결과 화면의 버튼을 눌러보세요
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>addEventListener를 사용해 이벤트 핸들러를 등록할 수 있다.</li><li>이벤트 핸들러의 event 객체를 활용해 정보를 얻을 수 있다.</li><li>이벤트 버블링의 개념과 전파 과정을 설명할 수 있다.</li><li>event.target과 event.currentTarget의 차이점을 이해한다.</li><li>이벤트 버블링을 활용하여 상위 요소에 이벤트를 위임한다.</li><li>event.preventDefault()로 요소의 기본 동작을 취소한다.</li><li>DOM 조작과 이벤트를 결합하여 동적인 웹을 구현한다.</li></ul>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>이벤트</h2><p class="desc">event · event object · event handler · addEventListener</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>일상속의 이벤트 vs 웹에서의 이벤트</h3>
+<table class="compare"><tr><th>일상속의 이벤트</th><th>웹에서의 이벤트</th></tr><tr><td>컴퓨터 키보드를 눌러 텍스트를 입력하는 것<br>전화벨이 울려 전화가 왔음을 알리는 것<br>손을 흔들어 인사하는 것<br>전화기의 버튼을 눌러서 통화를 시작하는 것<br>리모컨을 사용하여 채널을 변경하는 것</td><td>화면을 스크롤하는 것<br>버튼을 클릭했을 때 팝업 창이 출력되는 것<br>마우스 커서의 위치에 따라 드래그 앤 드롭하는 것<br>사용자의 키보드 입력 값에 따라 새로운 요소를 생성하는 것</td></tr></table>
+<div class="note exam">➤ 웹에서의 거의 <b>모든 상호작용은 이벤트와 함께</b> 함</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>event — 웹 페이지 상에서 '무언가 일어났다는 신호 또는 사건'</h3>
+<p>JS 이벤트는 '영화 서비스'와 같습니다. 우리가 보고 싶은 영화 포스터에 마우스를 올리면(<b style="color:var(--red)">이벤트</b>), 시스템은 마우스의 움직임을 감지(리스너)하고, 작은 미리보기 영상이나 설명을 보여주는(핸들러) 반응을 보입니다. 마우스 움직임 하나하나가 이벤트가 될 수 있고, 이러한 다양한 클릭, 입력, 변경하는 행위가 이벤트에 해당합니다.</p>
+<div class="subhead">DOM 요소와 이벤트</div>
+<ul><li>모든 DOM 요소는 다양한 형태의 이벤트를 발생시킬 수 있음</li><li>예) button 을 클릭하면 click 이벤트, input 값 변경 시 input 이벤트, …</li></ul>
+<div class="note tip"><b>DOM 요소</b>: HTML 문서의 각 태그를 하나의 객체로 변환한 것</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-3</span>event object — 이벤트에 관한 정보를 담은 객체</h3>
+<ul><li>DOM에서 이벤트가 발생하면, 브라우저는 해당 이벤트에 관한 정보를 담은 'event object'를 <b>자동으로 생성</b></li><li>이벤트 종류: mouse(MouseEvent), input(InputEvent), keyboard(KeyboardEvent), … (MDN: Web APIs › Event)</li></ul>
+<div class="note tip"><b>TIP</b> — 이벤트 객체는 이벤트 발생 순간의 상황(어떤 요소에서 이벤트가 발생했는지, 마우스 좌표는 어디인지, 눌린 키는 무엇인지 등)과 관련된 상세 정보를 담고 있습니다. 이를 통해 이벤트와 관련된 구체적인 정보를 참조할 수 있습니다.</div>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">event 객체 들여다보기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button id="btn"&gt;클릭해보세요&lt;/button&gt;
+&lt;input id="key" placeholder="여기서 키를 눌러보세요"&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">document.querySelector('#btn').addEventListener('click', function (event) {
+  console.log(event.type, '좌표:', event.clientX, event.clientY)
+})
+document.querySelector('#key').addEventListener('keydown', function (event) {
+  console.log(event.type, '눌린 키:', event.key)
+})
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-4</span>event handler — 특정 이벤트가 발생했을 때 실행되는 (콜백)함수</h3>
+<p>DOM 요소에서 event가 발생하면, 해당 event는 연결된 이벤트 처리기(<b style="color:var(--red)">event handler</b>)에 의해 처리 됨.</p>
+<p>이벤트 핸들러는 카페의 '바리스타'와 같습니다. 손님이 키오스크에서 아메리카노를 주문하면(이벤트), 바리스타는 정해 둔 레시피대로 커피를 만듭니다(<b style="color:var(--red)">핸들러</b> 실행). 바리스타는 주문이 들어오기 전에는 커피를 만들지 않고 기다리다가, 주문이 들어온 순간에만 움직입니다. 이처럼 핸들러는 <b>우리가 직접 호출하는 함수가 아니라, 이벤트가 발생했을 때 브라우저가 대신 호출해 주는 (콜백)함수</b>입니다.</p>
+<div class="note tip">※ 보통 addEventListener를 통해 DOM 요소에 event handler를 등록합니다.</div>
+</div>
+<div class="card full">
+<h3><span class="tag">1-5</span>.addEventListener() — 특정 DOM 요소에, 지정한 이벤트가 발생했을 때 실행할 이벤트 핸들러를 <span style="color:var(--red)">등록하는 메서드</span></h3>
+<p>addEventListener는 키오스크에 '주문 처리 규칙'을 등록하는 것과 같습니다. "아메리카노 버튼이 눌리면(click), 바리스타(handler)를 불러 주세요"라고 키오스크(리스너)에 미리 등록해 둡니다. 한 번만 등록해 두면, 이후 주문이 들어올 때마다 키오스크가 알아서 바리스타를 부릅니다. 등록할 때는 바리스타를 지금 부르는 것이 아니라 '누구를 부를지' 알려 주는 것이므로, <code>handleClick()</code>이 아닌 <code>handleClick</code>처럼 <b>괄호 없이 함수를 전달</b>합니다.</p>
+<div class="note tip">※ 이벤트 핸들러(콜백 함수)를 DOM 요소에 연결하는 역할을 담당합니다.</div>
+<pre class="formula"><span style="color:oklch(72% 0.17 25)">EventTarget</span>.addEventListener(<span style="color:oklch(78% 0.14 145)">type</span>, <span style="color:oklch(78% 0.1 230)">handler</span>)
+<span class="cm">  DOM 요소          리스너           수신할 이벤트  핸들러</span></pre>
+<ul><li><b style="color:var(--red)">DOM 요소</b>: HTML 문서의 각 태그를 하나의 객체로 변환한 것</li><li><b style="color:var(--green)">수신할 이벤트(type)</b>: 무언가 일어났다는 신호 또는 사건 — 수신할 이벤트 유형, 문자열로 작성 (ex. 'click', 'mouseover' 등)</li><li><b style="color:var(--blue)">핸들러(handler)</b>: 특정 이벤트가 발생했을 때 실행되는 (콜백)함수 — 이벤트 발생 시 호출되는 콜백 함수 · 자동으로 event 객체를 첫번째 매개변수로 받음 · 반환 값 없음</li></ul>
+<pre class="formula">element.addEventListener('click', function (event) {
+  // 이벤트 처리 로직
+})</pre>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">addEventListener() 예시 — handleClick 함수가 이벤트 핸들러이며, button.addEventListener()는 그 핸들러를 click 이벤트에 연결해주는 역할</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button&gt;버튼&lt;/button&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const button = document.querySelector('button')
+
+// 이벤트 핸들러
+const handleClick = function () {
+  window.alert('버튼이 클릭 되었습니다!')
+}
+
+// addEventListener 메서드를 이용해 버튼에 이벤트 핸들러를 등록
+button.addEventListener('click', handleClick)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-6</span>이벤트 객체 전달</h3>
+<ul><li>이벤트 발생 시, 이벤트 객체는 자동으로 이벤트 핸들러 함수에 인자로 전달됨</li><li>핸들러 함수는 이 인자를 통해 이벤트에 대한 상세 정보(이벤트 발생 요소, 이벤트 타입, 추가 데이터 등)에 접근하고 적절한 동작을 수행</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">event 객체 전달</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button id="btn"&gt;버튼&lt;/button&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// 1. 버튼 요소 선택
+const btn = document.querySelector('#btn')
+
+// 2. 이벤트 핸들러
+const detectClick = function (event) {
+  console.log(event.constructor.name) // PointerEvent
+  console.log(event.type) // click
+}
+
+// 3. 버튼에 이벤트 핸들러를 등록
+btn.addEventListener('click', detectClick)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">1-7</span>이벤트 핸들러에서의 this</h3>
+<p>일반 함수를 핸들러로 사용 시, <b>this는 이벤트 리스너가 연결된 요소</b>를 가리킴 (<code>event</code> 객체의 <code>currentTarget</code> 속성 값과 동일)</p>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">핸들러 안의 this</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button id="btn"&gt;버튼&lt;/button&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// 1. 버튼 선택
+const btn = document.querySelector('#btn')
+
+// 2. 이벤트 핸들러
+const detectClick = function (event) {
+  console.log(event.currentTarget) // &lt;button id="btn"&gt;버튼&lt;/button&gt;
+  console.log(this) // &lt;button id="btn"&gt;버튼&lt;/button&gt;
+  console.log(this === event.currentTarget) // true
+}
+
+// 3. 버튼에 이벤트 핸들러를 등록
+btn.addEventListener('click', detectClick)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch2" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>버블링</h2><p class="desc">Bubbling · event.target vs event.currentTarget</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">2-1</span>버블링 개요 — form &gt; div &gt; p 형태의 중첩된 구조에 각각 이벤트 핸들러가 연결되어 있을 때, 만약 &lt;p&gt; 요소를 클릭하면 어떻게 될까?</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">버블링 — 결과 화면에서 p를 클릭해보세요</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;style&gt;
+  form, div, p { border: 1px solid #555; padding: 8px; margin: 4px; }
+&lt;/style&gt;
+&lt;form id="form"&gt;
+  form
+  &lt;div id="div"&gt;
+    div
+    &lt;p id="p"&gt;p&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/form&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const formElement = document.querySelector('#form')
+const divElement = document.querySelector('#div')
+const pElement = document.querySelector('#p')
+
+const clickHandler1 = function (event) {
+  console.log('form이 클릭되었습니다.')
+}
+const clickHandler2 = function (event) {
+  console.log('div가 클릭되었습니다.')
+}
+const clickHandler3 = function (event) {
+  console.log('p가 클릭되었습니다.')
+}
+
+formElement.addEventListener('click', clickHandler1)
+divElement.addEventListener('click', clickHandler2)
+pElement.addEventListener('click', clickHandler3)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+<ul><li>&lt;p&gt; 요소만 클릭했는데도 불구하고 <b>모든 핸들러가 동작함</b></li><li>➤ 왜 p만을 클릭했는데 부모 요소 &lt;div&gt;와 &lt;form&gt;에 할당된 핸들러까지 동작할까?</li></ul>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>버블링 (Bubbling)</h3>
+<ul><li>한 요소에 이벤트가 발생하면, 해당 요소의 핸들러가 동작한 후 이어서 <b>부모 요소의 핸들러가 동작</b>하는 현상</li><li>가장 최상단의 조상 요소(document, 그리고 window)를 만날 때까지 이 과정이 반복되면서 요소 각각에 할당된 핸들러가 동작</li><li>➤ 최하위의 &lt;p&gt; 요소를 클릭하면 <code>p → div → form</code> 순서로 3개의 이벤트 핸들러가 모두 순차적으로 동작했던 것</li></ul>
+<div class="note tip"><b>TIP</b> — 이벤트가 제일 깊은 곳에 있는 요소에서 시작해 부모 요소를 거슬러 올라가며 발생하는 것이 마치 물속 거품과 닮았기 때문에 버블링이라고 합니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-3</span>이벤트가 정확히 어디서 발생했는지 접근할 수 있는 방법</h3>
+<table class="compare"><tr><th>event.currentTarget</th><th>event.target</th></tr><tr><td>'현재' 요소<br>항상 이벤트 핸들러가 연결된 요소만을 참조하는 속성<br>'this'와 같음</td><td>이벤트가 발생한 가장 안쪽의 요소(target)를 참조하는 속성<br>실제 이벤트가 시작된 요소<br>버블링이 진행 되어도 변하지 않음</td></tr></table>
+<div class="note exam">currentTarget = <b>핸들러가 붙은 곳</b>(고정) · target = <b>실제로 클릭한 곳</b>(클릭 위치에 따라 달라짐)</div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-4</span>'target' &amp; 'currentTarget' 예시 — 세 요소 중 가장 최상위 요소인 outerouter 요소에만 핸들러가 연결</h3>
+<ul><li>핸들러는 outerouter에만 연결되어 있지만, 하위 요소 outer와 inner를 클릭해도 해당 핸들러가 동작함</li><li>클릭 이벤트가 어디서 발생했든 상관없이 outerouter까지 이벤트가 버블링 되어 핸들러를 실행시키기 때문</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">target vs currentTarget — inner / outer / outerouter를 각각 클릭</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;style&gt;
+  #outerouter { width: 300px; height: 150px; background-color: yellowgreen; }
+  #outer { width: 200px; height: 110px; background-color: crimson; }
+  #inner { width: 100px; height: 60px; background-color: skyblue; }
+&lt;/style&gt;
+&lt;div id="outerouter"&gt;
+  outerouter
+  &lt;div id="outer"&gt;
+    outer
+    &lt;div id="inner"&gt;inner&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const outerOuterElement = document.querySelector('#outerouter')
+
+const clickHandler = function (event) {
+  console.log('currentTarget:', event.currentTarget.id)
+  console.log('target:', event.target.id)
+}
+
+outerOuterElement.addEventListener('click', clickHandler)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+<div class="note tip"><b>currentTarget</b>: 핸들러가 연결된 outerouter 요소만을 가리킴 · <b>target</b>: 실제 이벤트가 발생하는 요소를 가리킴</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch3" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>캡처링과 버블링</h2><p class="desc">Capturing phase → Target phase → Bubbling phase</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">3-1</span>캡처링 (capturing)</h3>
+<ul><li>이벤트가 최상위 조상에서 타겟 요소까지 하위로 전파되는 단계 (버블링과 반대)</li><li>table 의 하위 요소 td를 클릭하면, 이벤트는 먼저 <b style="color:var(--red)">최상위 요소부터 아래로 전파</b>됨 (캡처링)</li><li>실제 이벤트가 발생한 지점(event.target)에서 실행된 후 <b style="color:var(--red)">다시 위로 전파</b> (버블링)</li></ul>
+<div class="flow"><span>Window</span><i>→</i><span>Document</span><i>→</i><span>&lt;html&gt;</span><i>→</i><span>&lt;body&gt;</span><i>→</i><span>&lt;table&gt;</span><i>→</i><span>&lt;tbody&gt;</span><i>→</i><span>&lt;tr&gt;</span><i>→</i><span style="background:oklch(93% 0.06 45)">&lt;td&gt; (Target)</span></div>
+<p style="font-size:.8rem;color:var(--sub)">① Capture Phase (위→아래) → ② Target Phase → ③ Bubbling Phase (아래→위)</p>
+<div class="note tip"><b>TIP</b> — 캡처링은 실제 개발자가 다루는 경우가 거의 없으므로 버블링을 집중해서 학습하는 것이 좋습니다.</div>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">(참고) 캡처링 단계에서 핸들러 실행하기 — 세 번째 인자 true</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;style&gt; div { border: 1px solid #555; padding: 10px; } &lt;/style&gt;
+&lt;div id="a"&gt;A (부모)&lt;div id="b"&gt;B (자식) — 여기를 클릭&lt;/div&gt;&lt;/div&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const a = document.querySelector('#a')
+const b = document.querySelector('#b')
+
+a.addEventListener('click', () =&gt; console.log('A 캡처링'), true) // 내려가면서
+a.addEventListener('click', () =&gt; console.log('A 버블링'))       // 올라오면서
+b.addEventListener('click', () =&gt; console.log('B (타겟)'))
+// B 클릭 → A 캡처링 → B (타겟) → A 버블링
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch4" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>버블링의 필요성</h2><p class="desc">공통 조상에 핸들러 하나만 등록 (이벤트 위임)</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">4-1</span>버블링이 필요한 이유</h3>
+<ul><li>만약 다음과 같이 각자 다른 동작을 수행하는 버튼이 여러 개가 있다고 가정하면, 각 버튼마다 서로 다른 이벤트 핸들러를 등록해야 할까?</li><li style="color:var(--red)">➤ 각 버튼의 공통 조상인 div 요소에 이벤트 핸들러 단 하나만 할당하기</li><li><b style="color:var(--red)">요소들의 공통 조상에</b> 이벤트 핸들러를 <b style="color:var(--red)">하나만 등록</b>하면, 여러 자식 요소에서 발생하는 이벤트를 한곳에서 효율적으로 다룰 수 있음</li><li>공통 조상(div)에 할당한 핸들러에서 <code>event.target</code>을 이용하면 실제 어떤 버튼에서 이벤트가 발생했는지 알 수 있기 때문</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">버블링 활용 — 핸들러는 div에 하나만</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;div&gt;
+  &lt;button&gt;🍎 사과&lt;/button&gt;
+  &lt;button&gt;🍌 바나나&lt;/button&gt;
+  &lt;button&gt;🍇 포도&lt;/button&gt;
+  &lt;button&gt;🍑 복숭아&lt;/button&gt;
+&lt;/div&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const divTag = document.querySelector('div')
+const clickHandler = function (event) {
+  console.log(event.target) // 실제로 클릭한 버튼
+  if (event.target.tagName === 'BUTTON') {
+    console.log(event.target.textContent + ' 선택!')
+  }
+}
+divTag.addEventListener('click', clickHandler)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+<div class="note hard"><b>더 알아두기</b> — 이 패턴을 <b>이벤트 위임(Event Delegation)</b>이라고 부릅니다. 나중에 추가되는 버튼도 따로 등록하지 않아도 동작한다는 장점이 있습니다. div 자체의 빈 공간을 클릭해도 핸들러가 실행되므로 <code>event.target.tagName</code> 확인을 넣어 두면 안전합니다.</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch5" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>event handler 활용</h2><p class="desc">click · input · click+input · todo · 로또 번호 생성기 · lodash</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">5-0</span>event handler 활용 실습 목록</h3>
+<ol><li>버튼을 클릭하면 숫자를 1씩 증가해서 출력하기</li><li>사용자 입력 값을 실시간으로 출력하기</li><li>사용자 입력 값을 실시간으로 출력하기 + 버튼을 클릭하면 출력된 값의 CSS 스타일을 변경하기</li><li>todo 프로그램 구현</li><li>로또 번호 생성기 구현</li></ol>
+</div>
+<div class="card">
+<h3><span class="tag">5-1</span>① click 이벤트 실습 — 버튼을 클릭하면 숫자를 1씩 증가</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">practice_click_event</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button id="btn"&gt;버튼&lt;/button&gt;
+&lt;p&gt;클릭횟수 : &lt;span id="counter"&gt;0&lt;/span&gt;&lt;/p&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// 1. 초기값 할당
+let initialValue = 0
+
+// 2. 버튼 요소 선택
+const btn = document.querySelector('#btn')
+
+// 3. 콜백 함수 (버튼에 클릭 이벤트가 발생할때마다 실행할 코드)
+const clickHandler = function () {
+  // 3.1 초기값 += 1
+  initialValue += 1
+
+  // 3.2 span 요소를 선택
+  const spanTag = document.querySelector('#counter')
+  // 3.3 span 요소의 컨텐츠를 1 증가한 초기값으로 설정
+  spanTag.textContent = initialValue
+}
+
+// 4. 버튼에 이벤트 핸들러 등록 (클릭 이벤트)
+btn.addEventListener('click', clickHandler)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-2</span>② input 이벤트 실습 — 사용자의 입력 값을 실시간으로 출력하기</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">practice_input_event</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;input type="text" id="text-input"&gt;
+&lt;p&gt;&lt;/p&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// 1. input 요소 선택
+const inputTag = document.querySelector('#text-input')
+
+// 2. p 요소 선택
+const pTag = document.querySelector('p')
+
+// 3. 콜백 함수 (input 요소에 input 이벤트가 발생할때마다 실행할 코드)
+const inputHandler = function (event) {
+  // 3.1 작성하는 데이터가 어디에 누적되고 있는지 찾기
+  // console.log(event.currentTarget)
+  console.log(event.currentTarget.value)
+
+  // 3.2 p요소의 컨텐츠에 작성하는 데이터를 추가
+  pTag.textContent = event.currentTarget.value
+}
+
+// 4. input 요소에 이벤트 핸들러 등록 (input 이벤트)
+inputTag.addEventListener('input', inputHandler)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-3</span>'currentTarget' 주의사항</h3>
+<ul><li><code>console.log()</code>로 event 객체를 출력할 경우, <b>currentTarget 키의 값은 null</b>을 가짐</li><li>currentTarget은 <b>이벤트가 처리되는 동안에만</b> 사용할 수 있기 때문</li><li>대신 <code>console.log(event.currentTarget)</code>로 확인 가능</li><li>currentTarget 이후의 속성 값들은 <b style="color:var(--red)">'target'을 참고해서 사용하기</b></li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">핸들러가 끝나면 currentTarget은 null</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button&gt;클릭&lt;/button&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">let saved
+document.querySelector('button').addEventListener('click', function (event) {
+  console.log('핸들러 안:', event.currentTarget) // &lt;button&gt;클릭&lt;/button&gt;
+  saved = event
+  setTimeout(() =&gt; {
+    console.log('핸들러 끝난 뒤:', saved.currentTarget) // null
+    console.log('target은 그대로:', saved.target)
+  }, 0)
+})
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-4</span>③ click &amp; input 이벤트 실습 — 입력 값을 실시간으로 출력하고, 클릭 버튼을 클릭 시 출력 값의 CSS 변경하기</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">practice_click_input_event</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;style&gt;
+  .blue {
+    color: blue;
+  }
+&lt;/style&gt;
+&lt;h1&gt;&lt;/h1&gt;
+&lt;button id="btn"&gt;클릭&lt;/button&gt;
+&lt;input type="text" id="text-input"&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// input 구현
+const inputTag = document.querySelector('#text-input')
+const h1Tag = document.querySelector('h1')
+const inputHandler = function (event) {
+  h1Tag.textContent = event.currentTarget.value
+}
+inputTag.addEventListener('input', inputHandler)
+
+// click 구현 (세 방법 중 하나를 골라 주석을 풀어 실행)
+const btn = document.querySelector('#btn')
+const clickHandler = function () {
+  // 1. add 방법
+  // h1Tag.classList.add('blue')
+
+  // 2. toggle 방법
+  h1Tag.classList.toggle('blue')
+
+  // 3. if 방법
+  // if (h1Tag.classList.contains('blue')) {
+  //   h1Tag.classList.remove('blue')
+  // } else {
+  //   h1Tag.classList.add('blue')
+  // }
+}
+btn.addEventListener('click', clickHandler)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-5</span>④ todo 실습 — 입력 후 '+' 버튼 클릭 시, 실시간으로 리스트에 출력 (+ 추가 기능: 빈 문자열 입력 방지, 입력이 없을 경우 경고 대화상자를 띄움)</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">practice_todo</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;input type="text" class="input-text"&gt;
+&lt;button id="btn"&gt;+&lt;/button&gt;
+&lt;ul&gt;&lt;/ul&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// 1. 필요한 요소 선택
+const inputTag = document.querySelector('.input-text')
+const btn = document.querySelector('#btn')
+const ulTag = document.querySelector('ul')
+
+// 2. 할 일을 추가하는 함수 (이벤트 핸들러)
+const addTodo = function (event) {
+  // 2.1 사용자 입력 데이터 저장
+  const inputData = inputTag.value
+
+  if (inputData.trim()) {
+    // 2.2 데이터를 저장할 li 요소를 생성
+    const liTag = document.createElement('li')
+    // 2.3 li 요소 컨텐츠에 데이터 입력
+    liTag.textContent = inputData
+    // 2.4 li 요소를 부모 ul 요소의 자식 요소로 추가
+    ulTag.appendChild(liTag)
+    // 2.5 todo 추가 후 input의 입력 데이터는 초기화
+    inputTag.value = ''
+  } else {
+    alert('할 일을 입력하세요..')
+  }
+}
+
+// 3. 버튼에 이벤트 핸들러를 등록
+btn.addEventListener('click', addTodo)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+<div class="note exam"><code>inputData.trim()</code> — 앞뒤 공백을 제거한 문자열. 공백만 입력하면 <code>''</code>(빈 문자열, falsy)이 되어 else로 갑니다.</div>
+</div>
+<div class="card full">
+<h3><span class="tag">5-6</span>⑤ 로또 번호 생성기 실습 — '행운 번호 받기' 버튼 클릭 시, 6개의 랜덤 번호가 실시간으로 리스트에 출력</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">practice_lottery (lodash 사용)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;h1&gt;로또 추천 번호&lt;/h1&gt;
+&lt;button id="btn"&gt;행운 번호 받기&lt;/button&gt;
+&lt;div&gt;&lt;/div&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"&gt;&lt;/script&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">// (오프라인일 때를 위한 대체 코드 — lodash가 로드되면 사용되지 않음)
+if (!window._) window._ = {
+  range: (s, e) =&gt; Array.from({ length: e - s }, (_, i) =&gt; s + i),
+  sampleSize: (arr, n) =&gt; [...arr].sort(() =&gt; Math.random() - 0.5).slice(0, n),
+}
+
+// 1. 필요한 요소 선택
+const btn = document.querySelector('#btn')
+const divTag = document.querySelector('div')
+
+// 2. 로또 번호를 화면에 출력하는 함수 (이벤트 핸들러)
+const getLottery = function (event) {
+  // 2.1 1부터 45까지의 배열 생성
+  const numbers = _.range(1, 46)
+  // 2.2 45개의 요소가 있는 배열에서 6개의 랜덤 번호 추출
+  const sixNumbers = _.sampleSize(numbers, 6)
+  // 2.3 6개의 li 요소를 담을 ul 요소 생성
+  const ulTag = document.createElement('ul')
+  // 2.4 추출한 번호 배열을 "반복"하면서 li 요소를 생성
+  sixNumbers.forEach((number) =&gt; {
+    // 2.5 번호를 담을 li 요소 생성 후 입력
+    const liTag = document.createElement('li')
+    // 2.6 번호를 li 요소에 입력
+    liTag.textContent = number
+    // 2.7 만들어진 li를 ul 요소에 추가
+    ulTag.appendChild(liTag)
+  })
+  // 2.8 완성한 ul 요소를 div 요소에 추가
+  divTag.appendChild(ulTag)
+}
+
+// 3. 버튼 요소에 이벤트 핸들러를 등록
+btn.addEventListener('click', getLottery)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+<div class="note tip"><b>lodash</b> — 모듈성, 성능 및 추가 기능을 제공하는 JavaScript 유틸리티 라이브러리. array/object 등 자료구조를 다룰 때, 간편하고 유용한 함수들을 제공 (참고 링크: https://lodash.com/). <code>_.range(1, 46)</code> → [1, …, 45] · <code>_.sampleSize(collection, n)</code> → 중복 없이 n개 랜덤 추출</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch6" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">6</div><div><h2>이벤트 기본 동작 취소하기</h2><p class="desc">.preventDefault() · copy 이벤트 · form submit</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">6-1</span>이벤트 기본 동작 취소하기</h3>
+<ul><li>HTML의 각 요소가 기본적으로 가지고 있는 이벤트가 때로는 방해가 되는 경우가 있어 이벤트의 기본 동작을 취소할 필요가 있음</li><li>예시 — <code>form</code> 요소의 제출 이벤트를 취소하여 페이지 새로고침을 막을 수 있음 · <code>&lt;a&gt;</code> 태그를 클릭했을 때 페이지 이동을 막고, 대신 다른 로직을 수행하게 할 수 있음</li></ul>
+<div class="subhead">.preventDefault() — 해당 이벤트에 대한 기본 동작을 실행하지 않도록 지정</div>
+<p>preventDefault는 택배 기사님의 기본 동작은 '문 앞에 두기'인데, '경비실에 맡겨 주세요'라고 요청하면 기본 동작은 취소되고 내가 정한 방식으로 처리된다. <b>기본 동작 취소 + 대신 내 로직</b>을 위해 사용한 기능이 preventDefault 입니다.</p>
+<div class="subhead">이벤트 동작 취소 실습 목록</div>
+<ol><li><code>copy</code> 이벤트 동작 취소</li><li><code>form</code> 제출 시 페이지 새로고침 동작 취소</li></ol>
+</div>
+<div class="card">
+<h3><span class="tag">6-2</span>① copy 이벤트 동작 취소 — 복사 이벤트를 실행하지 못하도록 하기 (콘텐츠를 복사 하는 것을 방지)</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">prevent_event — 제목을 드래그해서 Ctrl+C 해보세요</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;h1&gt;중요한 내용&lt;/h1&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const h1Tag = document.querySelector('h1')
+h1Tag.addEventListener('copy', function (event) {
+  console.log(event.type)
+  event.preventDefault()
+  alert('복사 할 수 없습니다.')
+})
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">6-3</span>② form 제출 시 페이지 새로고침 동작 취소</h3>
+<ul><li>form 요소의 submit 동작(action 값으로 요청)을 취소 시킴</li><li>실습 시 submit 버튼을 눌러도 새로고침이 안되는 것을 확인할 수 있음</li><li>※ <b>form 제출 시 기본적으로 새로고침 실행</b></li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">prevent_event — Submit을 눌러보세요</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;form id="my-form"&gt;
+  &lt;input type="text" name="username"&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const formTag = document.querySelector('#my-form')
+const handleSubmit = function (event) {
+  event.preventDefault()
+  // 새로고침 대신 내 로직 실행
+  console.log('제출 막음! 입력값:', formTag.username.value)
+}
+
+formTag.addEventListener('submit', handleSubmit)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+<div class="note hard"><b>Django와 연결</b> — 지금까지는 form 제출 → 페이지 새로고침 → 서버가 새 HTML 응답이었죠. preventDefault로 새로고침을 막고 JS로 서버와 통신하는 것이 다음에 배울 비동기(Axios) 방식의 출발점입니다.</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch7" style="--accent:var(--amber)">
+  <div class="section-head"><div class="section-num">7</div><div><h2>참고 — addEventListener와 화살표 함수 관계</h2><p class="desc">화살표 함수는 자신만의 this를 가지지 않음</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">7-1</span>addEventListener에서의 화살표 함수 주의사항</h3>
+<ul><li>화살표 함수는 <b>자신만의 this를 가지지 않음</b></li><li>대신, 자신이 선언된 상위 스코프의 this를 그대로 물려받아 사용</li><li>따라서 이벤트 핸들러로 화살표 함수를 사용하면, this는 대부분 <b>전역 객체(window)</b>를 가리키게 됨</li><li>해결책 — 일반 함수로 사용하기 · 화살표 함수일 경우 <code>event.currentTarget</code>을 사용하기</li></ul>
+<div class="note tip"><b>화살표 함수</b>: function 키워드 대신 =&gt;를 사용해 함수를 간결하게 표현하는 문법.</div>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">listener_with_this — 두 버튼을 눌러 비교</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="html-src"><div class="ide-lbl"><span>HTML (수정 가능)</span></div><textarea spellcheck="false">&lt;button id="function"&gt;function&lt;/button&gt;
+&lt;button id="arrow"&gt;arrow&lt;/button&gt;</textarea></div>
+  <div class="ide-code"><textarea spellcheck="false">const functionButton = document.querySelector('#function')
+const arrowButton = document.querySelector('#arrow')
+
+functionButton.addEventListener('click', function () {
+  console.log(this) // &lt;button id="function"&gt;function&lt;/button&gt;
+})
+
+arrowButton.addEventListener('click', (event) =&gt; {
+  console.log(this === window) // true -&gt; window
+  console.log(event.currentTarget) // 해결책: &lt;button id="arrow"&gt;arrow&lt;/button&gt;
+})
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+  <div class="view-wrap"><div class="ide-lbl"><span>결과 화면 (실행할 때마다 새로 그림)</span></div><iframe class="js-view" sandbox="allow-scripts allow-modals allow-forms"></iframe></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">7-2</span>실습 (실습실 문제 번호)</h3>
+<div class="pillrow"><span class="pill">이벤트 · 1917. input Event - Bad Word Filter</span><span class="pill">1923. Click Event - ThemeSwitcher</span><span class="pill">1919. change Event - Form Validator</span><span class="pill">1920. submit Event - Card Maker</span><span class="pill">3083. 이벤트 핸들러와 DOM 조작 - 기초</span><span class="pill">버블링 · 3082. 버블링과 캡처링</span></div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록)</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>Controlling Event 확인문제</h3>
+<details class="quiz"><summary>1. 특정 이벤트가 발생했을 때 실행되는 함수는?</summary><ol class="opt" type="a"><li>이벤트 리스너</li><li>이벤트 객체</li><li>이벤트 핸들러</li><li>이벤트 타입</li></ol><div class="ans"><b class="ok">정답: c) 이벤트 핸들러</b> — 이벤트 핸들러는 특정 이벤트 발생 시 호출되도록 작성된 콜백 함수입니다.</div></details>
+<details class="quiz"><summary>2. DOM 요소에 이벤트 핸들러를 등록하는 메서드는?</summary><ol class="opt" type="a"><li>setEvent()</li><li>handleEvent()</li><li>onEvent()</li><li>addEventListener()</li></ol><div class="ans"><b class="ok">정답: d) addEventListener()</b> — addEventListener()는 특정 DOM 요소에 지정된 타입의 이벤트를 처리할 함수(핸들러)를 등록합니다.</div></details>
+<details class="quiz"><summary>3. 한 요소의 이벤트가 부모 요소로 전파되는 현상은?</summary><ol class="opt" type="a"><li>캡처링 (Capturing)</li><li>버블링 (Bubbling)</li><li>위임 (Delegation)</li><li>호이스팅 (Hoisting)</li></ol><div class="ans"><b class="ok">정답: b) 버블링 (Bubbling)</b> — 이벤트가 가장 안쪽 요소에서 시작해 바깥쪽 부모 요소로 거슬러 올라가며 전파되는 현상입니다.</div></details>
+<details class="quiz"><summary>4. 이벤트 핸들러에 자동으로 전달되는 첫 번째 인자는?</summary><ol class="opt" type="a"><li>this</li><li>event 객체</li><li>target 요소</li><li>currentTarget 요소</li></ol><div class="ans"><b class="ok">정답: b) event 객체</b> — 이벤트 발생 시, 해당 이벤트에 대한 상세 정보를 담은 event 객체가 핸들러에 자동으로 전달됩니다.</div></details>
+<details class="quiz"><summary>5. event.target이 가리키는 대상은?</summary><ol class="opt" type="a"><li>이벤트가 처음 발생한 요소</li><li>이벤트 핸들러가 연결된 요소</li><li>부모 요소</li><li>최상위 document 객체</li></ol><div class="ans"><b class="ok">정답: a) 이벤트가 처음 발생한 요소</b> — event.target은 이벤트가 최초로 발생한 요소, 즉 이벤트의 실제 시작이 된 요소를 가리킵니다.</div></details>
+<details class="quiz"><summary>6. event.currentTarget이 가리키는 대상은?</summary><ol class="opt" type="a"><li>이벤트가 처음 발생한 요소</li><li>이벤트 핸들러가 연결된 요소</li><li>자식 요소</li><li>최상위 window 객체</li></ol><div class="ans"><b class="ok">정답: b) 이벤트 핸들러가 연결된 요소</b> — event.currentTarget은 이벤트 리스너가 실제로 연결되어 있는 요소, 즉 this와 동일한 대상을 가리킵니다.</div></details>
+<details class="quiz"><summary>7. 요소의 기본 동작을 막는 메서드는?</summary><ol class="opt" type="a"><li>stopAction()</li><li>cancelEvent()</li><li>preventDefault()</li><li>stopPropagation()</li></ol><div class="ans"><b class="ok">정답: c) preventDefault()</b> — event.preventDefault()는 a 태그의 링크 이동이나 form의 제출과 같은 기본 동작을 취소합니다. (stopPropagation은 기본 동작이 아니라 <b>전파(버블링)</b>를 멈추는 메서드)</div></details>
+<details class="quiz"><summary>8. 버블링의 이점을 활용하는 주요 패턴은 무엇인가요?</summary><ol class="opt" type="a"><li>여러 요소에 각각 핸들러 등록</li><li>상위 요소에 핸들러 하나만 등록</li><li>모든 요소에 preventDefault() 사용</li><li>캡처링 단계에서 이벤트 처리</li></ol><div class="ans"><b class="ok">정답: b) 상위 요소에 핸들러 하나만 등록</b> — 여러 하위 요소의 이벤트를 공통 상위 요소에서 한 번에 처리하여 효율성을 높일 수 있습니다.</div></details>
+<details class="quiz"><summary>9. 버블링과 캡처링의 차이를 올바르게 설명한 것은?</summary><ol class="opt" type="a"><li>캡처링은 하향 전파, 버블링은 상향 전파</li><li>캡처링은 상향 전파, 버블링은 하향 전파</li><li>버블링은 기본 동작을, 캡처링은 전파를 막음</li><li>두 용어는 동일하며 실제 동작에 차이가 없음</li></ol><div class="ans"><b class="ok">정답: a) 캡처링은 하향 전파, 버블링은 상향 전파</b> — 캡처링은 부모에서 자식으로 하향식, 버블링은 자식에서 부모로 상향식으로 이벤트를 전달합니다.</div></details>
+<details class="quiz"><summary>10. event.target 과 event.currentTarget의 차이를 올바르게 설명한 것은?</summary><ol class="opt" type="a"><li>target은 리스너 부착 요소, currentTarget은 이벤트 발생 요소</li><li>target은 이벤트 발생 요소, currentTarget은 리스너 부착 요소</li><li>target은 항상 부모 요소, currentTarget은 항상 자식 요소</li><li>두 속성은 모든 상황에서 항상 동일한 요소를 가리킴</li></ol><div class="ans"><b class="ok">정답: b) target은 이벤트 발생 요소, currentTarget은 리스너 부착 요소</b> — target은 실제 이벤트 발생 요소를 의미하고, currentTarget은 리스너가 달린 요소(this와 동일한 대상)를 의미합니다.</div></details>
+</div>
+  </div>
+</section>
+
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 오늘 공부한 내용 요약</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>개념</th><th>설명</th><th>예시</th></tr><tr><td class="k">이벤트 (event)</td><td>웹페이지에서 일어나는 신호 또는 사건</td><td>click, input 등</td></tr><tr><td class="k">이벤트 핸들러</td><td>이벤트 발생 시 실행되는 콜백 함수</td><td>btn.addEventListener('click', func)</td></tr><tr><td class="k">addEventListener</td><td>DOM 요소에 이벤트 핸들러를 등록</td><td>btn.addEventListener('click', func)</td></tr><tr><td class="k">이벤트 버블링</td><td>이벤트가 부모 요소로 전파되는 현상</td><td>하위 요소 클릭 시 상위 핸들러 동작</td></tr><tr><td class="k">event.target</td><td>실제 이벤트가 시작된 요소를 참조</td><td>console.log(event.target)</td></tr><tr><td class="k">event.currentTarget</td><td>핸들러가 연결된 요소를 참조</td><td>console.log(event.currentTarget)</td></tr><tr><td class="k">preventDefault</td><td>이벤트의 기본 동작을 취소</td><td>event.preventDefault()</td></tr></table>
+</div>
+<div class="card">
+<h3>이벤트 기본 개념</h3>
+<ul><li><b>이벤트(event)</b>: 웹 페이지에서 사용자의 클릭, 키보드 입력, 마우스 움직임 등 '무언가 일어났다는 신호 또는 사건'을 의미</li><li><b>이벤트 객체(event object)</b>: 이벤트가 발생하면, 해당 이벤트에 대한 상세 정보(발생 위치, 마우스 좌표 등)를 담은 객체가 자동으로 생성</li><li><b>이벤트 핸들러(event handler)</b>: 특정 이벤트가 발생했을 때 실행되도록 등록된 콜백 함수</li><li><b>addEventListener(type, handler)</b>: DOM 요소에 특정 이벤트(type)가 발생했을 때 실행할 이벤트 핸들러(handler)를 등록하는 메서드</li></ul>
+</div>
+<div class="card">
+<h3>이벤트 버블링 (Event Bubbling)</h3>
+<ul><li>한 요소에 이벤트가 발생하면, 그 요소의 핸들러가 동작한 후 부모 요소의 핸들러, 그 부모의 부모 핸들러 순으로 최상단까지 이벤트가 전파되는 현상</li><li>target vs currentTarget — 이벤트 객체 내에서 두 속성은 이벤트 전파 과정 중 요소를 참조하는 데 사용<ul><li>event.target: 이벤트가 처음 발생한 가장 안쪽의 요소이며, 버블링이 진행돼도 이 값은 변하지 않음</li><li>event.currentTarget: 이벤트 핸들러가 연결된 현재 요소를 가리키고, 일반 함수 핸들러 내에서 this와 같은 값을 가짐</li></ul></li><li>버블링의 이런 특징을 이용하면 여러 자식 요소의 이벤트를 부모 요소 하나에서 관리할 수 있음</li></ul>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li><b>요소.addEventListener('이벤트', 핸들러)</b> — 핸들러는 괄호 없이, 첫 인자로 event 객체가 자동 전달.</li><li>이벤트는 <b>캡처링(↓) → 타겟 → 버블링(↑)</b>. target은 실제 클릭한 곳, currentTarget(=this)은 핸들러가 붙은 곳.</li><li>부모 하나에 핸들러를 달고 event.target으로 구분 = 버블링 활용 · 기본 동작이 방해되면 <b>event.preventDefault()</b> · 화살표 핸들러에서는 this 대신 <b>event.currentTarget</b>.</li></ul>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「JavaScript Controlling Event」(11/17, 64장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<script>
+(function(){
+  var CM = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var BRIDGE = "<scr"+"ipt>(function(){var ID=__ID__;function fmt(v,d){d=d||0;try{if(v===null)return 'null';if(v===undefined)return 'undefined';var t=typeof v;if(t==='string')return d?JSON.stringify(v):v;if(t==='number'||t==='boolean'||t==='bigint'||t==='symbol')return String(v);if(t==='function')return 'ƒ '+(v.name||'anonymous')+'()';if(v instanceof Element){var h=v.outerHTML;return h.length>160?h.slice(0,160)+'…':h;}if(v instanceof Text)return '#text '+JSON.stringify(v.textContent);if(typeof NodeList!=='undefined'&&(v instanceof NodeList||v instanceof HTMLCollection)){return (v instanceof NodeList?'NodeList':'HTMLCollection')+'('+v.length+') ['+Array.prototype.map.call(v,function(x){return fmt(x,d+1)}).join(', ')+']';}if(typeof DOMTokenList!=='undefined'&&v instanceof DOMTokenList)return 'DOMTokenList('+v.length+') ['+Array.prototype.map.call(v,function(x){return JSON.stringify(x)}).join(', ')+']';if(v instanceof Error)return v.name+': '+v.message;if(Array.isArray(v)){if(d>2)return '[…]';return '['+v.map(function(x){return fmt(x,d+1)}).join(', ')+']';}if(d>2)return '{…}';var ks=Object.keys(v);return '{ '+ks.map(function(k){return k+': '+fmt(v[k],d+1)}).join(', ')+' }';}catch(e){return String(v);}}function send(type,args){parent.postMessage({__jsbox:ID,type:type,s:Array.prototype.map.call(args,function(a){return fmt(a)}).join(' ')},'*');}['log','info','error','warn'].forEach(function(k){var o=console[k];console[k]=function(){send(k,arguments);try{o.apply(console,arguments)}catch(e){}};});window.addEventListener('error',function(e){send('error',[(e.error&&e.error.name?e.error.name+': '+e.error.message:e.message)]);});window.__done=function(){parent.postMessage({__jsbox:ID,type:'done'},'*');};})();</scr"+"ipt>";
+  var boxes = [];
+  function out(box, s, cls){ var pre=box.querySelector('.ide-out pre'); var sp=document.createElement('span'); if(cls) sp.className=cls; sp.textContent=s+'\n'; pre.appendChild(sp); pre.scrollTop=pre.scrollHeight; }
+  window.addEventListener('message', function(e){
+    var m=e.data; if(!m || m.__jsbox===undefined) return; var box=boxes[m.__jsbox]; if(!box) return;
+    if(m.type==='done'){ if(!box.querySelector('.ide-out pre').textContent) out(box,'(console 출력 없음)','sys'); return; }
+    out(box, m.s, m.type==='error'?'err':(m.type==='warn'?'warn':''));
+  });
+  function run(box){
+    var code=box._ed.get(); var htmlTa=box.querySelector('.html-src textarea'); var html=htmlTa?htmlTa.value:'';
+    box.querySelector('.ide-out pre').innerHTML='';
+    var safe=code.replace(/<\/script/gi,'<\\/script');
+    var doc='<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:Pretendard,"Malgun Gothic",sans-serif;margin:10px;font-size:14px;color:#222} .dark-mode{background:#1e1e2e;color:#eee} .red{color:crimson}</style>'+BRIDGE.replace('__ID__', box._id)+'</head><body>'+html+'<scr'+'ipt>document.currentScript.remove();'+safe+'\n</scr'+'ipt><scr'+'ipt>document.currentScript.remove();__done()</scr'+'ipt></body></html>';
+    var old=box.querySelector('iframe.js-view'); var f=document.createElement('iframe'); f.className='js-view'; f.setAttribute('sandbox','allow-scripts allow-modals allow-forms'); f.srcdoc=doc;
+    if(!box._hasView){ f.style.display='none'; box.appendChild(f); if(old) old.remove(); }
+    else { old.replaceWith(f); }
+  }
+  function init(useCM){
+    document.querySelectorAll('.jsbox').forEach(function(box, i){
+      box._id=i; boxes[i]=box; box._hasView=!!box.querySelector('.view-wrap');
+      var ta=box.querySelector('.ide-code textarea'); var orig=ta.value; var ed;
+      if(useCM && window.CodeMirror){
+        var cm=CodeMirror.fromTextArea(ta,{mode:'javascript',lineNumbers:true,indentUnit:2,tabSize:2,matchBrackets:true,viewportMargin:Infinity,extraKeys:{'Ctrl-Enter':function(){run(box)},'Cmd-Enter':function(){run(box)},'Tab':function(c){c.replaceSelection('  ','end')}}});
+        ed={get:function(){return cm.getValue()},set:function(v){cm.setValue(v)}};
+      } else {
+        ta.rows=Math.min(26,Math.max(5,orig.split('\n').length+1));
+        ta.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run(box);} if(e.key==='Tab'){e.preventDefault();var s=ta.selectionStart;ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(ta.selectionEnd);ta.selectionStart=ta.selectionEnd=s+2;} });
+        ed={get:function(){return ta.value},set:function(v){ta.value=v}};
+      }
+      box._ed=ed; var h=box.querySelector('.html-src textarea'); var origH=h?h.value:'';
+      box.querySelector('.run').onclick=function(){run(box)};
+      box.querySelector('.reset').onclick=function(){ ed.set(orig); if(h) h.value=origH; box.querySelector('.ide-out pre').innerHTML=''; };
+      if(box._hasView) run(box);
+    });
+  }
+  window.__runJS = function(i){ run(boxes[i]); };
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js').then(function(){ return Promise.all([loadJS(CM+'mode/javascript/javascript.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js')]); })
+    .then(function(){ init(true); }, function(){ init(false); });
+})();
+</script>
+</body>
+</html>

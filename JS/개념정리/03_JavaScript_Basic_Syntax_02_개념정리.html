@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Basic Syntax 02 개념정리</title>
+<style>
+
+
+
+:root{
+  --navy:        oklch(28% 0.075 258);
+  --navy-light:  oklch(35% 0.085 258);
+  --navy-deep:   oklch(23% 0.070 258);
+
+  --blue:        oklch(55% 0.18  258);
+  --indigo:      oklch(50% 0.20  275);
+  --purple:      oklch(52% 0.19  300);
+  --teal:        oklch(52% 0.11  195);
+  --orange:      oklch(58% 0.17  45);
+  --pink:        oklch(53% 0.18  350);
+  --green:       oklch(53% 0.14  145);
+  --amber:       oklch(50% 0.13  65);
+  --red:         oklch(53% 0.18  25);
+  --slate:       oklch(48% 0.020 258);
+
+  --bg:          oklch(96.5% 0.007 258);
+  --card:        oklch(99%   0.002 258);
+  --ink:         oklch(24%   0.014 258);
+  --sub:         oklch(46%   0.018 258);
+  --line:        oklch(90%   0.010 258);
+  --focus:       oklch(58%   0.18  258);
+
+  --font-body: "Pretendard","Apple SD Gothic Neo","Malgun Gothic",-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono: "SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+
+  --space-2xs:.25rem; --space-xs:.5rem; --space-sm:.75rem; --space-md:1rem;
+  --space-lg:1.5rem; --space-xl:2rem; --space-2xl:3rem;
+}
+
+*{box-sizing:border-box;}
+html{overflow-x:clip;}
+body{
+  margin:0; overflow-x:clip;
+  font-family:var(--font-body);
+  background:var(--bg); color:var(--ink); line-height:1.6;
+}
+a{color:inherit;}
+::selection{background:oklch(85% 0.05 258); color:var(--navy);}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px;}
+
+/* ===== HERO ===== */
+.hero{
+  background:linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 55%, oklch(38% 0.09 250) 100%);
+  color:oklch(97% 0.006 258);
+  padding:var(--space-2xl) var(--space-lg) var(--space-xl);
+  position:relative; overflow:hidden;
+}
+.hero::before{
+  content:""; position:absolute; right:-60px; top:-60px;
+  width:280px; height:280px; border-radius:50%;
+  background:radial-gradient(circle, oklch(100% 0 0 / .10), transparent 70%);
+}
+.hero-inner{max-width:1120px; margin:0 auto; position:relative;}
+.hero-eyebrow{
+  display:inline-block; font-size:.78rem; letter-spacing:.08em; font-weight:700;
+  background:oklch(100% 0 0 / .14); padding:5px 12px; border-radius:999px; margin-bottom:14px;
+}
+.hero h1{font-size:clamp(1.6rem, 1.1rem + 2vw, 2.1rem); margin:0 0 8px; font-weight:800; letter-spacing:-0.01em; overflow-wrap:anywhere; min-width:0;}
+.hero .sub{font-size:.97rem; color:oklch(88% 0.02 258); margin:0 0 20px; max-width:70ch;}
+.hero-meta{display:flex; flex-wrap:wrap; gap:10px; font-size:.82rem;}
+.hero-meta span{
+  background:oklch(100% 0 0 / .10); border:1px solid oklch(100% 0 0 / .18);
+  padding:6px 12px; border-radius:8px;
+}
+.hero-note{
+  margin-top:18px; font-size:.78rem; color:oklch(84% 0.02 258);
+  background:oklch(0% 0 0 / .18); border-radius:8px; padding:10px 14px;
+  border-left:3px solid oklch(78% 0.13 80);
+}
+
+/* ===== PILL NAV ===== */
+.toc-wrap{
+  position:sticky; top:0; z-index:50;
+  background:oklch(99% 0.002 258 / .96); backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line); box-shadow:0 2px 10px oklch(20% 0.03 258 / .06);
+}
+.toc{max-width:1120px; margin:0 auto; display:flex; gap:6px; flex-wrap:wrap; padding:10px 20px;}
+.toc a{
+  font-size:.77rem; font-weight:700; padding:7px 11px; border-radius:8px;
+  text-decoration:none; color:var(--slate); background:oklch(94% 0.008 258);
+  white-space:nowrap; transition:.15s;
+}
+.toc a:hover, .toc a:focus-visible{background:var(--navy); color:#fff;}
+
+/* ===== LAYOUT ===== */
+main{max-width:1120px; margin:0 auto; padding:var(--space-xl) var(--space-lg) 80px;}
+.section{margin-bottom:var(--space-2xl); scroll-margin-top:64px;}
+.section-head{
+  display:flex; align-items:center; gap:12px; margin-bottom:18px; padding-bottom:12px;
+  border-bottom:3px solid var(--accent, var(--blue));
+}
+.section-num{
+  width:38px; height:38px; border-radius:10px; background:var(--accent, var(--blue)); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem; flex-shrink:0;
+  font-family:var(--font-mono);
+}
+.section-head h2{margin:0; font-size:1.3rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere; min-width:0;}
+.section-head .desc{font-size:.78rem; color:var(--sub); margin-top:2px;}
+
+.card-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px;}
+.card{
+  background:var(--card); border-radius:12px; padding:16px 18px;
+  border:1px solid var(--line); border-left:4px solid var(--accent, var(--blue));
+  box-shadow:0 1px 3px oklch(20% 0.03 258 / .05); min-width:0;
+}
+.card.full{grid-column:1 / -1;}
+.card h3{margin:0 0 8px; font-size:.94rem; font-weight:800; color:var(--navy); overflow-wrap:anywhere;}
+.card h3 .tag{
+  display:inline-block; font-size:.66rem; font-weight:700; background:var(--accent,var(--blue)); color:#fff;
+  padding:2px 7px; border-radius:5px; margin-right:6px; vertical-align:middle;
+}
+.card p{margin:0 0 8px; font-size:.85rem; color:#333; max-width:none;}
+.card ul,.card ol{margin:6px 0 0; padding-left:18px; font-size:.85rem;}
+.card li{margin-bottom:5px; color:#333;}
+.card li::marker{color:var(--accent,var(--blue));}
+.card .src{font-size:.7rem; color:oklch(64% 0.02 258); margin-top:10px; border-top:1px dashed var(--line); padding-top:6px;}
+
+.formula{
+  background:var(--navy-deep); color:oklch(90% 0.02 258);
+  font-family:var(--font-mono); font-size:.83rem; padding:12px 14px;
+  border-radius:8px; overflow-x:auto; margin:10px 0; line-height:1.65;
+}
+.formula .katex, .formula .katex *{color:oklch(92% 0.02 255) !important;}
+.formula .cm{color:oklch(66% 0.03 258);}
+.formula .kw{color:oklch(78% 0.09 230);}
+.formula .num{color:oklch(78% 0.12 70);}
+
+.note{
+  background:oklch(95% 0.045 85); border:1px solid oklch(80% 0.08 80);
+  border-left:4px solid oklch(60% 0.13 75); border-radius:8px;
+  padding:10px 14px; font-size:.82rem; color:oklch(38% 0.07 65); margin:14px 0;
+}
+.note b{color:inherit;}
+.note.gap{background:oklch(94% 0.006 258); border-color:var(--line); border-left-color:var(--slate); color:oklch(38% 0.02 258);}
+.note.exam{background:oklch(94% 0.045 25); border-color:oklch(80% 0.09 25); border-left-color:var(--red); color:oklch(36% 0.11 20);}
+.note.hard{background:oklch(94% 0.035 300); border-color:oklch(80% 0.07 300); border-left-color:var(--purple); color:oklch(36% 0.10 300);}
+.note.tip{background:oklch(94% 0.035 230); border-color:oklch(80% 0.06 230); border-left-color:var(--blue); color:oklch(34% 0.09 250);}
+
+.compare{width:100%; border-collapse:collapse; font-size:.82rem; margin:8px 0; display:block; overflow-x:auto;}
+.compare thead, .compare tbody, .compare tr{display:table; width:100%; table-layout:fixed;}
+.compare th,.compare td{border:1px solid var(--line); padding:7px 9px; text-align:left; white-space:normal;}
+.compare th{background:oklch(94% 0.012 258); color:var(--navy); font-weight:800;}
+.compare td.k{font-weight:700; color:var(--navy);}
+
+.pillrow{display:flex; flex-wrap:wrap; gap:6px; margin:8px 0;}
+.pill{font-size:.72rem; font-weight:700; padding:4px 10px; border-radius:999px; background:oklch(94% 0.008 258); color:var(--slate); border:1px solid var(--line);}
+
+.subhead{font-size:.82rem; font-weight:800; color:var(--accent,var(--blue)); margin:14px 0 4px;}
+
+.summary-box{
+  background:linear-gradient(135deg, oklch(95% 0.02 250), oklch(95% 0.02 300));
+  border:1px solid oklch(88% 0.02 270); border-radius:14px; padding:20px 22px;
+}
+.summary-box h4{margin:0 0 10px; font-size:.92rem; color:var(--navy);}
+.summary-box ul{margin:0; padding-left:20px;}
+.summary-box li{font-size:.85rem; margin-bottom:8px;}
+.summary-box label{display:flex; align-items:flex-start; gap:8px; font-size:.85rem; margin:6px 0; list-style:none;}
+.summary-box input{margin-top:3px; accent-color:var(--navy); flex-shrink:0;}
+
+.qa{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.83rem;}
+.qa .q{font-weight:700; color:var(--navy);}
+.qa .a{color:var(--green); font-weight:700; margin-top:4px;}
+
+code{font-family:var(--font-mono); background:oklch(94% 0.008 258); padding:1px 5px; border-radius:5px; font-size:.85em; color:var(--indigo);}
+
+footer{text-align:center; padding:30px 20px 50px; color:oklch(60% 0.015 258); font-size:.76rem; max-width:70ch; margin:0 auto;}
+
+#top-btn{
+  position:fixed; right:20px; bottom:20px; width:44px; height:44px; border-radius:50%;
+  background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center;
+  text-decoration:none; font-size:1.1rem; font-weight:700;
+  box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); z-index:60;
+}
+
+@media (max-width:640px){
+  .hero h1{font-size:1.5rem;}
+  .section-head h2{font-size:1.1rem;}
+  .card-grid{grid-template-columns:minmax(0,1fr);}
+  main{padding:var(--space-lg) var(--space-md) 72px;}
+  .hero{padding:var(--space-xl) var(--space-md) var(--space-lg);}
+  .toc{padding:8px 12px;}
+}
+
+
+.card-grid{grid-template-columns:repeat(auto-fit, minmax(420px,1fr));}
+pre.formula{white-space:pre; margin:10px 0;}
+.formula{white-space:pre-wrap;}
+.quiz-q{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+.quiz-q .qq{font-weight:700; color:var(--navy);}
+.quiz-q .qq::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+.quiz-q ol.opt{margin:6px 0; padding-left:24px; color:#333;}
+details.quiz-a summary{cursor:pointer; font-size:.76rem; font-weight:700; color:var(--accent,var(--blue));}
+details.quiz-a .ans{margin-top:6px; color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz-a .ans b.ok{color:var(--green);}
+details.quiz{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin:8px 0; font-size:.84rem;}
+details.quiz summary{cursor:pointer; font-weight:700; color:var(--navy); list-style:none;}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{content:"Q"; display:inline-block; font-size:.66rem; font-weight:800; background:var(--accent,var(--blue)); color:#fff; padding:2px 6px; border-radius:5px; margin-right:8px; vertical-align:middle;}
+details.quiz[open] summary{margin-bottom:6px;}
+details.quiz .ans{color:#333; border-top:1px dashed var(--line); padding-top:8px;}
+details.quiz .ans b.ok{color:var(--green);}
+details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:#333;}
+.flow{display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:10px 0; font-size:.8rem;}
+.flow span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:8px; padding:6px 10px; font-weight:700; color:var(--navy);}
+.flow i{font-style:normal; color:var(--sub);}
+.part-banner{margin:var(--space-2xl) 0 var(--space-lg); padding:14px 18px; border-radius:12px; background:linear-gradient(135deg,var(--navy),var(--navy-light)); color:#fff; font-weight:800; font-size:1.05rem; scroll-margin-top:64px;}
+.part-banner span{display:inline-block; font-size:.7rem; letter-spacing:.06em; background:oklch(100% 0 0 / .16); padding:3px 9px; border-radius:999px; margin-right:10px; vertical-align:middle;}
+.part-sum{border-left-color:var(--navy); padding:8px 18px;} .part-sum h3{margin:0;}
+.slides{font-size:.68rem; color:oklch(64% 0.02 258); font-weight:700; margin-left:6px;}
+
+
+
+/* ===== PYTHON IDE ===== */
+.ide{margin:12px 0; border:1px solid oklch(32% 0.05 258); border-radius:10px; overflow:hidden; background:var(--navy-deep); box-shadow:0 2px 10px oklch(20% 0.05 258 / .18);}
+.ide-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:7px 10px; background:oklch(30% 0.06 258); border-bottom:1px solid oklch(36% 0.05 258);}
+.ide-title{font-size:.74rem; font-weight:800; color:oklch(92% 0.03 258); margin-right:auto; display:flex; align-items:center; gap:6px; min-width:0;}
+.ide-title::before{content:"PY"; font-family:var(--font-mono); font-size:.6rem; background:oklch(70% 0.14 85); color:oklch(25% 0.05 80); padding:2px 5px; border-radius:4px;}
+.ide-bar button{font:inherit; font-size:.72rem; font-weight:700; border:0; border-radius:6px; padding:5px 10px; cursor:pointer; background:oklch(40% 0.05 258); color:#fff;}
+.ide-bar button:hover{filter:brightness(1.15);}
+.ide-bar button.run{background:oklch(58% 0.15 150);}
+.ide-bar button.stop{background:oklch(55% 0.17 25); display:none;}
+.ide.running .ide-bar button.stop{display:inline-block;}
+.ide.running .ide-bar button.run{opacity:.5; pointer-events:none;}
+.ide-bar .hint{font-size:.66rem; color:oklch(75% 0.03 258);}
+.ide-code textarea{width:100%; min-height:120px; border:0; outline:0; resize:vertical; background:var(--navy-deep); color:oklch(92% 0.02 255); font-family:var(--font-mono); font-size:.82rem; line-height:1.6; padding:10px 12px; tab-size:4; white-space:pre;}
+.ide .CodeMirror{height:auto; font-family:var(--font-mono); font-size:.82rem; line-height:1.6; background:var(--navy-deep); color:oklch(92% 0.02 255);}
+.ide .CodeMirror-scroll{max-height:520px; min-height:60px;}
+.ide .CodeMirror-gutters{background:oklch(21% 0.06 258); border-right:1px solid oklch(30% 0.05 258);}
+.ide .CodeMirror-linenumber{color:oklch(55% 0.03 258);}
+.ide .CodeMirror-cursor{border-left:2px solid oklch(85% 0.12 85);}
+.ide .CodeMirror-selected, .ide .CodeMirror-focused .CodeMirror-selected{background:oklch(38% 0.07 258) !important;}
+.ide .CodeMirror .cm-keyword{color:oklch(76% 0.12 300);} .ide .CodeMirror .cm-builtin{color:oklch(78% 0.10 200);}
+.ide .CodeMirror .cm-def{color:oklch(82% 0.12 85);} .ide .CodeMirror .cm-string{color:oklch(78% 0.13 140);}
+.ide .CodeMirror .cm-number{color:oklch(78% 0.12 50);} .ide .CodeMirror .cm-comment{color:oklch(62% 0.04 258); font-style:italic;} .ide .CodeMirror .cm-variable, .ide .CodeMirror .cm-property{color:oklch(92% 0.02 255);} .ide .CodeMirror .cm-meta{color:oklch(78% 0.1 50);}
+.ide .CodeMirror .cm-operator{color:oklch(80% 0.05 258);} .ide .CodeMirror .cm-variable-2{color:oklch(84% 0.06 230);}
+.ide .CodeMirror .CodeMirror-matchingbracket{color:#fff !important; background:oklch(45% 0.08 150);}
+.ide-io{display:grid; grid-template-columns:1fr; border-top:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);}
+.ide-in{display:none; border-right:1px solid oklch(32% 0.05 258);}
+.ide-io.has-in .ide-in{display:block;}
+.ide-lbl{font-size:.64rem; font-weight:800; letter-spacing:.06em; color:oklch(70% 0.04 258); padding:6px 12px 0; display:flex; justify-content:space-between;}
+.ide-in textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(88% 0.05 140); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.ide-out{background:oklch(17% 0.04 258); min-width:0;}
+.ide-out pre{margin:0; padding:6px 12px 10px; min-height:44px; max-height:340px; overflow:auto; font-family:var(--font-mono); font-size:.78rem; color:oklch(92% 0.02 255); white-space:pre-wrap; word-break:break-all;}
+.ide-out pre .err{color:oklch(75% 0.15 25);}
+.ide-out pre .sys{color:oklch(68% 0.04 258); font-style:italic;}
+.ide-out .time{font-weight:600; letter-spacing:0;}
+#py-status{position:fixed; left:16px; bottom:18px; z-index:70; font-size:.74rem; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--navy); color:#fff; box-shadow:0 4px 14px oklch(20% 0.05 258 / .3); display:none;}
+#py-status.show{display:block;}
+#py-status.ok{background:oklch(50% 0.13 150);}
+#py-status.bad{background:var(--red);}
+@media (max-width:640px){ .ide-io.has-in{grid-template-columns:minmax(0,1fr);} .ide-in{border-right:0; border-bottom:1px solid oklch(32% 0.05 258);} }
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+.big-o{display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-family:var(--font-mono); font-size:.8rem; margin:8px 0;}
+.big-o span{background:oklch(94% 0.012 258); border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-weight:700; color:var(--navy);}
+.big-o i{font-style:normal; color:var(--sub);}
+
+
+.ide-title.js::before{content:"JS"; background:oklch(85% 0.15 95); color:oklch(25% 0.05 90);}
+.jsbox .html-src textarea{width:100%; min-height:70px; border:0; outline:0; resize:vertical; background:oklch(19% 0.05 258); color:oklch(85% 0.08 50); font-family:var(--font-mono); font-size:.78rem; padding:6px 12px 10px; white-space:pre;}
+.jsbox .html-src{border-bottom:1px solid oklch(32% 0.05 258);}
+.jsbox .js-view{width:100%; height:170px; border:0; background:#fff; display:block;}
+.jsbox .view-wrap{border-top:1px solid oklch(32% 0.05 258); background:#fff;}
+.jsbox .view-wrap .ide-lbl{background:oklch(95% 0.01 258); color:var(--slate); padding:5px 12px;}
+.jsbox .ide-out pre .warn{color:oklch(82% 0.14 85);}
+
+.trace{font-family:var(--font-mono); font-size:.78rem; background:oklch(95% 0.01 258); border:1px solid var(--line); border-radius:8px; padding:8px 12px; margin:8px 0; white-space:pre; overflow-x:auto; color:var(--ink);}
+</style>
+<style>
+.jsbox .js-view{height:200px;}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">SSAFY 16기 · JS 03 · 11/16 JavaScript Basic Syntax 02</span>
+    <h1>JavaScript Basic Syntax 02 개념정리</h1>
+    <p class="sub">객체(정의·구조·접근) → 메서드와 this → JSON → 추가 객체 문법 7가지 → 배열 기초 → 콜백 함수 → Array Helper Methods(forEach · map · filter · find/some/every · 전개 구문) → 참고(reduce · 배열은 객체 · 클래스)까지, 강의 슬라이드 116장을 한 페이지로 재구성했습니다.</p>
+    <div class="hero-meta"><span>📚 8개 장 + 참고</span><span>⚡ 실행 가능한 JS 실습 상자</span><span>❓ 확인문제 12개 + 출력 예측 8개</span><span>🗂️ 핵심 키워드 표</span></div>
+    <div class="hero-note">⚠️ 슬라이드의 정의·코드·예시·확인문제를 빠짐없이 옮기고 배치만 카드로 바꿨습니다. 교재 PDF가 이미지라 슬라이드를 직접 읽어 옮겼고, 애매한 부분은 MDN·ECMAScript 표준 동작 기준으로 확인했습니다.<br>⚡ <b>JS 표시가 있는 코드 상자는 이 브라우저에서 실제로 실행</b>됩니다(격리된 iframe). 코드를 고치고 <b>▶ 실행</b> 또는 <b>Ctrl+Enter</b>.</div>
+  </div>
+</div>
+
+<div class="toc-wrap">
+  <nav class="toc"><a href="#ch1">1. 객체 기초</a><a href="#ch2">2. 메서드와 this</a><a href="#ch3">3. JSON</a><a href="#ch4">4. 추가 객체 문법</a><a href="#ch5">5. 배열 기초</a><a href="#ch6">6. 콜백 함수</a><a href="#ch7">7. Array Helper</a><a href="#ch8">8. 참고</a><a href="#quiz">확인문제</a><a href="#sum">활동 정리</a></nav>
+</div>
+
+<main>
+<section class="section" id="ch0" style="--accent:var(--slate)">
+  <div class="section-head"><div class="section-num">0</div><div><h2>학습 시작 — 여러 사람의 데이터를 다루려면 무엇부터 생각해야 할까요?</h2><p class="desc">Onboarding · 학습 목표</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">0-1</span>세 가지 질문과 정답</h3>
+<ol><li>먼저 한 사람의 이름, 나이, 직업을 어떻게 묶을 수 있을까요? → <b>객체</b></li><li>여러 사람의 데이터를 목록으로 관리하려면 어떻게 해야 할까요? → <b>배열</b></li><li>목록의 모든 사람에게 똑같은 작업을 시키려면 어떻게 해야 할까요? → <b>배열 헬퍼 메서드</b></li></ol>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">오늘 배울 것을 한 번에</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">// 한 사람의 데이터를 어떻게 묶을까? -&gt; 객체
+const user1 = { name: 'jayden', age: 20 }
+const user2 = { name: 'harry', age: 21 }
+
+// 여러 사람을 어떻게 목록으로 만들까? -&gt; 배열
+const users = [user1, user2]
+
+// 목록 전체에 같은 작업을 하려면? -&gt; 배열 헬퍼 메서드
+const userNames = users.map(user =&gt; user.name)
+console.log(userNames) // ['jayden', 'harry']
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">0-2</span>학습 목표</h3>
+<ul><li>객체의 메서드 안에서 this를 사용해 속성에 접근한다.</li><li>화살표 함수에서 this가 상위 스코프를 참조함을 안다.</li><li>구조 분해 할당을 사용해 객체의 속성을 변수로 할당한다.</li><li>JSON.stringify와 JSON.parse로 객체와 JSON을 변환한다.</li><li>콜백 함수를 이해하고 다른 함수의 인자로 전달할 수 있다.</li><li>forEach와 map 메서드의 차이를 알고 배열을 순회한다.</li><li>전개 구문을 활용하여 원본 배열을 수정하지 않고 합친다.</li></ul>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch1" style="--accent:var(--blue)">
+  <div class="section-head"><div class="section-num">1</div><div><h2>객체 기초 (정의, 구조, 접근)</h2><p class="desc">Object · 객체 구조 · 속성 참조 · in 연산자</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">1-1</span>Object — 키로 구분된 데이터 집합을 저장하는 자료형</h3>
+<p><b>키로 구분된 데이터 집합(data collection)</b>을 저장하는 자료형.</p>
+<div class="subhead">객체 구조</div>
+<ul><li>중괄호(<code>{}</code>)를 이용해 작성</li><li>중괄호 안에는 <code>key: value</code> 쌍으로 구성된 <b>속성(property)</b>을 여러 개 작성 가능</li><li><b>key는 문자열만 허용</b>, 숫자 키도 문자열로 변환됨</li><li><b>value는 모든 자료형 허용</b> (함수도 가능)</li></ul>
+<pre class="formula">const user = {
+  name: 'Alice',
+  'key with space': true,
+  greeting: function () {
+    return 'hello'
+  }
+}</pre>
+<div class="note tip">key에 띄어쓰기 같은 구분자가 있으면 따옴표로 감싸야 합니다 → <code>'key with space'</code></div>
+</div>
+<div class="card">
+<h3><span class="tag">1-2</span>속성 참조 — 조회 · 추가 · 수정 · 삭제</h3>
+<ul><li>점(<code>.</code>) 표기법 또는 대괄호(<code>[]</code>) 표기법으로 객체 속성에 접근</li><li>key 이름에 <b>띄어쓰기 같은 구분자가 있으면 대괄호 접근만 가능</b></li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">속성 참조</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const user = {
+  name: 'Alice',
+  'key with space': true,
+  greeting: function () {
+    return 'hello'
+  }
+}
+
+// 조회
+console.log(user.name) // Alice
+console.log(user['key with space']) // true
+
+// 추가
+user.address = 'korea'
+console.log(user)
+
+// 수정
+user.name = 'Bella'
+console.log(user.name) // Bella
+
+// 삭제
+delete user.name
+console.log(user)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">1-3</span>'in' 연산자 — 속성이 객체에 존재하는지 확인</h3>
+<ul><li>속성이 객체에 존재하는지 여부를 확인</li><li>객체의 키나 배열의 인덱스 존재 여부를 확인하는 연산자</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">in 연산자</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const user = {
+  name: 'Alice',
+  greeting: function () { return 'hello' }
+}
+console.log('greeting' in user) // true
+console.log('country' in user) // false
+
+// 배열은 "인덱스"가 있는지 확인
+const arr = ['a', 'b']
+console.log(1 in arr) // true
+console.log(5 in arr) // false
+
+// 주의: 상속받은 속성도 true
+console.log('toString' in user) // true (프로토타입에서 물려받음)
+console.log(Object.hasOwn(user, 'toString')) // false (자기 속성만)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip"><b>프로토타입</b>: 객체들이 기능을 물려받는 원본, 즉 '부모' 역할을 하는 객체<br><b>프로토타입 체인</b>: 자신에게 없는 속성이나 기능을 부모, 조상 순으로 찾아가는 것</div>
+<div class="note exam"><b>TIP</b> — <code>in</code>은 프로토타입 체인을 따라 <b>상속된 속성까지</b> 확인하므로 의도치 않게 true가 나올 수 있습니다. 자기 속성만 확인하려면 <code>Object.hasOwn(obj, key)</code>(또는 <code>hasOwnProperty</code>)를 사용합니다.</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch2" style="--accent:var(--purple)">
+  <div class="section-head"><div class="section-num">2</div><div><h2>메서드와 this</h2><p class="desc">Method · this keyword · 호출 방법에 따른 this · 중첩 함수 문제와 해결</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">2-1</span>Method — 객체 속성에 정의된 함수</h3>
+<ul><li><code>object.method()</code> 방식으로 호출</li><li>메서드는 객체가 '행동'할 수 있게 함</li><li>메서드도 <b>값이 함수인 속성</b></li></ul>
+<div class="subhead">메서드와 일반 함수의 차이는?</div>
+<ul><li>메서드는 자신이 속한 객체의 다른 속성들에 접근할 수 있음</li><li>➤ 이를 위한 방법이 바로 <b>this</b></li></ul>
+<div class="note tip">'this' 키워드를 사용해 객체 자신의 속성이나 메서드에 접근하여 특정 작업을 수행할 수 있음</div>
+</div>
+<div class="card">
+<h3><span class="tag">2-2</span>'this' keyword — 함수나 메서드를 호출한 객체를 가리키는 키워드</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">Method & this 사용 예시</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const person = {
+  name: 'Alice',
+  greeting: function () {
+    return `Hello my name is ${this.name}`
+  },
+}
+
+console.log(person.greeting()) // Hello my name is Alice
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-3</span>JavaScript에서 this는 함수를 <span style="color:var(--red)">"호출하는 방법"</span>에 따라 가리키는 대상이 달라짐</h3>
+<table class="compare"><tr><th>호출 방법</th><th>대상</th></tr><tr><td class="k">일반 함수에서의 단순 호출</td><td>전역 객체 (브라우저: <code>window</code>)</td></tr><tr><td class="k">객체에서의 메서드 호출</td><td>메서드를 호출한 객체</td></tr></table>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">단순 호출 vs 메서드 호출</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">// 1. 단순 호출 this -&gt; 전역 객체
+const myFunc = function () {
+  return this
+}
+console.log(myFunc() === window) // true (window)
+
+// 2. 메서드 호출 시 this -&gt; 메서드를 호출한 객체
+const myObj = {
+  data: 1,
+  myFunc: function () {
+    return this
+  }
+}
+console.log(myObj.myFunc() === myObj) // true (myObj)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-4</span>중첩된 함수에서의 this 문제점 — "왜 window일까?"</h3>
+<p><code>forEach</code>의 인자로 작성된 함수는 <b>일반적인 함수 호출</b>이기 때문에 this가 전역 객체를 가리킴.</p>
+<p><b>해결책</b>: <span style="color:var(--red)">화살표 함수는 자신만의 this를 가지지 않음</span> → 따라서 외부 함수(myFunc)에서의 this 값을 가져옴.</p>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">중첩 함수의 this — function vs 화살표</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const myObj2 = {
+  numbers: [1, 2, 3],
+  myFunc: function () {
+    this.numbers.forEach(function (number) {
+      console.log(this === window) // true -&gt; window
+    })
+  }
+}
+myObj2.myFunc()
+
+const myObj3 = {
+  numbers: [1, 2, 3],
+  myFunc: function () {
+    this.numbers.forEach((number) =&gt; {
+      console.log(this === myObj3) // true -&gt; myObj3
+    })
+  }
+}
+myObj3.myFunc()
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">2-5</span>JavaScript 'this' 정리</h3>
+<ul><li>JavaScript의 함수는 호출될 때 this를 <b>암묵적으로 전달</b> 받음</li><li>JavaScript에서 this는 함수가 <b>"호출되는 방식"에 따라 결정되는 현재 객체</b>를 나타냄</li><li>같은 함수라도 "누가 호출했는가"에 따라 this가 달라짐</li><li><b>장점</b>: 함수(메서드)를 하나만 만들어 여러 객체가 공유하여 각자 자신의 데이터로 동작하게 할 수 있음</li><li><b>단점</b>: 이런 유연함이 실수로 이어질 수 있다는 것</li></ul>
+<div class="note exam"><b>TIP</b> — this가 헷갈릴 땐 <b>'누가 점(.)을 찍어 호출했는가?'</b>에 집중하세요. <b>점 앞의 객체가 this</b>가 됩니다.</div>
+<div class="note hard"><b>Python과 비교</b> — Python의 <code>self</code>는 "정의된 클래스의 인스턴스"로 고정되지만, JS의 <code>this</code>는 <b>호출 시점</b>에 결정됩니다. 화살표 함수만 예외로, 정의된 위치(상위 스코프)의 this를 그대로 씁니다.</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch3" style="--accent:var(--teal)">
+  <div class="section-head"><div class="section-num">3</div><div><h2>JSON</h2><p class="desc">JavaScript Object Notation · stringify · parse</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">3-1</span>JSON — Key-Value 형태로 이루어진 자료 표기법</h3>
+<ul><li>JavaScript의 Object와 유사한 구조를 가지고 있지만 JSON은 일정한 형식을 가진 <b style="color:var(--red)">"문자열"</b>입니다.</li><li>JavaScript에서 JSON을 사용하기 위해서는 Object 자료형으로 변경해야 합니다.</li><li>특정 언어에 종속되지 않는 데이터 형식으로, API 통신 등에서 널리 사용됩니다.</li></ul>
+<table class="compare"><tr><th>변환</th><th>메서드</th><th>결과 타입</th></tr><tr><td class="k">Object ⇒ JSON</td><td><code>JSON.stringify(obj)</code></td><td>string</td></tr><tr><td class="k">JSON ⇒ Object</td><td><code>JSON.parse(json)</code></td><td>object</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">3-2</span>Object ⇄ JSON 변환</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">JSON.stringify / JSON.parse</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const jsObject = {
+  coffee: 'Americano',
+  iceCream: 'Cookie and cream',
+}
+
+// Object -&gt; JSON
+const objToJson = JSON.stringify(jsObject)
+console.log(objToJson) // {"coffee":"Americano","iceCream":"Cookie and cream"}
+console.log(typeof objToJson) // string
+
+// JSON -&gt; Object
+const jsonToObj = JSON.parse(objToJson)
+console.log(jsonToObj) // { coffee: 'Americano', iceCream: 'Cookie and cream' }
+console.log(typeof jsonToObj) // object
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip">JSON 문자열에서는 key도 <b>큰따옴표</b>로 감싸집니다. 작은따옴표나 따옴표 없는 key는 JSON 형식이 아니라서 <code>JSON.parse</code>가 에러를 냅니다.</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch4" style="--accent:var(--indigo)">
+  <div class="section-head"><div class="section-num">4</div><div><h2>추가 객체 문법</h2><p class="desc">단축 속성 · 단축 메서드 · 계산된 속성 · 구조 분해 할당 · 전개 구문 · Object.keys/values/entries · Optional chaining</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">4-1</span>① 단축 속성 · ② 단축 메서드</h3>
+<p><b>단축 속성</b>: 키 이름과 값으로 쓰이는 변수의 이름이 같은 경우 단축 구문을 사용할 수 있음</p>
+<pre class="formula">const name = 'Alice'          const name = 'Alice'
+const age = 30           ➜    const age = 30
+const user = {                const user = {
+  name: name,                   name,
+  age: age                      age
+}                             }</pre>
+<p><b>단축 메서드</b>: 메서드 선언 시 <code>function</code> 키워드 생략 가능</p>
+<pre class="formula">const myObj1 = {              const myObj1 = {
+  myFunc: function () {  ➜      myFunc() {
+    return 'Hello'                return 'Hello'
+  }                             }
+}                             }</pre>
+</div>
+<div class="card">
+<h3><span class="tag">4-2</span>③ 계산된 속성 (computed property name)</h3>
+<ul><li>키가 대괄호(<code>[]</code>)로 둘러싸여 있는 속성</li><li>➤ 고정된 값이 아닌 <b>변수 값</b>을 사용할 수 있음</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">계산된 속성</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">// 슬라이드: const product = prompt('물건 이름을 입력해주세요')
+const product = '연필'   // 여기 값을 바꿔보세요
+const prefix = 'my'
+const suffix = 'property'
+
+const bag = {
+  [product]: 5,
+  [prefix + suffix]: 'value'
+}
+console.log(bag) // {연필: 5, myproperty: 'value'}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note exam"><b>TIP</b> — 대괄호 안의 표현식이 너무 복잡해지면 어떤 키가 생성될 지 파악하기 어려워 가독성이 떨어질 수 있습니다. 동적으로 키를 만들다 보면 의도치 않게 같은 이름의 키가 생성되어, 기존 값이 덮어써질 위험이 있습니다.</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-3</span>④ 구조 분해 할당 (destructuring assignment)</h3>
+<p>배열 또는 객체를 분해하여 객체 속성을 변수에 쉽게 할당할 수 있는 문법. <b>'함수의 매개변수'</b>로 객체 구조 분해 할당 활용 가능.</p>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">구조 분해 할당</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const userInfo = {
+  firstName: 'Alice',
+  userId: 'alice123',
+  email: 'alice123@gmail.com'
+}
+
+// 기존 방식
+// const firstName = userInfo.firstName
+// const userId = userInfo.userId
+// const email = userInfo.email
+
+// 구조 분해 할당 (아래 세 줄 중 하나만 사용 — 같은 이름을 다시 선언하면 에러)
+// const { firstName } = userInfo
+// const { firstName, userId } = userInfo
+const { firstName, userId, email } = userInfo
+console.log(firstName, userId, email) // Alice alice123 alice123@gmail.com
+
+// 함수의 매개변수에서 구조 분해
+function printInfo({ firstName, email }) {
+  console.log(`이름: ${firstName}, 이메일: ${email}`)
+}
+// 객체를 통째로 넘기면, 매개변수 자리에서 필요한 속성만 꺼내 씀
+printInfo(userInfo) // 이름: Alice, 이메일: alice123@gmail.com
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note hard"><b>더 알아두기</b> — 배열도 구조 분해할 수 있습니다: <code>const [a, b] = [10, 20]</code>. 객체는 <b>키 이름</b>으로, 배열은 <b>순서</b>로 꺼냅니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-4</span>⑤ 객체와 전개 구문 (Spread Syntax, <code>...</code>)</h3>
+<ul><li>"객체 복사" — 객체 내부에서 객체 전개</li><li><b>얕은 복사</b>에 활용 가능</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">객체 전개 구문</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const obj = { a: 2, c: 3, d: 4 }
+// 같은 key(a)가 있으면 뒤에 쓴 값이 앞의 값을 덮어씀
+const newObj = { ...obj, a: 1, e: 5 }
+console.log(newObj) // {a: 1, c: 3, d: 4, e: 5}
+console.log(obj)    // 원본은 그대로 {a: 2, c: 3, d: 4}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip"><b>얕은 복사</b>: 겉(최상위 속성)만 복사하고, 속(중첩 객체)은 공유하는 복사</div>
+</div>
+<div class="card">
+<h3><span class="tag">4-5</span>⑥ 유용한 객체 메서드</h3>
+<ul><li><code>Object.keys()</code> — Object의 Key 값들을 배열로 반환</li><li><code>Object.values()</code> — Object의 Value 값들을 배열로 반환</li><li><code>Object.entries()</code> — Object의 key와 Value 값들을 한 쌍으로 묶은 배열로 반환</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">Object.keys / values / entries</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const profile = {
+  name: 'Alice',
+  age: 30
+}
+console.log(Object.keys(profile))    // ['name', 'age']
+console.log(Object.values(profile))  // ['Alice', 30]
+console.log(Object.entries(profile)) // [['name', 'Alice'], ['age', 30]]
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">4-6</span>⑦ Optional chaining (<code>?.</code>)</h3>
+<ul><li>속성이 없는 중첩 객체에 접근하려 할 때 <b>에러 발생 없이 안전하게 접근</b>하는 방법</li><li>만약 참조 대상이 <code>null</code> 또는 <code>undefined</code>라면 에러가 발생하는 것 대신 평가를 멈추고 <code>undefined</code>를 반환</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">Optional chaining</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const userData = {
+  name: 'Alice',
+  greeting: function () {
+    return 'hello'
+  }
+}
+
+// console.log(userData.address.street) // Uncaught TypeError
+console.log(userData.address?.street) // undefined
+
+// console.log(userData.nonMethod()) // Uncaught TypeError
+console.log(userData.nonMethod?.()) // undefined
+
+// Optional chaining이 없다면 &amp;&amp; 연산자를 사용해야 함
+console.log(userData.address &amp;&amp; userData.address.street) // undefined
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="subhead">장점</div>
+<ul><li>참조가 누락될 가능성이 있는 경우 연결된 속성으로 접근할 때 더 짧고 간단한 표현식을 작성할 수 있음</li><li>어떤 속성이 필요한지에 대한 보증이 확실하지 않는 경우에 객체의 내용을 보다 편리하게 탐색할 수 있음</li></ul>
+<div class="subhead">주의사항</div>
+<ol><li><b>존재하지 않아도 괜찮은 대상에만 사용</b>해야 함 (남용 X) — 왼쪽 평가대상이 없어도 괜찮은 경우에만 선택적으로 사용. 중첩 객체를 에러 없이 접근하는 것이 사용 목적이기 때문
+<pre class="formula">// 이전 예시 코드에서 userData 객체는 논리상 반드시 있어야 하지만 address는 필수 값이 아님
+// userData에 값을 할당하지 않은 문제가 있을 때 바로 알아낼 수 있어야 하기 때문
+
+// Bad
+userData?.address?.street
+// Good
+userData.address?.street</pre></li>
+<li><b>Optional chaining 앞의 변수는 반드시 선언되어 있어야 함</b>
+<pre class="formula">console.log(myObj?.address) // Uncaught ReferenceError: myObj is not defined</pre></li></ol>
+<div class="subhead">정리</div>
+<table class="compare"><tr><th>문법</th><th>동작</th></tr><tr><td class="k">obj?.prop</td><td>obj가 존재하면 obj.prop을 반환하고, 그렇지 않으면 undefined를 반환</td></tr><tr><td class="k">obj?.[prop]</td><td>obj가 존재하면 obj[prop]을 반환하고, 그렇지 않으면 undefined를 반환</td></tr><tr><td class="k">obj?.method()</td><td>obj가 존재하면 obj.method()를 호출하고, 그렇지 않으면 undefined를 반환</td></tr></table>
+<div class="note exam"><b>TIP</b> — <code>null</code>과 <code>undefined</code>일 때만 동작합니다(0, '' 같은 falsy 값에는 멈추지 않음). 체인 중간이 null인 경우, 그 뒤의 코드는 실행되지 않습니다. 이를 <b>'단락 평가'</b>라고 부릅니다.</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch5" style="--accent:var(--orange)">
+  <div class="section-head"><div class="section-num">5</div><div><h2>배열 기초</h2><p class="desc">Array · 배열 구조 · push · pop · unshift · shift</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">5-1</span>배열 (Array) — 순서가 있는 데이터 집합을 저장하는 자료구조</h3>
+<ul><li>객체는 키(key)로 데이터를 관리하지만, 순서가 중요하지 않습니다.</li><li>'첫 번째', '두 번째'처럼 순서가 중요한 데이터 묶음이 필요할 때 사용하는 것이 바로 "순서가 있는 컬렉션, 배열(Array)"입니다.</li><li>하지만 배열의 인덱스는 숫자로만 이루어져 있어, "키 자체가 데이터의 의미를 설명해주지 못하고", 특정 값을 찾기 위해서는 배열의 모든 요소를 "처음부터 순서대로 확인"해야 하는 단점이 있습니다.</li></ul>
+<div class="subhead">배열 구조</div>
+<ul><li>대괄호(<code>[]</code>)를 이용해 작성</li><li>요소의 자료형은 제약 없음</li><li><code>length</code> 속성을 사용해 배열에 담긴 요소 개수 확인 가능</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">배열 구조</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const names = ['Alice', 'Bella', 'Cathy']
+
+console.log(names[0]) // Alice
+console.log(names[1]) // Bella
+console.log(names[2]) // Cathy
+
+console.log(names.length) // 3
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">5-2</span>배열 기본 조작 메서드 — ※ 모두 원본 배열을 직접 수정</h3>
+<table class="compare"><tr><th>메서드</th><th>동작</th><th>반환 값</th></tr><tr><td class="k">push()</td><td>배열 <b>끝</b>에 요소를 추가</td><td>추가된 후의 새로운 배열의 길이</td></tr><tr><td class="k">pop()</td><td>배열 <b>끝</b> 요소를 제거</td><td>제거한 요소</td></tr><tr><td class="k">unshift()</td><td>배열 <b>앞</b>에 요소를 추가</td><td>추가된 후의 새로운 배열의 길이</td></tr><tr><td class="k">shift()</td><td>배열 <b>앞</b> 요소를 제거</td><td>제거한 요소</td></tr></table>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">push / pop / unshift / shift</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const names = ['Alice', 'Bella', 'Cathy']
+
+console.log(names.push('Dan')) // 4 (새 길이)
+console.log(names) // ['Alice', 'Bella', 'Cathy', 'Dan']
+
+console.log(names.pop()) // Dan
+console.log(names) // ['Alice', 'Bella', 'Cathy']
+
+console.log(names.unshift('Eric')) // 4 (새 길이)
+console.log(names) // ['Eric', 'Alice', 'Bella', 'Cathy']
+
+console.log(names.shift()) // Eric
+console.log(names) // ['Alice', 'Bella', 'Cathy']
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note exam"><code>unshift</code>/<code>shift</code>는 배열의 모든 요소를 뒤로 한 칸씩 밀거나 당겨와야 하므로, 배열이 클수록 성능이 저하 (<b>가급적 사용 X</b>)</div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch6" style="--accent:var(--pink)">
+  <div class="section-head"><div class="section-num">6</div><div><h2>함수의 확장: 콜백 함수</h2><p class="desc">Callback function · 기본 동작 원리 · 기능의 유연성 · 시점 제어</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">6-1</span>콜백 함수 (Callback function) — 함수의 인자로 전달되어, 특정 시점에 호출되는 함수</h3>
+<ul><li>어떤 작업이 완료된 후, "나중에 호출(Call back)해줘!"라고 넘겨주는 함수</li><li>특정 작업(1초 기다리기, …)이 완료된 후, 시스템에 의해 나중에 호출(call back)되는 함수</li><li>➤ <b>"함수의 실행 권한"을 다른 함수에게 위임하는 것</b></li></ul>
+<div class="subhead">콜백 함수 쉽게 이해하기 — 비유: 진동벨</div>
+<ol><li>카페에서 커피를 주문 (요청)</li><li>직원이 진동벨을 줌 (콜백 함수 전달) — "커피 다 되면(이벤트 발생 시), 이 벨을 울려주세요(함수 실행)."</li><li>우리는 자리에 앉아 다른 일을 진행</li><li>커피가 완성되면 직원이 진동벨을 울림 (콜백 함수 실행)</li></ol>
+<div class="note tip"><b>TIP</b> — 우리가 계속 카운터 앞에 서서 기다릴 필요가 없는 것처럼, 콜백 함수는 <b>"특정 시점"</b>에 실행되어야 할 일을 미리 등록해두는 개념입니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-2</span>기본 동작 원리 — 콜백 함수는 배열이 아닌 일반적인 함수에서도 사용됨</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">콜백 기본 동작</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">// 1. 인자로 받을 콜백 함수 정의
+const greeting = function (name) {
+  console.log(`Hello, ${name}!`)
+}
+
+// 2. 함수를 인자로 받는 메인 함수
+const processUserInput = function (callback) {
+  const name = 'Anna'
+  // 넘겨받은 함수(callback)를 여기서 실행
+  callback(name)
+}
+
+// 3. 실행 (함수를 데이터처럼 전달)
+processUserInput(greeting) // 출력: Hello, Anna!
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note exam">함수를 넘길 때는 <code>greeting</code>처럼 <b>괄호 없이</b> 넘깁니다. <code>greeting()</code>로 쓰면 지금 바로 실행되고 그 반환값(undefined)이 넘어갑니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-3</span>왜 사용할까? (1) 기능의 유연성</h3>
+<ul><li>상황: 숫자를 계산하는 함수를 만들기</li><li>문제: 더하기, 빼기, 곱하기… 모든 경우의 수를 함수 하나에 다 넣으면 복잡해짐</li><li>해결: "계산하는 로직(콜백)"만 쏙 바꿔 끼우면 해결</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">뼈대 함수 + 부품 함수</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">// 뼈대 함수 (외부 함수)
+const calculator = function (a, b, action) {
+  return action(a, b)
+}
+
+// 부품 함수들 (콜백 함수)
+const add = (a, b) =&gt; a + b
+const sub = (a, b) =&gt; a - b
+
+console.log(calculator(10, 20, add)) // 30 (더하기 기능으로 동작)
+console.log(calculator(10, 20, sub)) // -10 (빼기 기능으로 동작)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip">※ 뼈대(calculator)는 그대로 두고, 부품(add, sub)만 교체해서 전혀 다른 동작을 수행할 수 있음</div>
+</div>
+<div class="card">
+<h3><span class="tag">6-4</span>왜 사용할까? (2) 시점 제어 (맛보기)</h3>
+<ul><li>비동기 처리 (Asynchronous) — 어떤 작업이 시간이 걸릴 때, 그 작업이 끝난 직후에 실행하고 싶을 때 사용</li><li>대표적인 예시: <code>setTimeout</code> (타이머)</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">setTimeout (데모는 1초로 줄임)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">console.log('1. 주문 하기')
+
+// "3초 뒤에 이 함수를 실행해줘"라고 콜백을 전달
+setTimeout(function () {
+  console.log('2. 커피 나왔습니다! (콜백 실행)')
+}, 1000) // 슬라이드는 3000(3초)
+
+console.log('3. 자리에 앉기')
+// 실행 결과: 1 → 3 → 2
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip"><b>TIP</b> — 비동기 처리는 JavaScript의 핵심 개념으로, 추후 비동기 Javascript 수업에서 아주 자세히 다룰 예정입니다. 지금은 <b>"시간차를 두고 실행할 때도 콜백을 쓰는구나"</b> 정도만 기억하면 됩니다.</div>
+</div>
+<div class="card full">
+<h3><span class="tag">6-5</span>배열과 콜백 함수</h3>
+<p>지금까지 배운 콜백 함수의 특징: ① 함수를 인자로 넘긴다. ② 받은 쪽에서 그 함수를 실행한다. ③ <b style="color:var(--red)">반복적인 작업</b>을 시킬 때 아주 유용하다.</p>
+<table class="compare"><tr><th>주요 Array Helper Methods</th><th>설명</th></tr><tr><td class="k">forEach</td><td>배열 내의 모든 요소 각각에 대해 함수(콜백함수)를 호출 · <b>반환 값 없음</b></td></tr><tr><td class="k">map</td><td>배열 내의 모든 요소 각각에 대해 함수(콜백함수)를 호출 · <b>함수 호출 결과를 모아 새로운 배열을 반환</b></td></tr></table>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch7" style="--accent:var(--green)">
+  <div class="section-head"><div class="section-num">7</div><div><h2>배열의 진화: Array helper method</h2><p class="desc">forEach · map · filter · find/some/every · 전개 구문 · 배열 순회 종합</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3><span class="tag">7-0</span>배열의 진화와 Array Helper Methods</h3>
+<ul><li>과거에는 <code>for (let i = 0; ...)</code> 처럼 "어떻게(How) 순회할지"를 일일이 코딩</li><li>이제는 Array Helper Method를 통해 <b style="color:var(--red)">"무엇을(What) 할지"</b>만 함수(콜백)로 전달</li><li><b>Array Helper Methods</b> — 배열을 순회하며 특정 로직을 수행하는 <b>고차 함수</b> 모음. 메서드의 인자로 <b style="color:var(--red)">함수(콜백 함수)</b>를 받습니다.</li></ul>
+<div class="pillrow"><span class="pill">1. 순회: forEach</span><span class="pill">2. 변형: map</span><span class="pill">3. 선별: filter</span><span class="pill">4. (심화 참고) 집계: reduce</span></div>
+</div>
+<div class="card">
+<h3><span class="tag">7-1</span>순회: forEach — "배열의 모든 요소를 하나씩 훑으면서, 내가 전달한 함수를 실행해줘!"</h3>
+<ul><li>인자로 넘겨준 <b style="color:var(--red)">콜백 함수</b>를 배열의 요소 개수만큼 반복해서 호출</li><li>특징: 가장 기본적인 순회 메서드 / 별도의 반환 값(return)이 없음 (단순 실행용)</li></ul>
+<pre class="formula">// forEach 구문
+arr.forEach(callback(item[, index[, array]]))
+
+// 기본 구문
+array.forEach(function (item, index, array) {
+  // do something
+})</pre>
+<ol><li><b>item</b> (필수): 현재 처리 중인 배열의 요소</li><li><b>index</b> (선택): 현재 처리 중인 요소의 인덱스(0, 1, 2…)</li><li><b>array</b> (선택): 메서드를 호출한 배열 본체</li></ol>
+<div class="note tip"><b>TIP</b> — 보통은 item 하나만 사용하는 경우가 가장 많습니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">7-2</span>forEach 사용하기</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">forEach (function / Arrow / 매개변수 활용)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const names = ['Alice', 'Bella', 'Cathy']
+
+// [기존] 일반 함수 (function 키워드)
+names.forEach(function (name) {
+  console.log(name)
+})
+
+// [권장] 화살표 함수 (Arrow Function)
+names.forEach((name) =&gt; {
+  console.log(name)
+})
+
+// 매개변수 활용
+names.forEach((name, index, array) =&gt; {
+  console.log(`${name} / ${index} / ${array}`)
+})
+// Alice / 0 / Alice,Bella,Cathy ...
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip"><b>TIP</b> — 콜백함수는 단순한 로직이 많으므로 화살표 함수를 사용하면 코드가 훨씬 간결해집니다. 타이핑이 줄어들 뿐만 아니라, this 키워드 동작 방식에서도 화살표 함수가 콜백으로 쓰기에 더 안전하고 직관적인 경우가 많습니다.</div>
+<div class="subhead">주의사항</div>
+<ol><li><b>반환 값이 없음 (undefined)</b> — forEach는 결과를 모아서 돌려주지 않음. 변수에 할당해도 undefined만 저장됨. 무언가 새로운 배열을 만들고 싶다면? → map을 사용해야 함</li><li><b>멈출 수 없음 (No break)</b> — forEach는 배열의 끝까지 무조건 진행. break나 continue를 사용할 수 없음. 중간에 멈춰야 한다면? → <code>for...of</code> 반복문을 사용하기</li></ol>
+</div>
+<div class="card">
+<h3><span class="tag">7-3</span>변형: map — "배열의 모든 요소를 하나씩 꺼내서, 변형(가공)시킨 뒤 새로운 배열로 만들어줘!"</h3>
+<ul><li>원본 배열의 요소를 <b style="color:var(--red)">1:1로 매핑(Mapping)</b>하여 새로운 배열을 반환</li><li>Input: 원재료 (원본 배열) → Process: 가공 기계 (콜백 함수) → Output: 완제품 (새로운 배열)</li><li>특징: 원본 배열의 개수와 결과 배열의 개수는 항상 같음</li><li>forEach와 구조는 완전히 동일 (인자: item, index, array) · 단, <b style="color:var(--red)">반드시 return이 필요</b></li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">forEach vs map 반환값</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const arr = [1, 2, 3]
+// forEach: 반환값이 없음
+const result1 = arr.forEach((item) =&gt; {
+  return item * 2 // (의미 없음)
+})
+console.log(result1) // undefined
+
+// map: 새로운 배열을 반환
+const result2 = arr.map((item) =&gt; {
+  return item * 2 // (필수) 이 값이 새로운 배열에 담김
+})
+console.log(result2) // [2, 4, 6]
+console.log(arr)     // [1, 2, 3] 원본 그대로
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">7-4</span>map — 왜 사용할까?</h3>
+<p><b>(1) 간결함과 직관성</b> — 이름표만 모으고 싶을 때, <code>for...of</code>는 빈 배열을 만들고 push하는 과정이 필요하지만 <code>map</code>은 "이름만 뽑아줘"라는 목적이 코드로 바로 드러남.</p>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">for...of(명령형) vs map(선언형)</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const persons = [
+  { name: 'Alice', age: 20 },
+  { name: 'Bella', age: 21 }
+]
+
+// for...of (명령형: 빈 배열 생성 -&gt; 반복 -&gt; push)
+let result1 = []
+for (const person of persons) {
+  result1.push(person.name)
+}
+
+// map (선언형: 결과물 = 변형 로직)
+const result2 = persons.map((person) =&gt; {
+  return person.name
+})
+console.log(result1, result2)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<p><b>(2) 불변성</b> — map은 <b style="color:var(--red)">원본 배열을 절대 변경하지 않고,</b> 항상 새로운 배열을 반환. 데이터가 변경되었음을 감지할 때, "원본이 바뀌었나?"보다 "새로운 배열로 갈아끼워졌나?"를 확인하는 것이 훨씬 빠르고 효율적 → push로 원본을 수정하는 것보다, map으로 새로운 배열을 만드는 패턴을 훨씬 선호.</p>
+</div>
+<div class="card">
+<h3><span class="tag">7-5</span>map 실전 활용 — 화살표 함수 · 체이닝 · 커스텀 콜백</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">map 실전 활용</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">// 실전 활용 1: 화살표 함수 (가장 많이 쓰이는 패턴)
+const names = ['Alice', 'Bella', 'Cathy']
+const lengths = names.map(name =&gt; name.length)
+console.log(lengths) // [5, 5, 5]
+
+// 실전 활용 2: 커스텀 콜백 함수 (다른 곳에서도 재사용 가능)
+const numbers = [1, 2, 3]
+const myCallbackFunc = function (number) {
+  return number * 2
+}
+const doubleNumber = numbers.map(myCallbackFunc)
+console.log(doubleNumber) // [2, 4, 6]
+
+// (참고) 메서드 체이닝
+console.log(numbers.map(n =&gt; n * 10).filter(n =&gt; n &gt; 10)) // [20, 30]
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip"><b>체이닝</b>: 함수의 반환 값에, 꼬리를 물고 다음 함수를 바로 호출하는 기술. map은 배열을 반환하므로, 뒤이어 filter, map 등을 계속 연결할 수 있습니다 — <code>arr.map(...).filter(...).forEach(...)</code></div>
+</div>
+<div class="card">
+<h3><span class="tag">7-6</span>Python map과의 비교</h3>
+<p>Python의 map과 개념적으로 동일하나 문법적 차이가 존재.</p>
+<table class="compare"><tr><th>Python</th><th>JavaScript</th></tr><tr><td><code>map(함수, 리스트)</code> → <code>list()</code>로 형변환 필요</td><td><code>배열.map(함수)</code> → 즉시 배열 반환</td></tr></table>
+<pre class="formula">## Python
+numbers = [1, 2, 3]
+def square(num):
+    return num ** 2
+new_numbers = list(map(square, numbers))
+
+// JavaScript
+const numbers = [1, 2, 3]
+const callBackFunction = function (number) {
+  return number ** 2
+}
+const newNumbers = numbers.map(callBackFunction)</pre>
+</div>
+<div class="card">
+<h3><span class="tag">7-7</span>선별: filter — "배열에서 내가 원하는 조건에 맞는 요소만 걸러내줘!"</h3>
+<ul><li>콜백 함수의 반환 값이 <code>true</code>인 요소만 모아서 새로운 배열을 만듦</li><li>Input: 원본 배열 (전체 데이터) → Condition: 판별 기준 (콜백 함수) → Output: 조건을 통과한 요소들로 구성된 새로운 배열</li><li>forEach, map과 구조는 완전히 동일 (인자: item, index, array)</li><li>return 값이 참(truthy)이면 유지(통과), 거짓(falsy)이면 제외(탈락)</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">filter — 짝수만 걸러내기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const numbers = [1, 2, 3, 4, 5]
+
+const evens = numbers.filter((num) =&gt; {
+  return num % 2 === 0 // 조건이 true면 남기고, false면 버림
+})
+console.log(evens) // [2, 4]
+
+// 하나도 통과 못하면? null이 아니라 빈 배열
+console.log(numbers.filter(num =&gt; num &gt; 10)) // []
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note exam"><b>TIP</b> — filter에서 만약 조건을 만족하는 요소가 하나도 없다면? <code>null</code>이 아니라 <b>빈 배열 []</b>을 반환합니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">7-8</span>map vs filter / 실전 활용 (삭제 기능)</h3>
+<table class="compare"><tr><th>구분</th><th>map (변형)</th><th>filter (선별)</th></tr><tr><td class="k">목적</td><td>요소를 가공하여 형태를 바꿈</td><td>조건에 맞는 요소만 골라냄</td></tr><tr><td class="k">길이</td><td>원본과 항상 같음 (1:1)</td><td>원본보다 같거나 작음 (조건에 따라 다름)</td></tr><tr><td class="k">비유</td><td>빵 굽기 (밀가루 → 빵)</td><td>과일 고르기 (썩은 과일 버리기)</td></tr></table>
+<p>장바구니에서 특정 상품을 제거한다면? 데이터를 파괴하는 것이 아니라, <b style="color:var(--red)">"삭제하려는 ID를 제외한 나머지"를 남기는 방식(filter)</b>을 사용.</p>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">filter 실전 — 카테고리 / 삭제</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const products = [
+  { id: 1, name: 'Cucumber', type: 'vegetable' },
+  { id: 2, name: 'Banana', type: 'fruit' },
+  { id: 3, name: 'Carrot', type: 'vegetable' },
+  { id: 4, name: 'Apple', type: 'fruit' },
+]
+
+// 1. 'fruit'만 필터링 (카테고리 기능)
+const fruits = products.filter(product =&gt; product.type === 'fruit')
+console.log(fruits.map(p =&gt; p.name)) // Banana, Apple
+
+// 2. id가 3인 상품 '삭제' (사실은 3번 빼고 남기기)
+const deletedList = products.filter(product =&gt; product.id !== 3)
+console.log(deletedList.map(p =&gt; p.name)) // Cucumber, Banana, Apple
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">7-9</span>기타 유용한 Array Helper Methods (MDN 참고)</h3>
+<table class="compare"><tr><th>메서드</th><th>역할</th></tr><tr><td class="k">find</td><td>콜백 함수의 반환 값이 참이면 해당 요소를 반환</td></tr><tr><td class="k">some</td><td>배열의 요소 중 적어도 하나라도 콜백 함수를 통과하면 true를 반환하며 즉시 배열 순회 중지. 반면에 모두 통과하지 못하면 false를 반환</td></tr><tr><td class="k">every</td><td>배열의 모든 요소가 콜백 함수를 통과하면 true를 반환. 반면에 하나라도 통과하지 못하면 즉시 false를 반환하고 배열 순회 중지</td></tr></table>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">find / some / every</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const nums = [3, 8, 12, 5]
+console.log(nums.find(n =&gt; n &gt; 5))   // 8 (첫 번째 하나만)
+console.log(nums.find(n =&gt; n &gt; 100)) // undefined (없으면)
+console.log(nums.some(n =&gt; n &gt; 10))  // true (12가 있음)
+console.log(nums.every(n =&gt; n &gt; 2))  // true (모두 통과)
+console.log(nums.every(n =&gt; n &gt; 4))  // false (3에서 즉시 중지)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card">
+<h3><span class="tag">7-10</span>배열 with '전개 구문'</h3>
+<ul><li>'<code>...</code>' 은 배열의 괄호를 없애고 내용물만 꺼내기 때문에, 배열을 합치거나 중간에 삽입할 때 유용</li><li>전개 구문은 항상 새로운 배열을 만듦. 원본 배열은 전혀 변경되지 않음</li><li>배열 안의 객체는 데이터가 아닌, <b>주소 값만 복사됨</b>. 복사본의 객체를 수정하면 원본도 바뀜</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">배열 전개 구문</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">let parts = ['어깨', '무릎']
+let lyrics = ['머리', ...parts, '발']
+console.log(lyrics) // ['머리', '어깨', '무릎', '발']
+
+// 배열 합치기 (원본 불변)
+const a = [1, 2], b = [3, 4]
+console.log([...a, ...b], a, b)
+
+// 얕은 복사 주의: 안의 객체는 주소만 복사
+const users = [{ name: 'Alice' }]
+const copy = [...users]
+copy[0].name = 'Bella'
+console.log(users[0].name) // Bella (원본도 바뀜!)
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">7-11</span>배열 순회 종합</h3>
+<table class="compare"><tr><th>방식</th><th>특징</th><th>상황</th></tr><tr><td class="k">기본 for 문 (for loop)</td><td>인덱스(i)로 요소에 접근 · break, continue 사용 가능</td><td>인덱스 제어가 복잡하게 필요할 때만 사용</td></tr><tr><td class="k">for … of</td><td>배열의 요소(값)에 바로 접근 · break, continue 사용 가능</td><td>중간에 멈추거나 건너뛰어야 할 때 (제어가 필요할 때)</td></tr><tr><td class="k">forEach()</td><td>간결하고 가독성이 높음 · 콜백 함수를 이용하여 각 요소를 조작하기 용이 · break, continue 사용 불가</td><td>배열을 처음부터 끝까지 순회할 때 · 데이터를 다루는 모던 웹 개발의 핵심 패턴</td></tr></table>
+<p>※ 특정 방식을 "무조건적인 사용"보다는 <b>"상황에 맞는 사용"</b>이 권장</p>
+<div class="subhead">Array Helper Methods 정리</div>
+<table class="compare"><tr><th>메서드</th><th>역할 (Keyword)</th><th>반환 값 (Return)</th><th>활용 예시</th></tr><tr><td class="k">forEach</td><td>순회 (Loop)</td><td>없음 (undefined)</td><td>단순 출력, 외부 변수 갱신</td></tr><tr><td class="k">map</td><td>변형 (Transform)</td><td>새로운 배열 (길이 같음)</td><td>데이터 가공, 리스트 렌더링</td></tr><tr><td class="k">filter</td><td>선별 (Select)</td><td>새로운 배열 (길이 같거나 짧음)</td><td>삭제 기능, 카테고리 분류</td></tr></table>
+</div>
+  </div>
+</section>
+
+<section class="section" id="ch8" style="--accent:var(--amber)">
+  <div class="section-head"><div class="section-num">8</div><div><h2>참고</h2><p class="desc">(심화) 집계: reduce · forEach의 중요성 · 배열은 객체다 · 클래스</p></div></div>
+  <div class="card-grid">
+<div class="card">
+<h3><span class="tag">8-1</span>(심화) 집계: reduce — "배열의 요소를 하나씩 줄여가며(reduce), 결국 하나의 결과값으로 합쳐줘!"</h3>
+<ul><li>배열을 숫자 하나, 문자열 하나, 혹은 <b style="color:var(--red)">완전히 다른 형태의 객체나 배열</b>로 변환할 때 사용</li><li>핵심 비유 (눈덩이 굴리기) — 처음엔 작은 눈뭉치(초기값)였지만, 바닥을 구르며 눈(요소)을 계속 붙여서 거대한 눈사람(결과값)이 됨</li></ul>
+<pre class="formula">arr.reduce((acc, cur, index, array) => {
+  return nextAccValue
+}, initialValue)</pre>
+<ol><li><b>acc</b> (Accumulator, 누적값): 이전 단계까지 계산된 결과(눈덩이). <code>return</code>한 값이 다음 단계의 acc가 됨</li><li><b>cur</b> (Current, 현재값): 지금 처리 중인 배열의 요소 (새로 붙일 눈)</li><li><b>initialValue</b> (초기값): 눈덩이를 굴리기 시작할 때의 크기 (생략 가능하지만, <b>명시하는 것을 강력 권장</b>)</li></ol>
+</div>
+<div class="card">
+<h3><span class="tag">8-2</span>reduce 기초 활용: 숫자 합계 (Sum)</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">reduce — acc 흐름 살펴보기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const numbers = [1, 2, 3, 4, 5]
+
+const sum = numbers.reduce((acc, cur) =&gt; {
+  console.log(`누적: ${acc}, 현재: ${cur}`)
+  return acc + cur // 이 리턴 값이 다음 번 acc가 됨!
+}, 0) // 초기값 0
+
+console.log(sum) // 15
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<table class="compare"><tr><th>순회</th><th>acc (누적)</th><th>cur (현재)</th><th>return (acc + cur)</th></tr><tr><td>1회차</td><td>0</td><td>1</td><td>1</td></tr><tr><td>2회차</td><td>1</td><td>2</td><td>3</td></tr><tr><td>3회차</td><td>3</td><td>3</td><td>6</td></tr><tr><td>…</td><td>…</td><td>…</td><td>…</td></tr></table>
+</div>
+<div class="card">
+<h3><span class="tag">8-3</span>[심화] 데이터 변형: 등장 횟수 세기 (Array → Object)</h3>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">reduce — { 이름: 횟수 } 만들기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const names = ['Alice', 'Bob', 'Alice', 'Charlie', 'Bob']
+
+const nameCounts = names.reduce((acc, name) =&gt; {
+  // 현재 이름이 있으면 +1, 없으면 0에서 시작해서 +1
+  acc[name] = (acc[name] || 0) + 1
+  return acc // 수정된 객체를 다음 단계로 넘김
+}, {}) // 중요! 초기값으로 '빈 객체 {}' 설정
+
+console.log(nameCounts) // { Alice: 2, Bob: 2, Charlie: 1 }
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip"><b>TIP</b> — reduce는 숫자뿐만 아니라 객체(Object)를 누적값으로 가질 수 있습니다. 이를 통해 데이터를 그룹핑(Grouping) 할 때 매우 유용합니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">8-4</span>[심화] 만능 도구 (Map + Filter)</h3>
+<ul><li>reduce 하나만 있으면 map, filter의 기능을 모두 구현할 수 있음</li><li>한 번의 순회로 필터링(짝수만)과 변형(2배)을 동시에 처리할 수 있어 효율적일 때가 있음</li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">reduce로 filter + map</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const nums = [1, 2, 3, 4, 5]
+
+const result = nums.reduce((newArr, cur) =&gt; {
+  if (cur % 2 === 0) {      // 1. Filter 역할 (짝수일 때만)
+    newArr.push(cur * 2)    // 2. Map 역할 (2배 해서 push)
+  }
+  return newArr             // 3. 누적된 배열 반환
+}, []) // 초기값은 빈 배열 []
+
+console.log(result) // [4, 8]
+console.log(nums.filter(n =&gt; n % 2 === 0).map(n =&gt; n * 2)) // 같은 결과
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+<div class="note tip"><b>TIP</b> — 가독성을 위해서는 <code>filter().map()</code> 체이닝이 더 좋을 수 있습니다. reduce는 강력하지만 코드가 복잡해질 수 있으니 적절히 사용해야 합니다.</div>
+</div>
+<div class="card">
+<h3><span class="tag">8-5</span>forEach의 중요성 — 왜 forEach가 중요할까</h3>
+<ul><li>우리는 이미 <code>for...of</code>를 배웠고, 기능적으로는 그것만 있어도 충분</li><li>하지만, <b style="color:var(--red)">모던 웹 개발(Vue, React)에서는 forEach와 같은 '배열 메서드' 방식을 훨씬 더 선호</b> — 곧 배우게 될 프론트엔드 프레임워크 Vue.js와 Axios(서버 통신)는 대부분이 이 구조로 되어 있음</li><li>바로 '콜백 함수(Callback)' 구조 및 '코드의 작성 스타일' 때문</li></ul>
+<div class="subhead">1. 선언형 프로그래밍 (Declarative)</div>
+<ul><li><b>for...of (명령형)</b>: "어떻게(How)" 순회할지 하나하나 명령 (인덱스, break 등 제어 중심)</li><li><b>forEach (선언형)</b>: "무엇을(What)" 할지만 신경 씀 (데이터 처리 중심)</li><li>이점: 코드가 단순해지고, 데이터의 흐름이 명확히 보임. Vue나 React는 이러한 스타일을 지향. 즉, forEach는 단순 반복문이 아니라 <b style="color:var(--red)">프레임워크를 쓰기 위한 기초 체력</b></li></ul>
+<div class="subhead">2. Vue와 Axios 미리보기 — 우리가 곧 배우게 될 기술들은 forEach와 똑같은 구조(메서드 + 콜백 함수)를 가짐</div>
+<pre class="formula">// 1. forEach 메서드
+numbers.forEach((num) => {
+  console.log(num)
+})
+
+// 2. map 메서드 (데이터 변형)
+// Vue에서 데이터를 화면에 뿌릴 때 가장 많이 사용
+const newNumbers = numbers.map((num) => {
+  return num * 2
+})
+
+// 3. Vue에서 배우게 될 서버 통신 (Axios)
+// forEach랑 구조가 동일
+axios.get(url).then((response) => {
+  console.log(response)
+})</pre>
+</div>
+<div class="card">
+<h3><span class="tag">8-6</span>배열은 객체다</h3>
+<ul><li>배열도 키와 속성들을 담고 있는 참조 타입의 객체</li><li>배열의 요소를 대괄호 접근법을 사용해 접근하는 건 객체 문법과 같음 — 배열의 키는 숫자</li><li>숫자형 키를 사용해 객체의 기본 기능 외로 "순서가 있는 컬렉션"을 제어하는 특별한 메서드를 제공</li><li>배열은 <b>인덱스를 키로 가지며 length 속성을 갖는 특수한 객체</b></li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">배열의 속성 들여다보기</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">const numbers = ['Alice', 'Bella', 'Cathy']
+console.log(typeof numbers) // object
+console.log(Object.keys(numbers)) // ['0', '1', '2'] — 키는 문자열화된 숫자
+const desc = Object.getOwnPropertyDescriptors(numbers)
+console.log(desc[0])      // {value: 'Alice', writable: true, enumerable: true, configurable: true}
+console.log(desc.length)  // {value: 3, writable: true, enumerable: false, configurable: false}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">8-7</span>클래스 (class) — 객체를 생성하기 위한 템플릿</h3>
+<ul><li>객체의 속성, 메서드를 정의하는 청사진 역할</li><li>'붕어빵'을 하나 만들 때마다 손으로 직접 모양을 빚는다고 상상해보세요. 100개를 만들려면 100번의 고된 수작업이 필요하겠죠? 객체를 하나씩 선언하는 것은 이와 같습니다. 만약 우리에게 '붕어빵 틀'이 있다면 어떨까요? 이 '붕어빵 틀'이 바로 "클래스(class)" 입니다.</li></ul>
+<div class="subhead">클래스 기본 문법</div>
+<ol><li><b>class 키워드</b> — 객체의 '설계도'인 클래스를 정의하기 위해 사용하는 예약어. <u>호이스팅</u> 되지만, 선언 전에 접근하면 에러가 발생합니다. (<u>TDZ</u>)</li><li><b>클래스 이름</b> — 일반적으로 파스칼 케이스(PascalCase)로 작성. 함수처럼 이름을 생략한 '익명 클래스 표현식'으로 작성하는 것도 가능</li><li><b>생성자 메서드(constructor())</b> — new로 객체 생성 시 자동으로 호출되며, 속성 값의 초기 설정을 담당. 'constructor'라는 이름을 가진 메서드가 단 하나만 존재할 수 있음</li></ol>
+<div class="note tip"><b>호이스팅</b>: 코드를 실행하기 전에 함수, 변수, 클래스 등의 선언이 스코프 맨 위로 끌어올려지는 것처럼 보이는 현상<br><b>TDZ (Temporal Dead Zone)</b>: let, const, class 선언 전, 접근을 막는 일시적 사각 지대</div>
+<div class="subhead">클래스 특징</div>
+<ul><li>ES6에서 도입</li><li>생성자 함수를 사용하던 기존의 객체 생성 방식을 더 명확하고 객체 지향적으로 표현하기 위해 도입</li><li>그래서 클래스는 내부적으로 생성자 함수를 기반으로 동작함</li></ul>
+<pre class="formula">// 생성자 함수                         // 클래스
+function Member(name, age) {           class Member {
+  this.name = name                       constructor(name, age) {
+  this.age = age                           this.name = name
+  this.sayHi = function () {               this.age = age
+    console.log(`Hi, I am ${this.name}`)  }
+  }                                      sayHi() {
+}                                          console.log(`Hi, I am ${this.name}`)
+                                         }
+                                       }</pre>
+<div class="subhead">클래스 활용 · 'new' 연산자</div>
+<ul><li><code>new</code> 키워드는 새 객체를 만들고, constructor를 호출하여 초기 속성 값을 설정</li><li>메서드 안의 <code>this</code>는 메서드를 호출한 member1 자신을 가리킴</li><li><code>const instance = new ClassName(arg1, arg2)</code> — 클래스나 생성자 함수를 사용하여 새로운 객체를 생성. 클래스의 constructor()는 new 연산자에 의해 자동으로 호출되며 특별한 절차 없이 객체를 초기화 할 수 있음</li><li><b>new 없이 클래스를 호출하면 TypeError 발생</b></li></ul>
+<div class="ide jsbox">
+  <div class="ide-bar"><span class="ide-title js">class & new</span><span class="hint">Ctrl+Enter 실행</span>
+    <button class="reset" type="button">↺ 초기화</button><button class="run" type="button">▶ 실행</button></div>
+  <div class="ide-code"><textarea spellcheck="false">class Member {
+  constructor(name, age) {
+    this.name = name
+    this.age = age
+  }
+  sayHi() {
+    console.log(`Hi, I am ${this.name}`)
+  }
+}
+
+const member1 = new Member('Alice', 20)
+
+console.log(member1) // { name: 'Alice', age: 20 }
+console.log(member1.name) // Alice
+member1.sayHi() // Hi, I am Alice
+
+try {
+  Member('Bob', 30) // new 없이 호출
+} catch (e) {
+  console.log(e.name) // TypeError
+}
+</textarea></div>
+  <div class="ide-io"><div class="ide-out"><div class="ide-lbl"><span>console 출력</span><span class="time"></span></div><pre></pre></div></div>
+</div>
+</div>
+<div class="card full">
+<h3><span class="tag">8-8</span>실습 (SWEA/실습실 문제 번호)</h3>
+<div class="pillrow"><span class="pill">객체 · 3080. 함수와 객체 활용하기</span><span class="pill">2972. 객체와 메서드</span><span class="pill">2973. 객체 활용하기</span><span class="pill">Array helper method · 3079. 다양한 함수 표현</span><span class="pill">2968. 배열 활용하기</span><span class="pill">2971. 배열 순회2</span></div>
+</div>
+  </div>
+</section>
+
+<section class="section" id="quiz" style="--accent:var(--red)">
+  <div class="section-head"><div class="section-num">?</div><div><h2>확인문제 (원본 슬라이드 수록) + 출력 예측</h2><p class="desc">클릭하면 정답과 해설이 열립니다</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>Basic Syntax 02 확인문제</h3>
+<details class="quiz"><summary>1. this 키워드에 대한 설명으로 올바른 것은?</summary><ol class="opt" type="a"><li>항상 전역 객체(window)를 가리킨다.</li><li>함수가 선언될 때 가리키는 대상이 정해진다.</li><li>메서드를 호출한 객체를 가리킨다.</li><li>화살표 함수는 자신만의 this를 가진다.</li></ol><div class="ans"><b class="ok">정답: c) 메서드를 호출한 객체를 가리킨다.</b> — this는 함수를 호출하는 방법에 따라 결정되며, 메서드 호출 시에는 해당 메서드를 호출한 객체를 가리킵니다.</div></details>
+<details class="quiz"><summary>2. 키와 값의 변수명이 같을 때 사용하는 문법은?</summary><ol class="opt" type="a"><li>단축 속성</li><li>계산된 속성</li><li>구조 분해 할당</li><li>전개 구문</li></ol><div class="ans"><b class="ok">정답: a) 단축 속성</b> — 객체를 정의할 때, 키 이름과 값으로 쓰이는 변수 이름이 같다면 하나로 축약하여 사용할 수 있습니다.</div></details>
+<details class="quiz"><summary>3. 객체의 속성을 분해하여 변수에 할당하는 문법은?</summary><ol class="opt" type="a"><li>단축 속성</li><li>계산된 속성</li><li>구조 분해 할당</li><li>Optional Chaining</li></ol><div class="ans"><b class="ok">정답: c) 구조 분해 할당</b> — 객체의 속성을 여러 변수로 쉽게 추출할 수 있게 해주는 문법으로, 코드의 가독성을 높여줍니다.</div></details>
+<details class="quiz"><summary>4. 객체를 JSON 형식의 문자열로 변환하는 메서드는?</summary><ol class="opt" type="a"><li>JSON.parse()</li><li>JSON.stringify()</li><li>Object.toJSON()</li><li>Object.toString()</li></ol><div class="ans"><b class="ok">정답: b) JSON.stringify()</b> — JavaScript 값이나 객체를 JSON 문자열로 변환하는 역할을 합니다.</div></details>
+<details class="quiz"><summary>5. 배열의 가장 마지막에 요소를 추가하는 메서드는?</summary><ol class="opt" type="a"><li>pop()</li><li>shift()</li><li>unshift()</li><li>push()</li></ol><div class="ans"><b class="ok">정답: d) push()</b> — 배열의 끝에 하나 이상의 요소를 추가하고, 배열의 새로운 길이를 반환합니다.</div></details>
+<details class="quiz"><summary>6. 배열의 가장 앞에서 요소를 제거하는 메서드는?</summary><ol class="opt" type="a"><li>pop()</li><li>shift()</li><li>unshift()</li><li>push()</li></ol><div class="ans"><b class="ok">정답: b) shift()</b> — 배열에서 첫 번째 요소를 제거하고, 제거된 그 요소를 반환합니다.</div></details>
+<details class="quiz"><summary>7. 콜백 함수에 대한 설명으로 가장 적절한 것은?</summary><ol class="opt" type="a"><li>함수가 자기 자신을 다시 호출하는 함수</li><li>다른 함수의 인자로 전달되는 함수</li><li>여러 개의 함수를 하나로 묶는 함수</li><li>반드시 비동기적으로 작동하는 함수</li></ol><div class="ans"><b class="ok">정답: b) 다른 함수의 인자로 전달되는 함수</b> — 다른 함수의 인자로 전달되어, 특정 작업이 끝난 후 외부 함수 내에서 호출되는 함수입니다. (a는 재귀 함수)</div></details>
+<details class="quiz"><summary>8. 배열의 각 요소에 대해 함수를 실행하지만, 아무것도 반환하지 않는 메서드는?</summary><ol class="opt" type="a"><li>map()</li><li>filter()</li><li>forEach()</li><li>reduce()</li></ol><div class="ans"><b class="ok">정답: c) forEach()</b> — 각 요소에 대해 주어진 함수를 실행하지만, 항상 undefined를 반환합니다.</div></details>
+<details class="quiz"><summary>9. 배열의 모든 요소에 함수를 적용한 결과로 새로운 배열을 만드는 메서드는?</summary><ol class="opt" type="a"><li>map()</li><li>forEach()</li><li>for...of</li><li>Object.keys()</li></ol><div class="ans"><b class="ok">정답: a) map()</b> — 배열의 모든 요소에 함수를 적용하고, 그 결과들을 모아 새로운 배열로 반환합니다.</div></details>
+<details class="quiz"><summary>10. 객체의 모든 키(key)를 배열로 반환하는 메서드는?</summary><ol class="opt" type="a"><li>Object.keys()</li><li>Object.values()</li><li>Object.entries()</li><li>object.keys()</li></ol><div class="ans"><b class="ok">정답: a) Object.keys()</b> — Object.keys(obj)는 주어진 객체가 가진 속성들의 이름(키)을 문자열 배열로 반환합니다. (d는 소문자 object라 존재하지 않음)</div></details>
+<details class="quiz"><summary>11. Optional Chaining (?.)을 사용하는 주된 목적은?</summary><ol class="opt" type="a"><li>속성이 없으면 에러를 발생시키기 위해</li><li>중첩 객체의 속성을 에러 없이 안전하게 접근하기 위해</li><li>여러 함수를 연달아 호출하기 위해</li><li>중첩된 객체의 속성을 삭제하기 위해</li></ol><div class="ans"><b class="ok">정답: b) 중첩 객체의 속성을 에러 없이 안전하게 접근하기 위해</b> — 참조가 null 또는 undefined일 때 에러 대신 undefined를 반환하여 코드를 간결하게 만듭니다.</div></details>
+<details class="quiz"><summary>12. 클래스로부터 새로운 객체 인스턴스를 생성할 때 사용하는 키워드는?</summary><ol class="opt" type="a"><li>create</li><li>instance</li><li>new</li><li>this</li></ol><div class="ans"><b class="ok">정답: c) new</b> — new 연산자는 클래스의 생성자(constructor)를 호출하여 새로운 객체 인스턴스를 생성합니다.</div></details>
+</div>
+<div class="card full">
+<h3>출력 예측 (자체 제작 · 시험 대비)</h3>
+<details class="quiz"><summary>A. <code>const r = [1,2,3].forEach(n =&gt; n * 2); console.log(r)</code></summary><div class="ans"><b class="ok">undefined</b> — forEach는 반환 값이 없습니다.</div></details>
+<details class="quiz"><summary>B. <code>const a = [1,2,3]; const b = a.push(4); console.log(b)</code></summary><div class="ans"><b class="ok">4</b> — push는 추가된 요소가 아니라 <b>새 길이</b>를 반환합니다.</div></details>
+<details class="quiz"><summary>C. <code>const a = ['x','y']; console.log(a.pop(), a)</code></summary><div class="ans"><b class="ok">y ['x']</b> — pop은 제거한 요소를 반환하고 원본을 수정합니다.</div></details>
+<details class="quiz"><summary>D. <code>const { name } = { name: 'Kim', age: 3 }; console.log(name)</code></summary><div class="ans"><b class="ok">Kim</b> — 키 이름이 같은 변수에 할당됩니다.</div></details>
+<details class="quiz"><summary>E. <code>console.log(typeof JSON.stringify({a: 1}))</code></summary><div class="ans"><b class="ok">string</b> — JSON은 문자열입니다.</div></details>
+<details class="quiz"><summary>F. <code>const o = { a: 1 }; console.log(o.b?.c)</code></summary><div class="ans"><b class="ok">undefined</b> — o.b가 undefined라 평가를 멈추고 undefined. <code>o.b.c</code>였다면 TypeError.</div></details>
+<details class="quiz"><summary>G. <code>console.log({ ...{ a: 1, b: 2 }, a: 9 })</code></summary><div class="ans"><b class="ok">{ a: 9, b: 2 }</b> — 같은 키는 뒤에 쓴 값이 덮어씁니다.</div></details>
+<details class="quiz"><summary>H. <code>console.log([5, 10, 15].filter(n =&gt; n &gt; 20))</code></summary><div class="ans"><b class="ok">[]</b> — 통과한 요소가 없으면 null이 아니라 빈 배열.</div></details>
+</div>
+  </div>
+</section>
+
+<section class="section" id="sum" style="--accent:var(--navy)">
+  <div class="section-head"><div class="section-num">Σ</div><div><h2>활동 정리</h2><p class="desc">핵심 키워드 · 오늘 공부한 내용 요약</p></div></div>
+  <div class="card-grid">
+<div class="card full">
+<h3>핵심 키워드</h3>
+<table class="compare"><tr><th>개념</th><th>설명</th><th>예시</th></tr><tr><td class="k">객체 (Object)</td><td>키-값 쌍의 데이터 집합</td><td>{ key: 'value' }</td></tr><tr><td class="k">메서드 (Method)</td><td>객체 속성에 정의된 함수</td><td>user.greeting()</td></tr><tr><td class="k">this 키워드</td><td>함수를 호출한 객체를 가리킴</td><td>console.log(this.name)</td></tr><tr><td class="k">구조 분해 할당</td><td>객체 속성을 변수에 할당하는 문법</td><td>const { name } = user</td></tr><tr><td class="k">JSON</td><td>데이터를 표현하는 문자열 형식</td><td>JSON.stringify(obj)</td></tr><tr><td class="k">콜백 함수</td><td>다른 함수에 인자로 전달되는 함수</td><td>numbers.forEach(myFunc)</td></tr><tr><td class="k">forEach 메서드</td><td>배열의 모든 요소를 순회</td><td>names.forEach((name) =&gt; {})</td></tr></table>
+</div>
+<div class="card">
+<h3>객체 · 추가 객체 문법 · JSON</h3>
+<ul><li>객체는 키(key)와 값(value)으로 구성된 속성(property)들의 집합을 저장하는 자료형 · 점(.)이나 대괄호([])를 사용해 속성에 접근, 추가, 수정, 삭제 가능</li><li>메서드는 객체의 속성에 할당된 함수 · this 키워드는 메서드를 호출한 객체</li><li>일반 함수 안에서 this는 전역 객체(window)를 가리키지만, 화살표 함수는 자신만의 this를 갖지 않고 상위 스코프의 this를 참조 → 객체 메서드 내의 중첩된 함수에서 this를 다룰 때 화살표 함수가 유용함</li><li>구조 분해 할당: <code>{ a, b } = obj</code> · 전개 구문: <code>{ ...oldObj }</code>(얕은 복사) · Optional Chaining: <code>user.address?.street</code> — 중간 속성이 null이나 undefined이면 에러 대신 undefined</li><li>JSON은 JS 객체와 구조는 유사하지만 전체가 하나의 문자열 · stringify(객체→JSON), parse(JSON→객체)</li></ul>
+</div>
+<div class="card">
+<h3>배열 · Array Helper Methods</h3>
+<ul><li>배열은 순서가 있는 데이터의 집합을 저장하는 자료구조</li><li>push()와 pop()은 배열의 끝에서, unshift()와 shift()는 배열의 앞에서 요소를 추가하거나 제거 — 모두 원본 배열을 직접 수정</li><li>Array Helper Methods: 배열을 순회하며 특정 작업을 수행하는 고차 함수들로, 콜백 함수를 인자로 받음</li><li>콜백 함수: 다른 함수의 인자로 전달되어, 외부 함수 내에서 호출되는 함수</li><li>forEach(): 배열의 각 요소에 대해 콜백 함수를 실행함 반환 값은 없음</li><li>map(): 배열의 각 요소에 대해 콜백 함수를 실행하고, 그 결과를 모아 새로운 배열을 반환 · 원본 배열은 변경되지 않음</li></ul>
+</div>
+<div class="card full summary-box">
+<h3>이 문서의 큰 줄기</h3>
+<ul><li><b>한 사람 = 객체, 여러 사람 = 배열, 모두에게 같은 작업 = 배열 헬퍼 메서드.</b></li><li>this는 <b>점 앞의 객체</b>. 콜백 안에서 바깥 this를 쓰려면 <b>화살표 함수</b>.</li><li>forEach는 반환값 없음(undefined) · map은 같은 길이의 새 배열 · filter는 같거나 짧은 새 배열 · 셋 다 원본은 그대로 / push·pop·shift·unshift는 원본을 바꾼다.</li></ul>
+</div>
+  </div>
+</section>
+</main>
+
+<footer>SSAFY 16기 「JavaScript Basic Syntax 02」(11/16, 116장) 기반 개념정리 문서.</footer>
+
+<a id="top-btn" href="#">↑</a>
+<script>
+(function(){
+  var CM = window.__CM_BASE || 'https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/';
+  function loadCSS(h){ var l=document.createElement('link'); l.rel='stylesheet'; l.href=h; document.head.appendChild(l); }
+  function loadJS(s){ return new Promise(function(ok,no){ var e=document.createElement('script'); e.src=s; e.onload=ok; e.onerror=no; document.head.appendChild(e); }); }
+  var BRIDGE = "<scr"+"ipt>(function(){var ID=__ID__;function fmt(v,d){d=d||0;try{if(v===null)return 'null';if(v===undefined)return 'undefined';var t=typeof v;if(t==='string')return d?JSON.stringify(v):v;if(t==='number'||t==='boolean'||t==='bigint'||t==='symbol')return String(v);if(t==='function')return 'ƒ '+(v.name||'anonymous')+'()';if(v instanceof Element){var h=v.outerHTML;return h.length>160?h.slice(0,160)+'…':h;}if(v instanceof Text)return '#text '+JSON.stringify(v.textContent);if(typeof NodeList!=='undefined'&&(v instanceof NodeList||v instanceof HTMLCollection)){return (v instanceof NodeList?'NodeList':'HTMLCollection')+'('+v.length+') ['+Array.prototype.map.call(v,function(x){return fmt(x,d+1)}).join(', ')+']';}if(typeof DOMTokenList!=='undefined'&&v instanceof DOMTokenList)return 'DOMTokenList('+v.length+') ['+Array.prototype.map.call(v,function(x){return JSON.stringify(x)}).join(', ')+']';if(v instanceof Error)return v.name+': '+v.message;if(Array.isArray(v)){if(d>2)return '[…]';return '['+v.map(function(x){return fmt(x,d+1)}).join(', ')+']';}if(d>2)return '{…}';var ks=Object.keys(v);return '{ '+ks.map(function(k){return k+': '+fmt(v[k],d+1)}).join(', ')+' }';}catch(e){return String(v);}}function send(type,args){parent.postMessage({__jsbox:ID,type:type,s:Array.prototype.map.call(args,function(a){return fmt(a)}).join(' ')},'*');}['log','info','error','warn'].forEach(function(k){var o=console[k];console[k]=function(){send(k,arguments);try{o.apply(console,arguments)}catch(e){}};});window.addEventListener('error',function(e){send('error',[(e.error&&e.error.name?e.error.name+': '+e.error.message:e.message)]);});window.__done=function(){parent.postMessage({__jsbox:ID,type:'done'},'*');};})();</scr"+"ipt>";
+  var boxes = [];
+  function out(box, s, cls){ var pre=box.querySelector('.ide-out pre'); var sp=document.createElement('span'); if(cls) sp.className=cls; sp.textContent=s+'\n'; pre.appendChild(sp); pre.scrollTop=pre.scrollHeight; }
+  window.addEventListener('message', function(e){
+    var m=e.data; if(!m || m.__jsbox===undefined) return; var box=boxes[m.__jsbox]; if(!box) return;
+    if(m.type==='done'){ if(!box.querySelector('.ide-out pre').textContent) out(box,'(console 출력 없음)','sys'); return; }
+    out(box, m.s, m.type==='error'?'err':(m.type==='warn'?'warn':''));
+  });
+  function run(box){
+    var code=box._ed.get(); var htmlTa=box.querySelector('.html-src textarea'); var html=htmlTa?htmlTa.value:'';
+    box.querySelector('.ide-out pre').innerHTML='';
+    var safe=code.replace(/<\/script/gi,'<\\/script');
+    var doc='<!DOCTYPE html><html><head><meta charset="utf-8"><style>body{font-family:Pretendard,"Malgun Gothic",sans-serif;margin:10px;font-size:14px;color:#222} .dark-mode{background:#1e1e2e;color:#eee} .red{color:crimson}</style>'+BRIDGE.replace('__ID__', box._id)+'</head><body>'+html+'<scr'+'ipt>document.currentScript.remove();'+safe+'\n</scr'+'ipt><scr'+'ipt>document.currentScript.remove();__done()</scr'+'ipt></body></html>';
+    var old=box.querySelector('iframe.js-view'); var f=document.createElement('iframe'); f.className='js-view'; f.setAttribute('sandbox','allow-scripts allow-modals allow-forms'); f.srcdoc=doc;
+    if(!box._hasView){ f.style.display='none'; box.appendChild(f); if(old) old.remove(); }
+    else { old.replaceWith(f); }
+  }
+  function init(useCM){
+    document.querySelectorAll('.jsbox').forEach(function(box, i){
+      box._id=i; boxes[i]=box; box._hasView=!!box.querySelector('.view-wrap');
+      var ta=box.querySelector('.ide-code textarea'); var orig=ta.value; var ed;
+      if(useCM && window.CodeMirror){
+        var cm=CodeMirror.fromTextArea(ta,{mode:'javascript',lineNumbers:true,indentUnit:2,tabSize:2,matchBrackets:true,viewportMargin:Infinity,extraKeys:{'Ctrl-Enter':function(){run(box)},'Cmd-Enter':function(){run(box)},'Tab':function(c){c.replaceSelection('  ','end')}}});
+        ed={get:function(){return cm.getValue()},set:function(v){cm.setValue(v)}};
+      } else {
+        ta.rows=Math.min(26,Math.max(5,orig.split('\n').length+1));
+        ta.addEventListener('keydown',function(e){ if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run(box);} if(e.key==='Tab'){e.preventDefault();var s=ta.selectionStart;ta.value=ta.value.slice(0,s)+'  '+ta.value.slice(ta.selectionEnd);ta.selectionStart=ta.selectionEnd=s+2;} });
+        ed={get:function(){return ta.value},set:function(v){ta.value=v}};
+      }
+      box._ed=ed; var h=box.querySelector('.html-src textarea'); var origH=h?h.value:'';
+      box.querySelector('.run').onclick=function(){run(box)};
+      box.querySelector('.reset').onclick=function(){ ed.set(orig); if(h) h.value=origH; box.querySelector('.ide-out pre').innerHTML=''; };
+      if(box._hasView) run(box);
+    });
+  }
+  window.__runJS = function(i){ run(boxes[i]); };
+  loadCSS(CM+'codemirror.min.css');
+  loadJS(CM+'codemirror.min.js').then(function(){ return Promise.all([loadJS(CM+'mode/javascript/javascript.min.js'), loadJS(CM+'addon/edit/matchbrackets.min.js')]); })
+    .then(function(){ init(true); }, function(){ init(false); });
+})();
+</script>
+</body>
+</html>
