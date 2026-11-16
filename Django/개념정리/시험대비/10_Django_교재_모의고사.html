@@ -280,8 +280,8 @@ details.quiz ol.opt{margin:4px 0 6px; padding-left:22px; font-weight:400; color:
 
 <header class="hero"><div class="hero-inner">
   <span class="hero-eyebrow">DJANGO · 교재 기반 모의고사</span>
-  <h1>Django 교재 모의고사 1~3회차</h1>
-  <p class="sub">「SSAFY Django 세로압축 핵심강조 학습본」 교재 내용만으로 만든 문제예요. Intro부터 Authentication 03(비밀번호 변경·해싱·초기화)까지 20개 주제마다 객관식 1 + 빈칸 1, 회차당 40문제 × 3회차 = 120문제. 교재 확인 문제를 참고해 변형했고, Trailing Comma·Field lookups·쿠키 수명·AWS 같은 교재 심화 내용도 넣었어요. 틀린 문제는 자동으로 <b>오답노트</b>에 모이고, 풀이 기록은 이 브라우저에 저장돼요.</p>
+  <h1>Django 교재 모의고사 1~5회차</h1>
+  <p class="sub">「SSAFY Django 세로압축 핵심강조 학습본」 교재 내용만으로 만든 문제예요. Intro부터 Authentication 03(비밀번호 변경·해싱·초기화)까지 20개 주제마다 객관식 1 + 빈칸 1, 회차당 40문제 × 5회차 = 200문제 (4·5회차는 시험에 꼭 나올 핵심 내용을 다시 묻는 문제 포함). 교재 확인 문제를 참고해 변형했고, Trailing Comma·Field lookups·쿠키 수명·AWS 같은 교재 심화 내용도 넣었어요. 틀린 문제는 자동으로 <b>오답노트</b>에 모이고, 풀이 기록은 이 브라우저에 저장돼요.</p>
   <div class="hero-meta"><span>객관식 + 빈칸</span><span>회차당 40문제</span><span>교재 범위만 출제</span><span>오답노트 자동 저장</span></div>
 </div></header>
 
@@ -427,6 +427,91 @@ ROUNDS[3] = [
 {t:19,k:'sa',q:'서버가 응답할 때 쿠키를 브라우저에 보내는 HTTP 헤더 이름은?',b:['Set-Cookie'],e:'이후 브라우저는 요청마다 쿠키를 함께 보내고, 서버는 이를 확인해 사용자를 식별한다.'},
 {t:20,k:'mc',q:"'레인보우 테이블' 공격을 방어하기 위한 기법은?",o:['솔트(salt) 사용','키 스트레칭','2단계 인증(2FA)','HTTPS 사용'],a:0,e:'솔트를 붙여 해싱하면 같은 비밀번호도 사용자마다 다른 해시값이 된다. 키 스트레칭은 무차별 대입 공격 대응.'},
 {t:20,k:'sa',q:'비밀번호 초기화 이메일을 콘솔에서 확인하도록 설정하는 항목의 빈칸은?',c:"______ = 'django.core.mail.backends.console.EmailBackend'",b:['EMAIL_BACKEND'],e:'이메일 설정 없이 전송하면 ConnectionRefusedError가 난다.'},
+];
+ROUNDS[4] = [
+{t:1,k:'mc',q:'Backend에 해당하는 것은?',o:['서버 언어, 백엔드 프레임워크, 데이터베이스, API','HTML','CSS','JavaScript'],a:0,e:'Frontend: HTML, CSS, JavaScript 등 사용자 인터페이스 / Backend: 서버 측에서 클라이언트 요청 처리와 데이터베이스 상호작용.'},
+{t:1,k:'sa',q:'서비스를 <b>요청</b>하는 주체는?',b:['클라이언트','Client'],e:'클라이언트 = 웹 브라우저, 모바일 앱처럼 서비스를 요청하는 주체.'},
+{t:2,k:'mc',q:'Windows(Git Bash)에서 venv라는 가상 환경을 <b>활성화</b>하는 명령어는?',o:['source venv/Scripts/activate','python -m venv venv','pip freeze','deactivate'],a:0,e:'생성: python -m venv venv → 활성화: source venv/Scripts/activate → 비활성화: deactivate'},
+{t:2,k:'sa',q:'활성화된 가상 환경을 <b>비활성화</b>하는 명령어는?',b:['deactivate'],e:'가상 환경 활성화 → 패키지 설치 → 작업 후 deactivate.'},
+{t:3,k:'mc',q:'articles 앱을 생성하는 명령어는?',o:['python manage.py startapp articles','django-admin startproject articles','python manage.py runserver articles','pip install articles'],a:0,e:"앱 생성 후 settings.py의 INSTALLED_APPS에 'articles'를 등록해야 한다."},
+{t:3,k:'sa',q:'Django 개발 서버를 실행하는 명령어의 빈칸은?',c:'python manage.py ______',b:['runserver'],e:'manage.py가 있는 위치에서 실행한다.'},
+{t:4,k:'mc',q:'MTV 디자인 패턴에서 <b>Model</b>의 역할은?',o:['데이터와 관련된 로직을 관리','레이아웃과 화면을 처리','Model &amp; Template과 관련한 로직을 처리해서 응답을 반환','URL 패턴을 정의'],a:0,e:'Model: 데이터와 관련된 로직을 관리 / Template: 레이아웃과 화면을 처리 / View: Model &amp; Template과 관련한 로직을 처리해서 응답을 반환.'},
+{t:4,k:'sa',q:'템플릿에 데이터를 넘기는 render의 세 번째 인자 빈칸은?',c:"context = {'name': 'Alice'}\nreturn render(request, 'articles/index.html', ______)",b:['context'],e:'render(request, template_name, context) — context는 템플릿에서 사용할 데이터(딕셔너리).'},
+{t:5,k:'mc',q:'DTL에서 for 반복문을 닫는 태그는?',o:['{% endfor %}','{% end %}','{% /for %}','{{ endfor }}'],a:0,e:'일부 태그는 시작 태그와 종료 태그가 필요하다. {% for %} … {% endfor %}, {% if %} … {% endif %}'},
+{t:5,k:'sa',q:'로그인한 사용자일 때만 내용을 출력하도록 빈칸을 채우시오.',c:'{% ______ user.is_authenticated %}\n  <p>안녕하세요</p>\n{% endif %}',b:['if'],e:'태그 {% %}: 반복 또는 논리를 수행하여 제어 흐름을 만든다.'},
+{t:6,k:'mc',q:'{% extends %} 태그 사용 규칙으로 옳은 것은?',o:['자식 템플릿 최상단에 작성하며 2개 이상 사용할 수 없다','자식 템플릿 어디에 써도 된다','여러 개를 써서 다중 상속할 수 있다','부모 템플릿에 작성한다'],a:0,e:"자식(하위) 템플릿이 부모 템플릿을 확장한다는 것을 알리며, 반드시 최상단에 1개만."},
+{t:6,k:'sa',q:'base.html을 상속받도록 빈칸을 채우시오.',c:"{% ______ 'base.html' %}\n\n{% block content %}\n  ...\n{% endblock content %}",b:['extends'],e:'상위 템플릿에 공통 요소를, 하위 템플릿에서 block 영역만 재정의한다.'},
+{t:7,k:'mc',q:'method="GET"인 form으로 데이터를 보내면 데이터는 어디에 담기는가?',o:['URL의 Query String (?key=value)','HTTP body','쿠키','세션'],a:0,e:'GET은 URL 뒤 Query String, POST는 HTTP body에 데이터를 담는다.'},
+{t:7,k:'sa',q:'GET 요청으로 전송된 message 값을 view에서 꺼내도록 빈칸을 채우시오. (대문자)',c:"def catch(request):\n    message = request.______.get('message')",b:['GET'],cs:true,e:'request.GET은 Query String 데이터가 담긴 딕셔너리 형태 객체.'},
+{t:8,k:'mc',q:'Variable Routing을 사용하는 이유로 가장 알맞은 것은?',o:['URL 일부를 변수로 받아 하나의 view·템플릿으로 여러 페이지를 처리할 수 있다','URL을 암호화하기 위해','DB 테이블을 만들기 위해','정적 파일을 제공하기 위해'],a:0,e:"예: 'articles/&lt;int:num&gt;/' 하나로 1번, 2번, 3번 … 게시글 페이지를 모두 처리."},
+{t:8,k:'sa',q:'URL에서 받은 변수를 view 함수가 받도록 빈칸을 채우시오.',c:"# urls.py\npath('articles/<int:num>/', views.detail)\n\n# views.py\ndef detail(request, ______):\n    ...",b:['num'],e:'URL 패턴의 변수 이름과 view 함수의 매개변수 이름이 같아야 한다.'},
+{t:9,k:'mc',q:"include()를 만났을 때 Django의 동작으로 옳은 것은?",o:['일치하는 부분까지 잘라내고 남은 문자열 부분을 include된 앱 urls.py로 전달한다','전체 URL을 그대로 views.py로 전달한다','템플릿을 바로 렌더링한다','항상 404를 반환한다'],a:0,e:'URL 구조를 앱 단위로 나누어 관리할 수 있다.'},
+{t:9,k:'sa',q:'URL에 이름을 붙이는 path() 인자의 빈칸은?',c:"path('index/', views.index, ______='index')",b:['name'],e:"{% url 'index' %}처럼 이름으로 주소를 찾을 수 있다. 주소가 바뀌어도 템플릿을 수정할 필요가 없다."},
+{t:10,k:'mc',q:'max_length, null, blank처럼 필드의 동작과 제약 조건을 정의하는 것은?',o:['Field options','Field types','Model Manager','QuerySet'],a:0,e:'Field types: 데이터 유형(CharField, TextField 등) / Field options: 동작과 제약 조건.'},
+{t:10,k:'sa',q:'데이터가 <b>처음 생성될 때만</b> 현재 시각을 자동 저장하도록 빈칸을 채우시오.',c:'created_at = models.DateTimeField(______=True)',b:['auto_now_add'],e:'auto_now_add: 최초 생성 시각 / auto_now: 저장될 때마다 갱신.'},
+{t:11,k:'mc',q:'이미 migrate한 모델에 새 필드를 추가했다. 올바른 순서는?',o:['makemigrations → migrate','migrate만 실행','makemigrations만 실행','runserver → migrate'],a:0,e:'모델(설계도)이 바뀌면 새 migration 파일을 만들고 DB에 다시 반영한다.'},
+{t:11,k:'sa',q:'migration 파일을 실제 DB에 반영하는 명령어의 빈칸은?',c:'python manage.py ______',b:['migrate'],e:'makemigrations = 설계도 생성, migrate = DB에 반영.'},
+{t:12,k:'mc',q:'QuerySet에 대한 설명으로 옳은 것은?',o:['데이터베이스에게서 전달받은 객체 목록으로, 순회가 가능하다','항상 단일 객체이다','HTML 템플릿의 일종이다','SQL 파일이다'],a:0,e:'all(), filter()는 QuerySet을, get()은 단일 객체를 반환한다.'},
+{t:12,k:'sa',q:'모델 클래스가 DB와 소통하게 해 주는 Manager의 이름 빈칸은?',c:'Article.______.all()',b:['objects'],e:'Article(모델 클래스).objects(매니저).all()(QuerySet API)'},
+{t:13,k:'mc',q:'get()을 사용할 때 주의할 점으로 옳은 것은?',o:['결과가 없으면 DoesNotExist, 둘 이상이면 MultipleObjectsReturned 예외가 발생한다','결과가 없으면 빈 QuerySet을 반환한다','여러 개면 첫 번째만 반환한다','항상 리스트를 반환한다'],a:0,e:'get()은 pk처럼 고유성이 보장되는 조회에서 사용한다.'},
+{t:13,k:'sa',q:'조회한 게시글을 삭제하도록 빈칸을 채우시오.',c:'article = Article.objects.get(pk=1)\narticle.______()',b:['delete'],e:'조회 → delete()'},
+{t:14,k:'mc',q:'HTTP response status code 범주 중 <b>서버 오류</b>를 나타내는 것은?',o:['5xx','4xx','3xx','2xx'],a:0,e:'2xx 성공 / 3xx 리다이렉션 / 4xx 클라이언트 오류 / 5xx 서버 오류.'},
+{t:14,k:'sa',q:'POST로 전송된 title 값을 꺼내도록 빈칸을 채우시오. (대문자)',c:"title = request.______.get('title')",b:['POST'],cs:true,e:'GET 데이터는 request.GET, POST 데이터는 request.POST.'},
+{t:15,k:'mc',q:'Django가 POST 요청에만 CSRF Token을 확인하는 이유는?',o:['POST는 단순 조회가 아니라 데이터베이스에 변경 사항을 만드는 요청이기 때문','GET이 더 안전한 암호화를 쓰기 때문','POST는 URL에 데이터가 보이기 때문','GET은 서버에 전달되지 않기 때문'],a:0,e:'데이터 생성·수정·삭제 요청이 위조되지 않도록 토큰으로 검증한다.'},
+{t:15,k:'sa',q:'redirect를 사용하기 위한 import 빈칸은?',c:'from django.shortcuts import render, ______',b:['redirect'],e:'저장 후 return redirect(...)로 다른 페이지로 이동시킨다.'},
+{t:16,k:'mc',q:'Model과 연결되지 <b>않은</b> 일반 Form 클래스가 상속받는 것은?',o:['forms.Form','forms.ModelForm','models.Model','forms.Widget'],a:0,e:'class ArticleForm(forms.Form): — ModelForm은 forms.ModelForm을 상속.'},
+{t:16,k:'sa',q:'content를 여러 줄 입력창으로 렌더링하도록 빈칸을 채우시오.',c:'content = forms.CharField(widget=forms.______)',b:['Textarea'],e:'Widget은 입력 요소가 HTML에서 어떻게 렌더링될지를 정한다.'},
+{t:17,k:'mc',q:'new와 create를 하나로 합친 create view의 동작으로 옳은 것은?',o:['GET이면 빈 form을 보여주고, POST면 유효성 검사 후 저장한다','GET이면 저장, POST면 빈 form 출력','항상 저장한다','항상 빈 form만 출력한다'],a:0,e:"if request.method == 'POST': … else: form = ArticleForm()"},
+{t:17,k:'sa',q:'ModelForm에 연결할 모델 정보를 작성하는 내부 클래스의 빈칸은?',c:"class ArticleForm(forms.ModelForm):\n    class ______:\n        model = Article\n        fields = '__all__'",b:['Meta'],e:'Meta 클래스에 model, fields(또는 exclude)를 지정한다.'},
+{t:18,k:'mc',q:'Media file에 대한 설명으로 옳은 것은?',o:['사용자가 웹에서 업로드하는 정적 파일','개발자가 미리 준비한 CSS 파일','데이터베이스 테이블','Django 설정 파일'],a:0,e:'Static file: 고정적으로 제공 / Media file: 사용자 업로드 (user-uploaded).'},
+{t:18,k:'sa',q:'템플릿에서 static 태그를 사용하기 위한 빈칸은?',c:"{% ______ static %}\n<img src=\"{% static 'articles/sample.jpg' %}\" alt=\"img\">",b:['load'],e:'{% load static %}을 먼저 작성해야 {% static %}을 쓸 수 있다.'},
+{t:19,k:'mc',q:'쿠키의 사용 목적이 <b>아닌</b> 것은?',o:['비밀번호 해싱','세션 관리','개인화','트래킹'],a:0,e:'쿠키 사용 목적: 세션 관리(로그인·장바구니), 개인화(테마·언어), 트래킹(사용자 행동 분석).'},
+{t:19,k:'sa',q:'Custom User 모델이 상속받는 클래스의 빈칸은? (대소문자 주의)',c:'# accounts/models.py\nclass User(______):\n    pass',b:['AbstractUser'],cs:true,e:"from django.contrib.auth.models import AbstractUser — 이후 AUTH_USER_MODEL = 'accounts.User'"},
+{t:20,k:'mc',q:'logout 함수의 동작으로 옳은 것은?',o:['DB에서 현재 요청에 대한 Session Data를 삭제하고, 클라이언트 쿠키에서 sessionid를 삭제한다','User 객체를 DB에서 삭제한다','비밀번호를 초기화한다','쿠키만 남기고 세션을 연장한다'],a:0,e:'로그아웃 = 세션을 삭제하는 과정.'},
+{t:20,k:'sa',q:'로그인 처리 코드의 빈칸은? (교재 import 별칭)',c:"form = AuthenticationForm(request, request.POST)\nif form.is_valid():\n    ______(request, form.get_user())",b:['auth_login','login'],e:'from django.contrib.auth import login as auth_login — view 함수 이름 login과 겹치지 않도록 별칭 사용.'},
+];
+
+ROUNDS[5] = [
+{t:1,k:'mc',q:'웹 프레임워크를 사용하는 이유로 가장 알맞은 것은?',o:['기본 구조·규칙·라이브러리를 제공해 웹 애플리케이션을 빠르게 개발할 수 있다','데이터베이스를 대체한다','브라우저를 만들 수 있다','HTML 없이 화면을 그린다'],a:0,e:'예: Django, Spring, Express.'},
+{t:1,k:'sa',q:'클라이언트가 서버에 보내는 것은 ______, 서버가 돌려주는 것은 응답이다.',b:['요청','Request'],e:'클라이언트 요청 → 서버가 알맞은 데이터 또는 파일로 응답.'},
+{t:2,k:'mc',q:'requirements.txt를 사용하는 목적은?',o:['설치된 패키지 목록을 공유해 팀원이 같은 환경을 구성하게 하기 위해','DB 데이터를 백업하기 위해','비밀번호를 저장하기 위해','URL 목록을 저장하기 위해'],a:0,e:'pip freeze > requirements.txt → pip install -r requirements.txt'},
+{t:2,k:'sa',q:'가상 환경에 Django를 설치하는 명령어의 빈칸은?',c:'pip install ______',b:['django','Django'],e:'가상 환경을 활성화한 상태에서 설치해야 해당 환경에만 설치된다.'},
+{t:3,k:'mc',q:'앱을 만든 뒤 Django가 그 앱을 인식하게 하려면?',o:['settings.py의 INSTALLED_APPS에 앱 이름을 등록한다','urls.py에 앱 이름을 쓴다','models.py를 삭제한다','manage.py를 수정한다'],a:0,e:'반드시 앱을 생성한 후에 등록해야 한다(등록 후 생성 불가).'},
+{t:3,k:'sa',q:'프로젝트의 모든 설정을 관리하는 파일 이름은?',b:['settings.py','settings'],e:'INSTALLED_APPS, TEMPLATES, DATABASES, STATIC_URL 등이 들어 있다.'},
+{t:4,k:'mc',q:'MTV 디자인 패턴에서 <b>View</b>의 역할은?',o:['Model &amp; Template과 관련한 로직을 처리해서 응답을 반환','데이터와 관련된 로직을 관리','레이아웃과 화면을 처리','DB 테이블을 생성'],a:0,e:'View: 클라이언트 요청에 대해 처리를 분기하고, 데이터를 Model에서 가져와 Template으로 보낸다.'},
+{t:4,k:'sa',q:"view에서 context = {'name': 'Alice'}를 넘겼을 때, 템플릿에서 Alice를 출력하는 코드의 빈칸은?",c:'<p>{{ ______ }}</p>',b:['name'],e:'context 딕셔너리의 key가 템플릿 변수 이름이 된다.'},
+{t:5,k:'mc',q:'DTL 필터(Filters)에 대한 설명으로 옳은 것은?',o:['여러 필터를 연결(chained)할 수 있고, 일부 필터는 인자를 받는다','하나의 변수에 필터를 하나만 쓸 수 있다','DB 값을 직접 수정한다','{% %} 안에서만 쓸 수 있다'],a:0,e:'약 60개의 built-in template filters 제공. 예: {{ name|truncatewords:30 }}'},
+{t:5,k:'sa',q:'name 변수를 모두 소문자로 출력하는 필터의 빈칸은?',c:'{{ name|______ }}',b:['lower'],e:'필터 = 변수를 특정 조건으로 수정해서 출력.'},
+{t:6,k:'mc',q:'템플릿 상속을 사용하는 이유로 가장 알맞은 것은?',o:['페이지의 공통 구조·레이아웃을 상위 템플릿에 두고 재사용하기 위해','DB를 공유하기 위해','URL을 줄이기 위해','CSS를 대체하기 위해'],a:0,e:'모든 템플릿에 반복되는 코드(Bootstrap, nav 등)를 base.html에 한 번만 작성한다.'},
+{t:6,k:'sa',q:'articles/templates/articles/index.html을 렌더링하는 경로의 빈칸은?',c:"return render(request, '______')",b:['articles/index.html'],e:'templates 폴더 다음 경로부터 작성한다. 앱 이름 폴더를 한 번 더 두어 다른 앱 템플릿과 이름 충돌을 막는다.'},
+{t:7,k:'mc',q:'검색처럼 데이터를 <b>조회만</b> 하는 form에 알맞은 method는?',o:['GET','POST','PUT','DELETE'],a:0,e:'조회 = GET, DB 변경(생성·수정·삭제) = POST.'},
+{t:7,k:'sa',q:'input의 name 속성 값은 서버에서 데이터를 꺼낼 때 무엇이 되는가? (사용자 입력 값은 value)',b:['key','키'],e:'예: ?message=hello → key: message, value: hello'},
+{t:8,k:'mc',q:'URL에서 <b>정수</b>를 받는 path converter는?',o:['int','str','num','integer'],a:0,e:"'articles/&lt;int:pk&gt;/' — 정수, 'hello/&lt;str:name&gt;/' — 문자열."},
+{t:8,k:'sa',q:'urls.py와 맞도록 view 함수 매개변수 빈칸을 채우시오.',c:"# urls.py\npath('articles/<int:pk>/', views.detail, name='detail')\n\n# views.py\ndef detail(request, ______):\n    article = Article.objects.get(pk=pk)",b:['pk'],e:'URL 변수 이름 = view 함수 매개변수 이름.'},
+{t:9,k:'mc',q:"articles/urls.py에 app_name = 'articles'를 지정한 뒤 올바른 url 태그는?",o:["{% url 'articles:index' %}","{% url 'index' %}","{% url 'articles.index' %}","{% url articles/index %}"],a:0,e:"app_name을 지정하면 'app_name:URL이름' 형태로만 찾는다."},
+{t:9,k:'sa',q:'include를 사용하기 위한 import 빈칸은?',c:'from django.urls import path, ______',b:['include'],e:"path('articles/', include('articles.urls'))"},
+{t:10,k:'mc',q:'모델에 id 필드를 직접 정의하지 않으면?',o:['Django가 기본 키(id) 필드를 자동으로 생성한다','migrate 시 에러가 발생한다','id 없이 테이블이 만들어진다','직접 정의해야만 저장할 수 있다'],a:0,e:'id(pk)는 자동 생성되며, 모델 클래스에는 나머지 필드만 정의한다.'},
+{t:10,k:'sa',q:'데이터가 <b>저장될 때마다</b> 현재 시각으로 갱신되도록 빈칸을 채우시오.',c:'updated_at = models.DateTimeField(______=True)',b:['auto_now'],e:'auto_now_add: 최초 생성 시각 / auto_now: 수정 시각.'},
+{t:11,k:'mc',q:'Admin 사이트에 대한 설명으로 옳지 <b>않은</b> 것은?',o:['admin.py에 등록하지 않아도 모든 모델이 자동으로 표시된다','createsuperuser로 관리자 계정을 만든다','/admin/ 주소로 접속한다','모델 데이터를 쉽게 조회·생성·수정·삭제할 수 있다'],a:0,e:'admin.site.register(Article)처럼 등록해야 admin site에 보인다.'},
+{t:11,k:'sa',q:'makemigrations로 생성된 migration 파일이 저장되는 앱 안의 폴더 이름은?',b:['migrations'],e:'예: articles/migrations/0001_initial.py'},
+{t:12,k:'mc',q:"article = Article() → article.title = 'first' 까지만 실행하고 save()를 호출하지 않으면?",o:['DB에 저장되지 않는다','자동으로 저장된다','에러가 발생한다','기존 데이터가 삭제된다'],a:0,e:'인스턴스 생성 → 값 할당 → save()를 호출해야 DB에 저장된다. create()는 생성과 저장을 한 번에.'},
+{t:12,k:'sa',q:'pk가 1인 게시글 <b>하나</b>를 조회하도록 빈칸을 채우시오.',c:'article = Article.objects.______(pk=1)',b:['get'],e:'get()은 단일 객체를 반환한다.'},
+{t:13,k:'mc',q:"대소문자 구분 없이 content에 'dj'가 <b>포함된</b> 글을 찾는 Field lookup은?",o:['icontains','contains','iexact','startswith'],a:0,e:"Article.objects.filter(content__icontains='dj') — i가 붙으면 대소문자 구분 없음."},
+{t:13,k:'sa',q:'숫자 필드에서 값보다 <b>큰(초과)</b> 데이터를 찾는 Field lookup 이름은?',b:['gt'],e:'gt(초과), gte(이상), lt(미만), lte(이하).'},
+{t:14,k:'mc',q:'POST 요청이 알맞은 경우는?',o:['게시글 작성','게시글 목록 조회','검색','상세 페이지 조회'],a:0,e:'데이터 생성·수정·삭제처럼 서버의 데이터를 변경할 때 POST.'},
+{t:14,k:'sa',q:'요청이 성공적으로 처리되었을 때의 status code는?',b:['200','200 OK'],e:'200 OK / 302 Found / 403 Forbidden / 404 Not Found / 500 Internal Server Error'},
+{t:15,k:'mc',q:'redirect() 응답을 받은 브라우저는 지정된 URL로 어떤 요청을 다시 보내는가?',o:['GET','POST','PUT','DELETE'],a:0,e:'POST로 저장 → redirect → 브라우저가 상세 페이지로 GET 요청.'},
+{t:15,k:'sa',q:'CSRF의 풀네임 빈칸은? Cross-Site Request ______',b:['Forgery'],e:'사이트 간 요청 위조.'},
+{t:16,k:'mc',q:'Widget에 대한 설명으로 옳은 것은?',o:['HTML 입력 요소의 렌더링만 담당하며 유효성 검사와는 관계가 없다','유효성 검사를 담당한다','DB 컬럼을 정의한다','URL을 처리한다'],a:0,e:'Widget은 반드시 Form Field의 widget 인자로 지정한다.'},
+{t:16,k:'sa',q:'비밀번호 입력창(type="password")으로 렌더링하도록 빈칸을 채우시오.',c:'password = forms.CharField(widget=forms.______())',b:['PasswordInput'],e:'TextInput, Textarea, PasswordInput 등 다양한 Widget이 있다.'},
+{t:17,k:'mc',q:"ModelForm Meta에서 <code>fields = '__all__'</code>의 의미는?",o:['모델의 모든 필드를 form에 포함한다','모든 필드를 제외한다','필수 필드만 포함한다','에러가 난다'],a:0,e:"필요한 필드만: fields = ('title', 'content',) / 제외: exclude = ('title',)"},
+{t:17,k:'sa',q:'사용자가 제출한 데이터로 form을 만들도록 빈칸을 채우시오.',c:"if request.method == 'POST':\n    form = ArticleForm(______)\n    if form.is_valid():\n        article = form.save()",b:['request.POST'],e:'수정 시에는 ArticleForm(request.POST, instance=article).'},
+{t:18,k:'mc',q:'settings.py의 STATICFILES_DIRS 역할은?',o:['앱의 static 폴더 외에 정적 파일을 찾을 추가 경로를 지정','정적 파일 URL 접두사 지정','업로드 파일 저장 경로 지정','DB 경로 지정'],a:0,e:"STATICFILES_DIRS = [BASE_DIR / 'static',]"},
+{t:18,k:'sa',q:'파일을 업로드하는 form에 반드시 추가해야 하는 속성의 빈칸은?',c:'<form action="..." method="POST" ______="multipart/form-data">',b:['enctype'],e:'view에서는 ArticleForm(request.POST, request.FILES)로 파일을 함께 받는다.'},
+{t:19,k:'mc',q:'세션(Session)의 동작으로 옳은 것은?',o:['서버가 session 데이터를 저장하고, 클라이언트에는 session id를 쿠키로 발급한다','클라이언트가 모든 정보를 직접 저장한다','HTTP가 스스로 상태를 기억한다','서버는 아무것도 저장하지 않는다'],a:0,e:'브라우저는 요청마다 sessionid 쿠키를 보내고, 서버는 이를 확인해 로그인 상태를 유지한다.'},
+{t:19,k:'sa',q:'현재 활성화된 User 모델을 가져오는 함수의 빈칸은?',c:'class CustomUserCreationForm(UserCreationForm):\n    class Meta(UserCreationForm.Meta):\n        model = ______()',b:['get_user_model'],e:'User 모델을 직접 참조하지 않고 get_user_model()을 사용한다.'},
+{t:20,k:'mc',q:'AuthenticationForm을 올바르게 생성한 코드는?',o:['AuthenticationForm(request, request.POST)','AuthenticationForm(request.POST)','AuthenticationForm(request.POST, request)','AuthenticationForm(user=request.user)'],a:0,e:'AuthenticationForm은 첫 번째 인자로 request를 받는다. (ModelForm이 아닌 일반 Form)'},
+{t:20,k:'sa',q:'비밀번호 변경 form의 첫 번째 인자 빈칸은?',c:'form = PasswordChangeForm(______, request.POST)',b:['request.user','user'],e:'PasswordChangeForm(user, data) — 변경할 사용자가 먼저. 변경 후 update_session_auth_hash(request, user).'},
 ];
 const TOPICS = ["", "웹 기초·클라이언트와 서버", "가상 환경·패키지·SQLite", "프로젝트·앱·Django 규칙", "MTV·요청과 응답·render", "DTL 변수·필터·태그", "템플릿 상속·템플릿 경로", "HTML form", "URL·Variable Routing", "include·app_name·url 태그", "Model·Field", "Migrations·Admin", "ORM 생성·조회", "ORM 수정·삭제·Field lookups", "HTTP method·status code", "CSRF·redirect", "Form·Widget", "ModelForm", "Static·Media·AWS", "쿠키·세션·Custom User", "로그아웃·탈퇴·비밀번호"];
 const COLORS = {"1": "teal", "2": "teal", "3": "teal", "4": "blue", "5": "blue", "6": "blue", "7": "blue", "8": "purple", "9": "purple", "10": "orange", "11": "orange", "12": "indigo", "13": "indigo", "14": "pink", "15": "pink", "16": "green", "17": "green", "18": "green", "19": "red", "20": "red"};
