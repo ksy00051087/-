@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <script>
+      // 함수 선언식 예시
+      function myFunc() {}
+      // 함수 표현식 : 익명함수를 변수에서 할당해서 사용
+      const myFunc2 = function () {};
+
+      // javascript ojbect : 딕셔너리와 같이 key-value 쌍
+      //                     key는 무조건 문자열
+      const user = {
+        name: "홍길동",
+        age: 17,
+      };
+      const user2 = {
+        name: "홍길동",
+        age: 17,
+      };
+      // javascript 에서는function도 자료형
+
+      // this = 자바스크립트에서 this는 객체 자신을 지칭하지 않음
+      // 자바스크립트 this는 객체가 아니라 ""함수"" 에서 사용가능하다
+      // this는 함수가 호출되는 시점에 결정된다.
+
+      // Array Helper Method 이용해서 Array 요소 접근하기
+      // forEach : Array 각 요소에 대해서 코드 실행!
+      // map : Array 각 요소에 대해서 코드 실행하고 그결과를 모아서 저장
+      // 각 요소의 제곱을 모두 저장하라
+      // filter : Array 요소들 중에 조건을 만족하는요소만 모아서 저장
+
+      const arr = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
+      // 각 요소를 출력하세요!
+      // for(num in arr){
+      // 11 console . log(num)
+      // // }
+
+      //각 요소에 대해서 실행할 동작을 함수로 만들어서 forEach에 인자로 넣어주면 됩니다
+      function print(num) {
+        console.log(num * num);
+      }
+
+      const result1 = arr.forEach(printNum); // 각 요소에 대해서 인자로 넘겨진 함수 실행
+      console.log(result1); // forEach의 반환값 undefined
+    </script>
+  </body>
+</html>
