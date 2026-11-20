@@ -1,0 +1,87 @@
+단축속성 중요함 많이 쓸거다
+
+단축 메서드 myFunc 뒤에 funcion 제거
+
+사용자가 넣은값을 키로 쓰고싶다? \[]를 넣으면됨 (대괄호 안의 표현식이 복잡해지면 가독성이 어렵고 기존 키를 덮어쓸 가능성이있다)
+
+Optional Chaining은 존재하지 않아도 괜찮은 대상에만 사용애야함 그리고 변수는 반드시 선언되야함
+
+null 과 undefined 일떄만 작동한다
+
+1\. obj? . prop
+
+obj가 존재하면 obj.prop을 반환하고, 그렇지 않으면 undefined를 반환
+
+2\. obik .\[prop ]
+
+obj가 존재하면 obj\[prop]을 반환하고, 그렇지 않으면 undefined를 반환
+
+3\. obj ?. method()
+
+obj가 존재하면 obj.method()를 호출하고, 그렇지 않으면 undefined를 반환
+
+배여은 대괄호로 작성하고 대괄호로 접근 한다
+
+기본 조작 메서드
+
+push() - 원본 배열을 직접 수정/ 반환값: 추가된 루 새로운 배욜의 길기
+
+pop() - 배열 끝 요소를 제거 / 반환값: 추가된 제거한 요소
+
+unshift() - 배열 앞에 추가 /반환값:
+
+shift() - 배열 앞 요소를 제거 / 반환값: 제거한요소
+
+콜백 함수란?(callBackFunction)
+
+함수의 인자로 전달되어, 특정시점에 호출되는 함수
+
+어떤 작업이 완료된 후, "나중에 호출해줘" 라고 넘겨주는 함수
+
+// forEach 구문 arr. forEach(callback(item\[, index\[, array]]))
+
+// 기본 구문
+
+1 1 array. forEach(function (item, index, (array) { // do something })
+
+1\. item (필수): 현재 처리 중인 배열의 요소
+
+2\. index (선택): 현재 처리 중인 요소의 인덱스(0, 1, 2 ... )
+
+3\. array (선택): 메서드를 호출한 배열 본체
+
+map이란?
+
+배열의 모든요소를 하나씩꺼내서 변형 시킨뒤 새로운배열로 만들어 준다
+
+원본의 배열 요소를 1:1로 매핑하여 새로운 배열을 반환
+
+Input: 원재료 (원본 배열) ··
+
+Process: 가공 기계 (콜백 함수) ·
+
+Output: 완제품 (새로운 배열) ·
+
+특징: 원본 배열의 개수와 결과 배열의 개수는 항상 같음
+
+&#x09;map은 원본 배열을 절대 변경하지 않는다(불변성)
+
+button.addEventListener("click", handleClick); **handleClick < undefiend**
+
+DOM 요소: HTML 문서의 각 태그를 하나의 객체로 변환한 것
+
+수신할 이벤트: 무언가 일어났다는 신호 또는 사건
+
+핸들러: 특정이벤트가 발생했을 때 실행되는 (콜백)함수
+
+이거 시험에 무조건 나옴
+function createCard() {
+이벤트 핸들러의 첫 번쨰 인자는 이벤트 객체
+event 객체를 이용해서 원래 하려던 일을 막을 수 있다
+event.preventDefault();
+
+form 요소에 submit 이벤트가 발생하면
+form 내부에 input 요소들에 작성된 내용으로 카드만들기
+sumbit 이벤트가 발생하더라도, 새로고침 되니까 그림 그려도 페이지 리로딩 없었던 일로
+새로고침이 되면 안 됨!
+submit 이벤트가 발생하면 원래 하려던거 하지마! form 요소는 원래 요청을 만들어내는데 그거하지마!!!
